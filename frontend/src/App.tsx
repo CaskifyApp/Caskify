@@ -1,41 +1,25 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Greet } from "../wailsjs/go/main/App";
+import { ConnectionList } from '@/components/Sidebar/ConnectionList';
 
 function App() {
-    const [resultText, setResultText] = useState("Please enter your name below 👇");
-    const [name, setName] = useState('');
-
-    const updateName = (e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value);
-    const updateResultText = (result: string) => setResultText(result);
-
-    function greet() {
-        Greet(name).then(updateResultText);
-    }
-
-    return (
-        <div className="flex min-h-screen items-center justify-center bg-[#1b2636]">
-            <Card className="w-[350px]">
-                <CardHeader>
-                    <CardTitle className="text-center">Welcome</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="text-center text-lg font-medium">{resultText}</div>
-                    <div className="flex gap-2">
-                        <Input
-                            value={name}
-                            onChange={updateName}
-                            placeholder="Enter your name"
-                            autoComplete="off"
-                        />
-                        <Button onClick={greet}>Greet</Button>
-                    </div>
-                </CardContent>
-            </Card>
+  return (
+    <div className="flex h-screen bg-background text-foreground">
+      <aside className="w-64 border-r flex flex-col">
+        <div className="p-3 border-b">
+          <h1 className="font-semibold text-lg">CaskPG</h1>
+          <p className="text-xs text-muted-foreground">PostgreSQL Manager</p>
         </div>
-    )
+        <div className="flex-1 overflow-hidden">
+          <ConnectionList />
+        </div>
+      </aside>
+      <main className="flex-1 flex items-center justify-center bg-muted/30">
+        <div className="text-center text-muted-foreground">
+          <p className="text-lg">Select a connection to get started</p>
+          <p className="text-sm">or create a new one from the sidebar</p>
+        </div>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;

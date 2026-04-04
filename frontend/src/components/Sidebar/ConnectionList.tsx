@@ -1,0 +1,135 @@
+import { useEffect } from 'react';
+import { Plus, Trash2, Edit2, Plug, PlugZap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useConnectionStore } from '@/store/connectionStore';
+import { useDeleteProfile, useConnectProfile, useDisconnectProfile } from '@/hooks/useConnection';
+import { ConnectionModal } from '@/components/Modals/ConnectionModal';
+import { useState } from 'react';
+import type { Profile } from '@/types';
+
+export function ConnectionList() {
+  const { profiles, loadProfiles } = useConnectionStore();
+  const { remove, deleting } = useDeleteProfile();
+  const { connect, connecting } = useConnectProfile();
+  const { disconnect, disconnecting } = useDisconnectProfile();
+  
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    loadProfiles();
+  }, [loadProfiles]);
+
+  const handleEdit = (profile: Profile) => {
+    setEditingProfile(profile);
+    setModalOpen(true);
+  };
+
+  const handleNew = () => {
+    setEditingProfile(null);
+    setModalOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this connection?')) {
+      await remove(id);
+    }
+  };
+
+  const handleConnect = async (profileId: string) => {
+    try {
+      await connect(profileId);
+    } catch {
+    }
+  };
+
+  const handleDisconnect = async (profileId: string) => {
+    await disconnect(profileId);
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between p-3 border-b">
+        <h3 className="font-medium text-sm">Connections</h3>
+        <Button variant="ghost" size="icon-xs" onClick={handleNew}>
+          <Plus className="size-4" />
+        </Button>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto">
+        {profiles.length === 0 ? (
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            No connections yet.
+            <br />
+            Click + to add one.
+          </div>
+        ) : (
+          <ul className="p-2">
+            {profiles.map((profile) => {
+              const status = useConnectionStore.getState().connectionStatuses.get(profile.id);
+              const isConnected = status?.connected || false;
+              
+              return (
+                <li key={profile.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted group">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{profile.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {profile.host}:{profile.port}/{profile.database}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {isConnected ? (
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => handleDisconnect(profile.id)}
+                        disabled={disconnecting}
+                        title="Disconnect"
+                      >
+                        <PlugZap className="size-3 text-green-500" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => handleConnect(profile.id)}
+                        disabled={connecting}
+                        title="Connect"
+                      >
+                        <Plug className="size-3" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => handleEdit(profile)}
+                      title="Edit"
+                    >
+                      <Edit2 className="size-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => handleDelete(profile.id)}
+                      disabled={deleting}
+                      title="Delete"
+                    >
+                      <Trash2 className="size-3 text-destructive" />
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      <ConnectionModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        editingProfile={editingProfile}
+      />
+    </div>
+  );
+}

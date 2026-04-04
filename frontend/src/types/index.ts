@@ -1,0 +1,63 @@
+export interface Profile {
+  id: string;
+  name: string;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  ssl_mode: string;
+}
+
+export interface ConnectionStatus {
+  profileId: string;
+  connected: boolean;
+  error?: string;
+}
+
+export interface Tab {
+  id: string;
+  title: string;
+  mode: 'table' | 'query';
+  connectionId: string;
+  databaseName?: string;
+  tableName?: string;
+  schemaName?: string;
+  subView?: 'data' | 'structure' | 'indexes';
+  pagination?: { page: number; limit: number };
+  sortColumn?: string;
+  sortDir?: 'asc' | 'desc';
+  queryText?: string;
+  queryResult?: QueryResult | null;
+  isRunning?: boolean;
+  execError?: string | null;
+}
+
+export interface QueryResult {
+  columns: string[];
+  rows: Record<string, unknown>[];
+  rowsAffected: number;
+  executionTime: number;
+}
+
+export interface ColumnDef {
+  name: string;
+  type: string;
+  isNullable: boolean;
+  defaultVal?: string;
+  isPrimaryKey: boolean;
+}
+
+export interface TableInfo {
+  schema: string;
+  name: string;
+  rowCount: number;
+}
+
+export interface TreeNode {
+  id: string;
+  label: string;
+  type: 'server' | 'database' | 'schema' | 'table';
+  children?: TreeNode[];
+  expanded?: boolean;
+  metadata?: TableInfo;
+}

@@ -1,4 +1,4 @@
-module myproject
+module caskpg
 
 go 1.23.0
 

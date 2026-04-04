@@ -31,6 +31,19 @@ func GetAll() ([]Profile, error) {
 	return profiles, err
 }
 
+func GetByID(id string) (*Profile, error) {
+	profiles, err := GetAll()
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range profiles {
+		if p.ID == id {
+			return &p, nil
+		}
+	}
+	return nil, fmt.Errorf("profile not found")
+}
+
 func Save(profile Profile) error {
 	if profile.ID == "" {
 		profile.ID = uuid.New().String()
@@ -69,6 +82,41 @@ func Delete(id string) error {
 		}
 	}
 	return writeAll(filtered)
+}
+
+func (p *Profile) BuildConnectionString(password string) string {
+	sslMode := p.SSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
+		p.Username,
+		password,
+		p.Host,
+		p.Port,
+		p.Database,
+		sslMode,
+	)
+}
+
+func (p *Profile) Validate() error {
+	if p.Name == "" {
+		return fmt.Errorf("profile name is required")
+	}
+	if p.Host == "" {
+		return fmt.Errorf("host is required")
+	}
+	if p.Port <= 0 || p.Port > 65535 {
+		return fmt.Errorf("invalid port number")
+	}
+	if p.Database == "" {
+		return fmt.Errorf("database name is required")
+	}
+	if p.Username == "" {
+		return fmt.Errorf("username is required")
+	}
+	return nil
 }
 
 func writeAll(profiles []Profile) error {

@@ -26,11 +26,21 @@ func (a *App) GetProfiles() ([]profiles.Profile, error) {
 	return profiles.GetAll()
 }
 
+func (a *App) GetProfile(id string) (*profiles.Profile, error) {
+	return profiles.GetByID(id)
+}
+
 func (a *App) SaveProfile(profile profiles.Profile) error {
+	if err := profile.Validate(); err != nil {
+		return err
+	}
 	return profiles.Save(profile)
 }
 
 func (a *App) UpdateProfile(profile profiles.Profile) error {
+	if err := profile.Validate(); err != nil {
+		return err
+	}
 	return profiles.Update(profile)
 }
 
@@ -43,7 +53,16 @@ func (a *App) TestConnection(connString string) error {
 	return db.GetManager().TestConnection(connString)
 }
 
-func (a *App) ConnectProfile(profileID, connString string) error {
+func (a *App) ConnectProfile(profileID string) error {
+	profile, err := profiles.GetByID(profileID)
+	if err != nil {
+		return err
+	}
+	password, err := keyring.GetPassword("caskpg", profileID)
+	if err != nil {
+		return fmt.Errorf("password not found in keyring: %w", err)
+	}
+	connString := profile.BuildConnectionString(password)
 	return db.GetManager().Connect(profileID, connString)
 }
 

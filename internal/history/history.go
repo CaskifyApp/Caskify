@@ -1,0 +1,57 @@
+package history
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"time"
+
+	"caskpg/internal/config"
+)
+
+type HistoryEntry struct {
+	ID        string    `json:"id"`
+	Query     string    `json:"query"`
+	Database  string    `json:"database"`
+	Timestamp time.Time `json:"timestamp"`
+	ExecTime  int64     `json:"exec_time_ms"`
+}
+
+func Add(entry HistoryEntry) error {
+	entries, err := GetAll()
+	if err != nil {
+		return err
+	}
+	entries = append([]HistoryEntry{entry}, entries...)
+	if len(entries) > 100 {
+		entries = entries[:100]
+	}
+	return writeAll(entries)
+}
+
+func GetAll() ([]HistoryEntry, error) {
+	path := filepath.Join(config.GetConfigDir(), "history.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return []HistoryEntry{}, nil
+	}
+	var entries []HistoryEntry
+	err = json.Unmarshal(data, &entries)
+	return entries, err
+}
+
+func Clear() error {
+	path := config.GetConfigDir()
+	os.MkdirAll(path, 0755)
+	return os.WriteFile(filepath.Join(path, "history.json"), []byte("[]"), 0644)
+}
+
+func writeAll(entries []HistoryEntry) error {
+	path := config.GetConfigDir()
+	os.MkdirAll(path, 0755)
+	data, err := json.MarshalIndent(entries, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(path, "history.json"), data, 0644)
+}

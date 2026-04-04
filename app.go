@@ -3,25 +3,55 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"caskpg/internal/db"
+	"caskpg/internal/profiles"
 )
 
-// App struct
 type App struct {
 	ctx context.Context
 }
 
-// NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// Greet returns a greeting for the given name
+func (a *App) GetProfiles() ([]profiles.Profile, error) {
+	return profiles.GetAll()
+}
+
+func (a *App) SaveProfile(profile profiles.Profile) error {
+	return profiles.Save(profile)
+}
+
+func (a *App) UpdateProfile(profile profiles.Profile) error {
+	return profiles.Update(profile)
+}
+
+func (a *App) DeleteProfile(id string) error {
+	return profiles.Delete(id)
+}
+
+func (a *App) TestConnection(connString string) error {
+	return db.GetManager().TestConnection(connString)
+}
+
+func (a *App) ConnectProfile(profileID, connString string) error {
+	return db.GetManager().Connect(profileID, connString)
+}
+
+func (a *App) DisconnectProfile(profileID string) {
+	db.GetManager().Disconnect(profileID)
+}
+
+func (a *App) IsProfileConnected(profileID string) bool {
+	return db.GetManager().IsConnected(profileID)
+}
+
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }

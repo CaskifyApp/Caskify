@@ -9,7 +9,8 @@ import (
 var ring keyring.Keyring
 
 func Init() error {
-	ring, err := keyring.New("caskpg", keyring.Config{
+	var err error
+	ring, err = keyring.Open(keyring.Config{
 		ServiceName: "caskpg",
 	})
 	return err
@@ -20,8 +21,9 @@ func SavePassword(service, username, password string) error {
 		return fmt.Errorf("keyring not initialized")
 	}
 	return ring.Set(keyring.Item{
-		Key:      service + ":" + username,
-		Password: password,
+		Key:         service + ":" + username,
+		Data:        []byte(password),
+		Description: "CaskPG connection password",
 	})
 }
 
@@ -33,7 +35,7 @@ func GetPassword(service, username string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return item.Password, nil
+	return string(item.Data), nil
 }
 
 func DeletePassword(service, username string) error {

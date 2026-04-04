@@ -9,5 +9,9 @@
   "author": {
     "name": "Drenzzz",
     "email": "realdrenzzz@gmail.com"
+  },
+  "linuxoptions": {
+    "webview2installmode": "download",
+    "wasmembed": false
   }
 }

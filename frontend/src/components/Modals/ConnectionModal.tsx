@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,8 @@ interface ConnectionModalProps {
   editingProfile?: Profile | null;
 }
 
+type TestStatus = 'idle' | 'testing' | 'success' | 'failed';
+
 export function ConnectionModal({ open, onOpenChange, editingProfile }: ConnectionModalProps) {
   const [name, setName] = useState('');
   const [host, setHost] = useState('localhost');
@@ -21,11 +24,12 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [sslMode, setSslMode] = useState('disable');
+  const [testStatus, setTestStatus] = useState<TestStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
   const { save } = useSaveProfile();
   const { update } = useUpdateProfile();
-  const { test } = useTestConnection();
+  const { test, testing } = useTestConnection();
 
   useEffect(() => {
     if (editingProfile) {
@@ -45,6 +49,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
       setPassword('');
       setSslMode('disable');
     }
+    setTestStatus('idle');
     setError(null);
   }, [editingProfile, open]);
 
@@ -54,9 +59,19 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
 
   const handleTest = async () => {
     setError(null);
-    const success = await test(buildConnString());
-    if (!success) {
-      setError('Connection failed. Please check your credentials.');
+    setTestStatus('testing');
+    
+    try {
+      const result = await test(buildConnString());
+      if (result) {
+        setTestStatus('success');
+      } else {
+        setTestStatus('failed');
+        setError('Connection failed. Please check your credentials.');
+      }
+    } catch (err) {
+      setTestStatus('failed');
+      setError(String(err));
     }
   };
 
@@ -83,6 +98,8 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
       setError(String(err));
     }
   };
+
+  const isFormValid = name && host && database && username;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -178,15 +195,35 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
           </div>
         </div>
 
-        {error && (
-          <div className="text-sm text-destructive mb-4">{error}</div>
+        {testStatus === 'success' && (
+          <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 p-2 rounded-lg bg-green-50 dark:bg-green-950">
+            <CheckCircle2 className="size-4" />
+            Connection successful!
+          </div>
+        )}
+
+        {testStatus === 'failed' && (
+          <div className="flex items-center gap-2 text-sm text-destructive p-2 rounded-lg bg-destructive/10">
+            <XCircle className="size-4" />
+            {error || 'Connection failed'}
+          </div>
+        )}
+
+        {error && testStatus !== 'failed' && (
+          <div className="text-sm text-destructive">{error}</div>
         )}
 
         <DialogFooter className="flex-row gap-2 justify-end">
-          <Button variant="outline" onClick={handleTest} disabled={!host || !database || !username}>
-            Test Connection
+          <Button 
+            variant="outline" 
+            onClick={handleTest} 
+            disabled={!host || !database || !username || testing}
+            className="gap-2"
+          >
+            {testing && <Loader2 className="size-4 animate-spin" />}
+            {testing ? 'Testing...' : 'Test Connection'}
           </Button>
-          <Button onClick={handleSave} disabled={!name || !host || !database || !username}>
+          <Button onClick={handleSave} disabled={!isFormValid}>
             {editingProfile ? 'Save Changes' : 'Create'}
           </Button>
         </DialogFooter>

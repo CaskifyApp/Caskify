@@ -6,12 +6,20 @@ export function ConnectProfile(arg1, arg2) {
   return window['go']['main']['App']['ConnectProfile'](arg1, arg2);
 }
 
+export function DeletePassword(arg1) {
+  return window['go']['main']['App']['DeletePassword'](arg1);
+}
+
 export function DeleteProfile(arg1) {
   return window['go']['main']['App']['DeleteProfile'](arg1);
 }
 
 export function DisconnectProfile(arg1) {
   return window['go']['main']['App']['DisconnectProfile'](arg1);
+}
+
+export function GetPassword(arg1) {
+  return window['go']['main']['App']['GetPassword'](arg1);
 }
 
 export function GetProfiles() {
@@ -24,6 +32,10 @@ export function Greet(arg1) {
 
 export function IsProfileConnected(arg1) {
   return window['go']['main']['App']['IsProfileConnected'](arg1);
+}
+
+export function SavePassword(arg1, arg2) {
+  return window['go']['main']['App']['SavePassword'](arg1, arg2);
 }
 
 export function SaveProfile(arg1) {

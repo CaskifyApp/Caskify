@@ -4,15 +4,21 @@ import {profiles} from '../models';
 
 export function ConnectProfile(arg1:string,arg2:string):Promise<void>;
 
+export function DeletePassword(arg1:string):Promise<void>;
+
 export function DeleteProfile(arg1:string):Promise<void>;
 
 export function DisconnectProfile(arg1:string):Promise<void>;
+
+export function GetPassword(arg1:string):Promise<string>;
 
 export function GetProfiles():Promise<Array<profiles.Profile>>;
 
 export function Greet(arg1:string):Promise<string>;
 
 export function IsProfileConnected(arg1:string):Promise<boolean>;
+
+export function SavePassword(arg1:string,arg2:string):Promise<void>;
 
 export function SaveProfile(arg1:profiles.Profile):Promise<void>;
 

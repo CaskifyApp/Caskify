@@ -113,7 +113,13 @@ func ExecuteQuery(ctx context.Context, pool *pgxpool.Pool, sql string) (*QueryRe
 
 	normalizedSQL := strings.ToUpper(trimmedSQL)
 	start := time.Now()
-	isRowReturning := strings.HasPrefix(normalizedSQL, "SELECT") || strings.HasPrefix(normalizedSQL, "WITH") || strings.HasPrefix(normalizedSQL, "SHOW")
+	isRowReturning := strings.HasPrefix(normalizedSQL, "SELECT") ||
+		strings.HasPrefix(normalizedSQL, "WITH") ||
+		strings.HasPrefix(normalizedSQL, "SHOW") ||
+		strings.HasPrefix(normalizedSQL, "EXPLAIN") ||
+		strings.HasPrefix(normalizedSQL, "VALUES") ||
+		strings.HasPrefix(normalizedSQL, "TABLE") ||
+		strings.Contains(normalizedSQL, " RETURNING ")
 
 	if !isRowReturning {
 		commandTag, err := pool.Exec(ctx, trimmedSQL)

@@ -114,7 +114,11 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 		SELECT
 			c.ordinal_position,
 			c.column_name,
-			c.data_type,
+			CASE
+				WHEN c.data_type = 'ARRAY' THEN c.udt_name
+				WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name
+				ELSE c.data_type
+			END AS display_type,
 			c.is_nullable,
 			c.column_default,
 			(c.column_default IS NOT NULL) AS has_default,

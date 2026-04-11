@@ -106,8 +106,32 @@ func FetchTablePage(ctx context.Context, pool *pgxpool.Pool, params TablePagePar
 }
 
 func ExecuteQuery(ctx context.Context, pool *pgxpool.Pool, sql string) (*QueryResult, error) {
+	trimmedSQL := strings.TrimSpace(sql)
+	if trimmedSQL == "" {
+		return nil, fmt.Errorf("query is empty")
+	}
+
+	normalizedSQL := strings.ToUpper(trimmedSQL)
 	start := time.Now()
-	rows, err := pool.Query(ctx, sql)
+	isRowReturning := strings.HasPrefix(normalizedSQL, "SELECT") || strings.HasPrefix(normalizedSQL, "WITH") || strings.HasPrefix(normalizedSQL, "SHOW")
+
+	if !isRowReturning {
+		commandTag, err := pool.Exec(ctx, trimmedSQL)
+		if err != nil {
+			return nil, fmt.Errorf("query error: %w", err)
+		}
+
+		execTime := time.Since(start)
+		return &QueryResult{
+			Columns:         []string{},
+			Rows:            []map[string]any{},
+			RowsAffected:    commandTag.RowsAffected(),
+			ExecutionTimeMs: execTime.Milliseconds(),
+			StatementType:   strings.ToLower(commandTag.String()),
+		}, nil
+	}
+
+	rows, err := pool.Query(ctx, trimmedSQL)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}

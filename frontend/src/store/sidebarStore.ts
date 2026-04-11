@@ -91,6 +91,10 @@ function isFresh(timestamp?: number) {
   return typeof timestamp === 'number' && Date.now() - timestamp < CACHE_TTL_MS;
 }
 
+function ensureArray<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : [];
+}
+
 export const useSidebarStore = create<SidebarState>((set, get) => ({
   treeByConnection: {},
   expandedNodeIds: {},
@@ -112,10 +116,11 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
 
     try {
       const databases = await wails.GetDatabases(connectionId);
+      const nextDatabases = ensureArray(databases);
       set((state) => ({
         treeByConnection: {
           ...state.treeByConnection,
-          [connectionId]: databases.map(mapDatabaseNode),
+          [connectionId]: nextDatabases.map(mapDatabaseNode),
         },
         loadedAtByNodeId: { ...state.loadedAtByNodeId, [cacheKey]: Date.now() },
         loadingNodeIds: { ...state.loadingNodeIds, [cacheKey]: false },
@@ -151,13 +156,14 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
 
     try {
       const schemas = await wails.GetSchemas(connectionId, databaseName);
+      const nextSchemas = ensureArray(schemas);
       set((state) => ({
         treeByConnection: {
           ...state.treeByConnection,
           [connectionId]: updateTreeNodes(state.treeByConnection[connectionId] ?? [], nodeId, (node) => ({
             ...node,
             loading: false,
-            children: schemas.map(mapSchemaNode),
+            children: nextSchemas.map(mapSchemaNode),
           })),
         },
         loadedAtByNodeId: { ...state.loadedAtByNodeId, [nodeId]: Date.now() },
@@ -202,13 +208,14 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
 
     try {
       const tables = await wails.GetTables(connectionId, databaseName, schemaName);
+      const nextTables = ensureArray(tables);
       set((state) => ({
         treeByConnection: {
           ...state.treeByConnection,
           [connectionId]: updateTreeNodes(state.treeByConnection[connectionId] ?? [], nodeId, (node) => ({
             ...node,
             loading: false,
-            children: tables.map(mapTableNode),
+            children: nextTables.map(mapTableNode),
           })),
         },
         loadedAtByNodeId: { ...state.loadedAtByNodeId, [nodeId]: Date.now() },

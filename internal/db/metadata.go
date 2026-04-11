@@ -8,6 +8,8 @@ import (
 )
 
 func FetchDatabases(ctx context.Context, pool *pgxpool.Pool, profileID string) ([]DatabaseInfo, error) {
+	dbs := make([]DatabaseInfo, 0)
+
 	rows, err := pool.Query(ctx, `
 		SELECT datname
 		FROM pg_database
@@ -19,7 +21,6 @@ func FetchDatabases(ctx context.Context, pool *pgxpool.Pool, profileID string) (
 	}
 	defer rows.Close()
 
-	var dbs []DatabaseInfo
 	for rows.Next() {
 		var db string
 		if err := rows.Scan(&db); err != nil {
@@ -36,6 +37,8 @@ func FetchDatabases(ctx context.Context, pool *pgxpool.Pool, profileID string) (
 }
 
 func FetchSchemas(ctx context.Context, pool *pgxpool.Pool, profileID, dbName string) ([]SchemaInfo, error) {
+	schemas := make([]SchemaInfo, 0)
+
 	rows, err := pool.Query(ctx, `
 		SELECT schema_name
 		FROM information_schema.schemata
@@ -47,7 +50,6 @@ func FetchSchemas(ctx context.Context, pool *pgxpool.Pool, profileID, dbName str
 	}
 	defer rows.Close()
 
-	var schemas []SchemaInfo
 	for rows.Next() {
 		var s string
 		if err := rows.Scan(&s); err != nil {
@@ -64,6 +66,8 @@ func FetchSchemas(ctx context.Context, pool *pgxpool.Pool, profileID, dbName str
 }
 
 func FetchTables(ctx context.Context, pool *pgxpool.Pool, profileID, databaseName, schemaName string) ([]TableInfo, error) {
+	tables := make([]TableInfo, 0)
+
 	rows, err := pool.Query(ctx, `
 		SELECT
 			t.table_name,
@@ -83,7 +87,6 @@ func FetchTables(ctx context.Context, pool *pgxpool.Pool, profileID, databaseNam
 	}
 	defer rows.Close()
 
-	var tables []TableInfo
 	for rows.Next() {
 		var t TableInfo
 		t.ConnectionID = profileID
@@ -103,6 +106,8 @@ func FetchTables(ctx context.Context, pool *pgxpool.Pool, profileID, databaseNam
 }
 
 func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName string) ([]ColumnDef, error) {
+	columns := make([]ColumnDef, 0)
+
 	query := `
 		SELECT column_name, data_type, is_nullable, column_default
 		FROM information_schema.columns
@@ -114,7 +119,6 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 	}
 	defer rows.Close()
 
-	var columns []ColumnDef
 	for rows.Next() {
 		var c ColumnDef
 		var nullable string

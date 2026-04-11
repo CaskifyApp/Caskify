@@ -92,12 +92,15 @@ func (a *App) GetDatabases(profileID string) ([]db.DatabaseInfo, error) {
 		return nil, fmt.Errorf("profile is not connected")
 	}
 
-	databases, err := db.FetchDatabases(a.ctx, pool, profileID)
+	profile, err := profiles.GetByID(profileID)
 	if err != nil {
 		return nil, err
 	}
 
-	return databases, nil
+	return []db.DatabaseInfo{{
+		ConnectionID: profileID,
+		Name:         profile.Database,
+	}}, nil
 }
 
 func (a *App) GetSchemas(profileID, databaseName string) ([]db.SchemaInfo, error) {

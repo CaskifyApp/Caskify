@@ -108,6 +108,42 @@ export namespace db {
 	        this.values = source["values"];
 	    }
 	}
+	export class QueryExecutionParams {
+	    profileId: string;
+	    sql: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new QueryExecutionParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	        this.sql = source["sql"];
+	    }
+	}
+	export class QueryResult {
+	    columns: string[];
+	    rows: any[];
+	    rowsAffected: number;
+	    executionTimeMs: number;
+	    statementType: string;
+	    error?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new QueryResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.columns = source["columns"];
+	        this.rows = source["rows"];
+	        this.rowsAffected = source["rowsAffected"];
+	        this.executionTimeMs = source["executionTimeMs"];
+	        this.statementType = source["statementType"];
+	        this.error = source["error"];
+	    }
+	}
 	export class SchemaInfo {
 	    connectionId: string;
 	    database: string;

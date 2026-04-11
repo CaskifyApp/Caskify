@@ -74,6 +74,10 @@ export function IsProfileConnected(arg1) {
   return window['go']['main']['App']['IsProfileConnected'](arg1);
 }
 
+export function RunQuery(arg1) {
+  return window['go']['main']['App']['RunQuery'](arg1);
+}
+
 export function SavePassword(arg1, arg2) {
   return window['go']['main']['App']['SavePassword'](arg1, arg2);
 }

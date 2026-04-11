@@ -39,6 +39,8 @@ export function InsertTableRow(arg1:db.InsertRowParams):Promise<void>;
 
 export function IsProfileConnected(arg1:string):Promise<boolean>;
 
+export function RunQuery(arg1:db.QueryExecutionParams):Promise<db.QueryResult>;
+
 export function SavePassword(arg1:string,arg2:string):Promise<void>;
 
 export function SaveProfile(arg1:profiles.Profile):Promise<profiles.Profile>;

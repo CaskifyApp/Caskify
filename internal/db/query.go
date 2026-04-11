@@ -119,20 +119,30 @@ func ExecuteQuery(ctx context.Context, pool *pgxpool.Pool, sql string) (*QueryRe
 		columns[i] = string(f.Name)
 	}
 
-	var resultRows [][]interface{}
+	resultRows := make([]map[string]any, 0)
 	for rows.Next() {
 		values, err := rows.Values()
 		if err != nil {
 			return nil, fmt.Errorf("row scan error: %w", err)
 		}
-		resultRows = append(resultRows, values)
+
+		row := make(map[string]any, len(columns))
+		for index, column := range columns {
+			row[column] = values[index]
+		}
+		resultRows = append(resultRows, row)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
 	}
 
 	execTime := time.Since(start)
 	return &QueryResult{
-		Columns:       columns,
-		Rows:          resultRows,
-		RowsAffected:  len(resultRows),
-		ExecutionTime: execTime,
+		Columns:         columns,
+		Rows:            resultRows,
+		RowsAffected:    int64(len(resultRows)),
+		ExecutionTimeMs: execTime.Milliseconds(),
+		StatementType:   "query",
 	}, nil
 }

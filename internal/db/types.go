@@ -1,12 +1,17 @@
 package db
 
-import "time"
+type QueryExecutionParams struct {
+	ProfileID string `json:"profileId"`
+	SQL       string `json:"sql"`
+}
 
 type QueryResult struct {
-	Columns       []string        `json:"columns"`
-	Rows          [][]interface{} `json:"rows"`
-	RowsAffected  int             `json:"rowsAffected"`
-	ExecutionTime time.Duration   `json:"executionTime"`
+	Columns         []string         `json:"columns"`
+	Rows            []map[string]any `json:"rows"`
+	RowsAffected    int64            `json:"rowsAffected"`
+	ExecutionTimeMs int64            `json:"executionTimeMs"`
+	StatementType   string           `json:"statementType"`
+	Error           string           `json:"error,omitempty"`
 }
 
 type TablePageParams struct {

@@ -209,6 +209,15 @@ func (a *App) DeleteTableRow(params db.DeleteRowParams) error {
 	return db.DeleteRow(a.ctx, pool, params)
 }
 
+func (a *App) RunQuery(params db.QueryExecutionParams) (*db.QueryResult, error) {
+	pool := db.GetManager().GetPool(params.ProfileID)
+	if pool == nil {
+		return nil, fmt.Errorf("profile is not connected")
+	}
+
+	return db.ExecuteQuery(a.ctx, pool, params.SQL)
+}
+
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }

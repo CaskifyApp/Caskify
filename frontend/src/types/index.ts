@@ -28,6 +28,8 @@ export interface Tab {
   sortDir?: 'asc' | 'desc';
   queryText?: string;
   queryResult?: QueryResult | null;
+  queryLoading?: boolean;
+  queryError?: string | null;
   tableData?: TablePageResult | null;
   tableColumns?: ColumnDef[];
   tableIndexes?: TableIndexInfo[];
@@ -43,9 +45,16 @@ export interface Tab {
 
 export interface QueryResult {
   columns: string[];
-  rows: unknown[][];
+  rows: Record<string, unknown>[];
   rowsAffected: number;
-  executionTime: number;
+  executionTimeMs: number;
+  statementType: string;
+  error?: string;
+}
+
+export interface QueryExecutionParams {
+  profileId: string;
+  sql: string;
 }
 
 export interface TablePageParams {

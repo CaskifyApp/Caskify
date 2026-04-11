@@ -111,10 +111,27 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 	columns := make([]ColumnDef, 0)
 
 	query := `
-		SELECT column_name, data_type, is_nullable, column_default
-		FROM information_schema.columns
-		WHERE table_schema = $1 AND table_name = $2
-		ORDER BY ordinal_position`
+		SELECT
+			c.column_name,
+			c.data_type,
+			c.is_nullable,
+			c.column_default,
+			(c.column_default IS NOT NULL) AS has_default,
+			COALESCE(tc.constraint_type = 'PRIMARY KEY', false) AS is_primary_key,
+			(c.is_identity = 'YES') AS is_identity,
+			(c.is_generated <> 'NEVER') AS is_generated,
+			(c.is_updatable = 'YES') AS is_updatable
+		FROM information_schema.columns AS c
+		LEFT JOIN information_schema.key_column_usage AS kcu
+			ON c.table_schema = kcu.table_schema
+			AND c.table_name = kcu.table_name
+			AND c.column_name = kcu.column_name
+		LEFT JOIN information_schema.table_constraints AS tc
+			ON kcu.constraint_name = tc.constraint_name
+			AND kcu.table_schema = tc.table_schema
+			AND tc.constraint_type = 'PRIMARY KEY'
+		WHERE c.table_schema = $1 AND c.table_name = $2
+		ORDER BY c.ordinal_position`
 	rows, err := pool.Query(ctx, query, schemaName, tableName)
 	if err != nil {
 		return nil, err
@@ -124,7 +141,7 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 	for rows.Next() {
 		var c ColumnDef
 		var nullable string
-		if err := rows.Scan(&c.Name, &c.Type, &nullable, &c.DefaultVal); err != nil {
+		if err := rows.Scan(&c.Name, &c.Type, &nullable, &c.DefaultVal, &c.HasDefault, &c.IsPrimaryKey, &c.IsIdentity, &c.IsGenerated, &c.IsUpdatable); err != nil {
 			return nil, err
 		}
 		c.IsNullable = strings.EqualFold(nullable, "YES")

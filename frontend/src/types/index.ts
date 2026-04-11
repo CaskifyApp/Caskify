@@ -98,7 +98,11 @@ export interface ColumnDef {
   type: string;
   isNullable: boolean;
   defaultVal?: string;
+  hasDefault: boolean;
   isPrimaryKey: boolean;
+  isIdentity: boolean;
+  isGenerated: boolean;
+  isUpdatable: boolean;
 }
 
 export interface TableInfo {

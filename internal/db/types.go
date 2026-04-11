@@ -63,7 +63,11 @@ type ColumnDef struct {
 	Type         string  `json:"type"`
 	IsNullable   bool    `json:"isNullable"`
 	DefaultVal   *string `json:"defaultVal,omitempty"`
+	HasDefault   bool    `json:"hasDefault"`
 	IsPrimaryKey bool    `json:"isPrimaryKey"`
+	IsIdentity   bool    `json:"isIdentity"`
+	IsGenerated  bool    `json:"isGenerated"`
+	IsUpdatable  bool    `json:"isUpdatable"`
 }
 
 type TableInfo struct {

@@ -5,7 +5,11 @@ export namespace db {
 	    type: string;
 	    isNullable: boolean;
 	    defaultVal?: string;
+	    hasDefault: boolean;
 	    isPrimaryKey: boolean;
+	    isIdentity: boolean;
+	    isGenerated: boolean;
+	    isUpdatable: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new ColumnDef(source);
@@ -17,7 +21,11 @@ export namespace db {
 	        this.type = source["type"];
 	        this.isNullable = source["isNullable"];
 	        this.defaultVal = source["defaultVal"];
+	        this.hasDefault = source["hasDefault"];
 	        this.isPrimaryKey = source["isPrimaryKey"];
+	        this.isIdentity = source["isIdentity"];
+	        this.isGenerated = source["isGenerated"];
+	        this.isUpdatable = source["isUpdatable"];
 	    }
 	}
 	export class DatabaseInfo {

@@ -6,6 +6,7 @@ import { useConnectionStore } from '@/store/connectionStore';
 import { useDeleteProfile, useConnectProfile, useDisconnectProfile } from '@/hooks/useConnection';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
+import { useTabStore } from '@/store/tabStore';
 import { useState } from 'react';
 import type { Profile } from '@/types';
 
@@ -16,6 +17,7 @@ export function ConnectionList() {
   const { remove, deleting } = useDeleteProfile();
   const { connect, connecting } = useConnectProfile();
   const { disconnect, disconnecting } = useDisconnectProfile();
+  const openTableTab = useTabStore((state) => state.openTableTab);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
@@ -129,7 +131,11 @@ export function ConnectionList() {
                     </div>
                   </div>
 
-                  <DatabaseTree connectionId={profile.id} connected={isConnected} />
+                  <DatabaseTree
+                    connectionId={profile.id}
+                    connected={isConnected}
+                    onTableSelect={openTableTab}
+                  />
                 </li>
               );
             })}

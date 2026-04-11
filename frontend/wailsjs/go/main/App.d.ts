@@ -4,6 +4,7 @@ import {db} from '../models';
 import {profiles} from '../models';
 import {history} from '../models';
 import {queries} from '../models';
+import {config} from '../models';
 
 export function ClearQueryHistory():Promise<void>;
 
@@ -37,6 +38,8 @@ export function GetSavedQueries():Promise<queries.SavedQueries>;
 
 export function GetSchemas(arg1:string,arg2:string):Promise<Array<db.SchemaInfo>>;
 
+export function GetSettings():Promise<config.Settings>;
+
 export function GetTableColumns(arg1:string,arg2:string,arg3:string):Promise<Array<db.ColumnDef>>;
 
 export function GetTableForeignKeys(arg1:string,arg2:string,arg3:string):Promise<Array<db.ForeignKeyInfo>>;
@@ -62,6 +65,8 @@ export function SaveProfile(arg1:profiles.Profile):Promise<profiles.Profile>;
 export function SaveQueryFolder(arg1:queries.Folder):Promise<void>;
 
 export function SaveSavedQuery(arg1:queries.SavedQuery):Promise<void>;
+
+export function SaveSettings(arg1:config.Settings):Promise<void>;
 
 export function TestConnection(arg1:string):Promise<void>;
 

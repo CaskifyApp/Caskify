@@ -268,6 +268,14 @@ func (a *App) ClearQueryHistory() error {
 	return history.Clear()
 }
 
+func (a *App) GetSettings() (config.Settings, error) {
+	return config.GetSettings()
+}
+
+func (a *App) SaveSettings(settings config.Settings) error {
+	return config.SaveSettings(settings)
+}
+
 func (a *App) ExportQueryResults(format string, result db.QueryResult) error {
 	if len(result.Rows) == 0 && len(result.Columns) == 0 {
 		return fmt.Errorf("there is no query result to export")

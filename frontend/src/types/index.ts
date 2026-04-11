@@ -82,6 +82,11 @@ export interface QueryHistoryEntry {
   exec_time_ms: number;
 }
 
+export interface AppSettings {
+  theme: 'light' | 'dark';
+  defaultRowsPerPage: number;
+}
+
 export interface TablePageParams {
   profileId: string;
   database: string;

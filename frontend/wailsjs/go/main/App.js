@@ -66,6 +66,10 @@ export function GetSchemas(arg1, arg2) {
   return window['go']['main']['App']['GetSchemas'](arg1, arg2);
 }
 
+export function GetSettings() {
+  return window['go']['main']['App']['GetSettings']();
+}
+
 export function GetTableColumns(arg1, arg2, arg3) {
   return window['go']['main']['App']['GetTableColumns'](arg1, arg2, arg3);
 }
@@ -116,6 +120,10 @@ export function SaveQueryFolder(arg1) {
 
 export function SaveSavedQuery(arg1) {
   return window['go']['main']['App']['SaveSavedQuery'](arg1);
+}
+
+export function SaveSettings(arg1) {
+  return window['go']['main']['App']['SaveSettings'](arg1);
 }
 
 export function TestConnection(arg1) {

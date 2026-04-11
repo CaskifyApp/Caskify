@@ -1,3 +1,22 @@
+export namespace config {
+	
+	export class Settings {
+	    theme: string;
+	    defaultRowsPerPage: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Settings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.theme = source["theme"];
+	        this.defaultRowsPerPage = source["defaultRowsPerPage"];
+	    }
+	}
+
+}
+
 export namespace db {
 	
 	export class ColumnDef {

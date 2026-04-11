@@ -374,7 +374,38 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 }
 
 func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {
-	return nil, fmt.Errorf("database import is not implemented yet")
+	profile, err := profiles.GetByID(params.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+
+	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+	}
+
+	selectedPath, err := wailsruntime.OpenFileDialog(a.ctx, wailsruntime.OpenDialogOptions{
+		Title: "Import Database SQL",
+		Filters: []wailsruntime.FileFilter{{
+			DisplayName: "SQL File",
+			Pattern:     "*.sql",
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if selectedPath == "" {
+		return nil, nil
+	}
+
+	if err := db.ImportDatabaseSQL(a.ctx, *profile, password, selectedPath); err != nil {
+		return nil, err
+	}
+
+	return &db.DatabaseOperationResult{
+		Path:    selectedPath,
+		Message: "Database restore completed successfully.",
+	}, nil
 }
 
 func (a *App) CheckDatabaseTools() (map[string]bool, error) {

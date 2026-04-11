@@ -55,11 +55,15 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
     }
 
     let cancelled = false;
+    const profile = profiles.find((item) => item.id === profileId);
     void wails.GetDatabases(profileId).then((items) => {
       if (!cancelled) {
-        setDatabases(items ?? []);
-        if (!databaseName && items?.length) {
-          setDatabaseName(items[0].name);
+        const nextDatabases = items ?? [];
+        setDatabases(nextDatabases);
+        if (!databaseName && nextDatabases.length > 0) {
+          const preferredDatabase = profile?.defaultDatabase;
+          const nextDatabase = nextDatabases.find((item) => item.name === preferredDatabase)?.name ?? nextDatabases[0].name;
+          setDatabaseName(nextDatabase);
         }
       }
     }).catch((error) => {
@@ -72,7 +76,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
     return () => {
       cancelled = true;
     };
-  }, [databaseName, open, profileId]);
+  }, [databaseName, open, profileId, profiles]);
 
   const runDatabaseAction = async (action: 'export' | 'import') => {
     if (!profileId) {
@@ -191,10 +195,10 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             {databaseActionMessage ? <div className="text-sm text-primary">{databaseActionMessage}</div> : null}
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => void runDatabaseAction('export')} disabled={databaseActionLoading || !toolStatus.pg_dump}>
+              <Button variant="outline" onClick={() => void runDatabaseAction('export')} disabled={databaseActionLoading || !toolStatus.pg_dump || !databaseName}>
                 Export SQL
               </Button>
-              <Button variant="outline" onClick={() => void runDatabaseAction('import')} disabled={databaseActionLoading || !toolStatus.psql}>
+              <Button variant="outline" onClick={() => void runDatabaseAction('import')} disabled={databaseActionLoading || !toolStatus.psql || !databaseName}>
                 Import SQL
               </Button>
             </div>

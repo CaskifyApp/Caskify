@@ -37,9 +37,16 @@ export function QueryToolbar({ profileId, databaseName, queryText, running, onPr
     }
 
     let cancelled = false;
+    const profile = profiles.find((item) => item.id === profileId);
     void wails.GetDatabases(profileId).then((items) => {
       if (!cancelled) {
-        setDatabases(items ?? []);
+        const nextDatabases = items ?? [];
+        setDatabases(nextDatabases);
+        if (!databaseName && nextDatabases.length > 0) {
+          const preferredDatabase = profile?.defaultDatabase;
+          const nextDatabase = nextDatabases.find((item) => item.name === preferredDatabase)?.name ?? nextDatabases[0].name;
+          onDatabaseChange(nextDatabase);
+        }
       }
     }).catch(() => {
       if (!cancelled) {
@@ -50,7 +57,7 @@ export function QueryToolbar({ profileId, databaseName, queryText, running, onPr
     return () => {
       cancelled = true;
     };
-  }, [profileId]);
+  }, [databaseName, onDatabaseChange, profileId, profiles]);
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-4xl border bg-card px-4 py-3 shadow-sm">

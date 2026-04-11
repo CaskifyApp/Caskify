@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { CellRenderer } from '@/components/DataGrid/CellRenderer';
+import { JSONViewerModal } from '@/components/Modals/JSONViewerModal';
 import type { TablePageResult } from '@/types';
 
 interface DataGridProps {
@@ -10,6 +13,9 @@ interface DataGridProps {
 }
 
 export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort }: DataGridProps) {
+  const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
+  const [jsonViewerValue, setJsonViewerValue] = useState<unknown>(null);
+
   if (loading) {
     return (
       <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">
@@ -51,38 +57,53 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort }: 
   }
 
   return (
-    <div className="overflow-hidden rounded-4xl border bg-card shadow-sm">
-      <div className="overflow-auto">
-        <table className="min-w-full border-collapse text-sm">
-          <thead className="bg-muted/40">
-            <tr>
-              {data.columns.map((column) => (
-                <th key={column} className="border-b px-4 py-3 text-left font-medium text-foreground">
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2"
-                    onClick={() => onSort?.(column)}
-                  >
-                    <span>{column}</span>
-                    {sortColumn === column ? <span className="text-xs text-muted-foreground">{sortDir === 'desc' ? 'DESC' : 'ASC'}</span> : null}
-                  </button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.rows.map((row, index) => (
-              <tr key={`${data.table}-${index}`} className="border-b last:border-b-0">
+    <>
+      <div className="overflow-hidden rounded-4xl border bg-card shadow-sm">
+        <div className="overflow-auto">
+          <table className="min-w-full border-collapse text-sm">
+            <thead className="bg-muted/40">
+              <tr>
                 {data.columns.map((column) => (
-                  <td key={`${index}-${column}`} className="px-4 py-3 align-top text-muted-foreground">
-                    {String(row[column] ?? 'NULL')}
-                  </td>
+                  <th key={column} className="border-b px-4 py-3 text-left font-medium text-foreground">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2"
+                      onClick={() => onSort?.(column)}
+                    >
+                      <span>{column}</span>
+                      {sortColumn === column ? <span className="text-xs text-muted-foreground">{sortDir === 'desc' ? 'DESC' : 'ASC'}</span> : null}
+                    </button>
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.rows.map((row, index) => (
+                <tr key={`${data.table}-${index}`} className="border-b last:border-b-0">
+                  {data.columns.map((column) => (
+                    <td key={`${index}-${column}`} className="px-4 py-3 align-top text-muted-foreground">
+                      <CellRenderer
+                        value={row[column]}
+                        onOpenJson={(value) => {
+                          setJsonViewerValue(value);
+                          setJsonViewerOpen(true);
+                        }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      <JSONViewerModal
+        open={jsonViewerOpen}
+        onOpenChange={setJsonViewerOpen}
+        value={jsonViewerValue}
+        title={`${data.schema}.${data.table}`}
+      />
+    </>
   );
 }

@@ -28,6 +28,9 @@ func GetAll() ([]Profile, error) {
 	}
 	var profiles []Profile
 	err = json.Unmarshal(data, &profiles)
+	if profiles == nil {
+		profiles = []Profile{}
+	}
 	return profiles, err
 }
 
@@ -125,6 +128,9 @@ func (p *Profile) Validate() error {
 func writeAll(profiles []Profile) error {
 	path := config.GetConfigDir()
 	os.MkdirAll(path, 0755)
+	if profiles == nil {
+		profiles = []Profile{}
+	}
 	data, err := json.MarshalIndent(profiles, "", "  ")
 	if err != nil {
 		return err

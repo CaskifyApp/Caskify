@@ -30,7 +30,7 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   loadProfiles: async () => {
     set({ isLoading: true, error: null });
     try {
-      const profiles = await wails.GetProfiles();
+      const profiles = (await wails.GetProfiles()) ?? [];
       set({ profiles, isLoading: false });
       
       const statuses = new Map<string, ConnectionStatus>();

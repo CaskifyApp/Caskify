@@ -42,7 +42,9 @@ func FetchSchemas(ctx context.Context, pool *pgxpool.Pool, profileID, dbName str
 	rows, err := pool.Query(ctx, `
 		SELECT schema_name
 		FROM information_schema.schemata
-		WHERE schema_name NOT IN ('pg_catalog', 'information_schema')
+		WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
+			AND schema_name NOT LIKE 'pg_temp_%'
+			AND schema_name NOT LIKE 'pg_toast_temp_%'
 		ORDER BY schema_name
 	`)
 	if err != nil {

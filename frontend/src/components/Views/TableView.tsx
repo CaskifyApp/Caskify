@@ -1,11 +1,14 @@
 import { TableProperties } from 'lucide-react';
 import { useState } from 'react';
+import * as wails from '../../../wailsjs/go/main/App';
 import { DataGrid } from '@/components/DataGrid/DataGrid';
 import { DataGridToolbar } from '@/components/DataGrid/DataGridToolbar';
 import { useTableData } from '@/hooks/useTableData';
 import { RowEditorModal } from '@/components/Modals/RowEditorModal';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTabStore } from '@/store/tabStore';
+import type { DeleteRowParams } from '@/types';
 import type { Tab } from '@/types';
 
 interface TableViewProps {
@@ -21,6 +24,9 @@ export function TableView({ tab }: TableViewProps) {
   const [rowEditorMode, setRowEditorMode] = useState<'insert' | 'edit'>('edit');
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
   const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleSort = (column: string) => {
     const nextDirection = tab.sortColumn === column && tab.sortDir === 'asc' ? 'desc' : 'asc';
@@ -29,6 +35,35 @@ export function TableView({ tab }: TableViewProps) {
 
   const handleRefresh = () => {
     setTablePagination(tab.id, tab.pagination?.page ?? 1, tab.pagination?.limit ?? 50);
+  };
+
+  const handleDeleteRow = async () => {
+    if (!selectedRow) {
+      return;
+    }
+
+    setDeleteLoading(true);
+    setDeleteError(null);
+
+    try {
+      const payload: DeleteRowParams = {
+        profileId: tab.connectionId,
+        database: tab.databaseName ?? '',
+        schema: tab.schemaName ?? '',
+        table: tab.tableName ?? '',
+        originalValues: selectedRow,
+      };
+
+      await wails.DeleteTableRow(payload);
+      setDeleteDialogOpen(false);
+      setSelectedRow(null);
+      setSelectedRowIndex(null);
+      refreshTableData(tab.id);
+    } catch (error) {
+      setDeleteError(String(error));
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   return (
@@ -70,6 +105,17 @@ export function TableView({ tab }: TableViewProps) {
           >
             Edit Selected Row
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!selectedRow}
+            onClick={() => {
+              setDeleteError(null);
+              setDeleteDialogOpen(true);
+            }}
+          >
+            Delete Selected Row
+          </Button>
         </div>
       </div>
 
@@ -109,6 +155,28 @@ export function TableView({ tab }: TableViewProps) {
         table={tab.tableName ?? ''}
         onSaved={() => refreshTableData(tab.id)}
       />
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Row</DialogTitle>
+            <DialogDescription>
+              This will delete the selected row using its current field values as the match criteria.
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteError ? <div className="text-sm text-destructive">{deleteError}</div> : null}
+
+          <DialogFooter className="sm:flex-row sm:justify-end">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleteLoading}>
+              Cancel
+            </Button>
+            <Button onClick={() => void handleDeleteRow()} disabled={deleteLoading}>
+              Delete Row
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -334,7 +334,43 @@ func (a *App) ExportQueryResults(format string, result db.QueryResult) error {
 }
 
 func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOperationResult, error) {
-	return nil, fmt.Errorf("database export is not implemented yet")
+	profile, err := profiles.GetByID(params.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+
+	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	if err != nil {
+		return nil, fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+	}
+
+	selectedPath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
+		DefaultFilename: filepath.Join(config.GetDataDir(), profile.Database+".sql"),
+		Title:           "Export Database SQL",
+		Filters: []wailsruntime.FileFilter{{
+			DisplayName: "SQL File",
+			Pattern:     "*.sql",
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if selectedPath == "" {
+		return nil, nil
+	}
+
+	if err := os.MkdirAll(filepath.Dir(selectedPath), 0o755); err != nil {
+		return nil, err
+	}
+
+	if err := db.ExportDatabaseSQL(a.ctx, *profile, password, selectedPath); err != nil {
+		return nil, err
+	}
+
+	return &db.DatabaseOperationResult{
+		Path:    selectedPath,
+		Message: "Database export completed successfully.",
+	}, nil
 }
 
 func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {

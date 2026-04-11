@@ -6,6 +6,7 @@ import { useConnectionStore } from '@/store/connectionStore';
 import { useDeleteProfile, useConnectProfile, useDisconnectProfile } from '@/hooks/useConnection';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
+import { useSidebarStore } from '@/store/sidebarStore';
 import { useTabStore } from '@/store/tabStore';
 import { useState } from 'react';
 import type { Profile } from '@/types';
@@ -19,6 +20,7 @@ export function ConnectionList() {
   const { connect, connecting } = useConnectProfile();
   const { disconnect, disconnecting } = useDisconnectProfile();
   const openTableTab = useTabStore((state) => state.openTableTab);
+  const resetConnectionTree = useSidebarStore((state) => state.resetConnectionTree);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
@@ -57,6 +59,7 @@ export function ConnectionList() {
 
   const handleDisconnect = async (profileId: string) => {
     await disconnect(profileId);
+    resetConnectionTree(profileId);
   };
 
   return (
@@ -87,7 +90,7 @@ export function ConnectionList() {
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{profile.name}</div>
                       <div className="text-xs text-muted-foreground truncate">
-                        {profile.host}:{profile.port}{profile.defaultDatabase ? `/${profile.defaultDatabase}` : ''}
+                        {profile.host}:{profile.port}{profile.defaultDatabase ? ` (default: ${profile.defaultDatabase})` : ''}
                       </div>
                     </div>
 

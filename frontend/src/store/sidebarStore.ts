@@ -15,6 +15,7 @@ interface SidebarState {
   loadTables: (connectionId: string, databaseName: string, schemaName: string, force?: boolean) => Promise<void>;
   toggleNode: (node: TreeNode) => Promise<void>;
   setConnectionTree: (connectionId: string, nodes: TreeNode[]) => void;
+  resetConnectionTree: (connectionId: string) => void;
   getConnectionTree: (connectionId: string) => TreeNode[];
 }
 
@@ -272,6 +273,37 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
         [connectionId]: nodes,
       },
     }));
+  },
+
+  resetConnectionTree: (connectionId) => {
+    set((state) => {
+      const nextTreeByConnection = { ...state.treeByConnection };
+      delete nextTreeByConnection[connectionId];
+
+      const nextExpandedNodeIds = Object.fromEntries(
+        Object.entries(state.expandedNodeIds).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      );
+
+      const nextLoadingNodeIds = Object.fromEntries(
+        Object.entries(state.loadingNodeIds).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      );
+
+      const nextErrorByNodeId = Object.fromEntries(
+        Object.entries(state.errorByNodeId).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      );
+
+      const nextLoadedAtByNodeId = Object.fromEntries(
+        Object.entries(state.loadedAtByNodeId).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      );
+
+      return {
+        treeByConnection: nextTreeByConnection,
+        expandedNodeIds: nextExpandedNodeIds,
+        loadingNodeIds: nextLoadingNodeIds,
+        errorByNodeId: nextErrorByNodeId,
+        loadedAtByNodeId: nextLoadedAtByNodeId,
+      };
+    });
   },
 
   getConnectionTree: (connectionId) => {

@@ -121,7 +121,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="col-span-3"
-              placeholder="My Database"
+              placeholder="My PostgreSQL Server"
             />
           </div>
           

@@ -1,7 +1,10 @@
 import { TableProperties } from 'lucide-react';
+import { useState } from 'react';
 import { DataGrid } from '@/components/DataGrid/DataGrid';
 import { DataGridToolbar } from '@/components/DataGrid/DataGridToolbar';
 import { useTableData } from '@/hooks/useTableData';
+import { RowEditorModal } from '@/components/Modals/RowEditorModal';
+import { Button } from '@/components/ui/button';
 import { useTabStore } from '@/store/tabStore';
 import type { Tab } from '@/types';
 
@@ -13,6 +16,10 @@ export function TableView({ tab }: TableViewProps) {
   const { tableData, tableLoading, tableError } = useTableData(tab);
   const setTablePagination = useTabStore((state) => state.setTablePagination);
   const setTableSorting = useTabStore((state) => state.setTableSorting);
+  const [rowEditorOpen, setRowEditorOpen] = useState(false);
+  const [rowEditorMode, setRowEditorMode] = useState<'insert' | 'edit'>('edit');
+  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
+  const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
 
   const handleSort = (column: string) => {
     const nextDirection = tab.sortColumn === column && tab.sortDir === 'asc' ? 'desc' : 'asc';
@@ -38,6 +45,31 @@ export function TableView({ tab }: TableViewProps) {
             </p>
           </div>
         </div>
+
+        <div className="mt-4 flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setRowEditorMode('insert');
+              setSelectedRow(null);
+              setRowEditorOpen(true);
+            }}
+          >
+            Add Row
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!selectedRow}
+            onClick={() => {
+              setRowEditorMode('edit');
+              setRowEditorOpen(true);
+            }}
+          >
+            Edit Selected Row
+          </Button>
+        </div>
       </div>
 
       <DataGridToolbar
@@ -57,6 +89,19 @@ export function TableView({ tab }: TableViewProps) {
         sortColumn={tab.sortColumn}
         sortDir={tab.sortDir}
         onSort={handleSort}
+        selectedRowIndex={selectedRowIndex}
+        onRowSelect={(rowIndex, row) => {
+          setSelectedRowIndex(rowIndex);
+          setSelectedRow(row);
+        }}
+      />
+
+      <RowEditorModal
+        open={rowEditorOpen}
+        onOpenChange={setRowEditorOpen}
+        columns={tab.tableColumns ?? []}
+        row={selectedRow}
+        mode={rowEditorMode}
       />
     </div>
   );

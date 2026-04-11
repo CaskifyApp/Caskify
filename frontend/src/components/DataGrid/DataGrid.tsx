@@ -10,9 +10,11 @@ interface DataGridProps {
   sortColumn?: string;
   sortDir?: 'asc' | 'desc';
   onSort?: (column: string) => void;
+  selectedRowIndex?: number | null;
+  onRowSelect?: (rowIndex: number, row: Record<string, unknown>) => void;
 }
 
-export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort }: DataGridProps) {
+export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, selectedRowIndex, onRowSelect }: DataGridProps) {
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [jsonViewerValue, setJsonViewerValue] = useState<unknown>(null);
 
@@ -79,7 +81,11 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort }: 
             </thead>
             <tbody>
               {data.rows.map((row, index) => (
-                <tr key={`${data.table}-${index}`} className="border-b last:border-b-0">
+                <tr
+                  key={`${data.table}-${index}`}
+                  className={`border-b last:border-b-0 ${selectedRowIndex === index ? 'bg-primary/5' : ''}`}
+                  onClick={() => onRowSelect?.(index, row)}
+                >
                   {data.columns.map((column) => (
                     <td key={`${index}-${column}`} className="px-4 py-3 align-top text-muted-foreground">
                       <CellRenderer

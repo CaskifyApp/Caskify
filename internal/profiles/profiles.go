@@ -119,9 +119,16 @@ func (p *Profile) ActiveDatabase() string {
 }
 
 func (p *Profile) BuildConnectionString(password string) string {
+	return p.BuildConnectionStringForDatabase(password, "")
+}
+
+func (p *Profile) BuildConnectionStringForDatabase(password, databaseName string) string {
 	sslMode := p.SSLMode
 	if sslMode == "" {
 		sslMode = "disable"
+	}
+	if databaseName == "" {
+		databaseName = p.ActiveDatabase()
 	}
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
@@ -129,7 +136,7 @@ func (p *Profile) BuildConnectionString(password string) string {
 		password,
 		p.Host,
 		p.Port,
-		p.ActiveDatabase(),
+		databaseName,
 		sslMode,
 	)
 }

@@ -30,13 +30,9 @@ func (m *ConnectionManager) Connect(profileID string, connString string) error {
 	}
 	m.mu.RUnlock()
 
-	pool, err := pgxpool.New(context.Background(), connString)
+	pool, err := OpenPool(connString)
 	if err != nil {
-		return fmt.Errorf("failed to create pool: %w", err)
-	}
-	if err := pool.Ping(context.Background()); err != nil {
-		pool.Close()
-		return fmt.Errorf("connection failed: %w", err)
+		return err
 	}
 
 	m.mu.Lock()
@@ -81,17 +77,26 @@ func (m *ConnectionManager) IsConnected(profileID string) bool {
 }
 
 func (m *ConnectionManager) TestConnection(connString string) error {
+	pool, err := OpenPool(connString)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	return nil
+}
+
+func OpenPool(connString string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		return fmt.Errorf("invalid connection string: %w", err)
+		return nil, fmt.Errorf("invalid connection string: %w", err)
 	}
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		return fmt.Errorf("failed to create pool: %w", err)
+		return nil, fmt.Errorf("failed to create pool: %w", err)
 	}
-	defer pool.Close()
 	if err := pool.Ping(context.Background()); err != nil {
-		return fmt.Errorf("connection failed: %w", err)
+		pool.Close()
+		return nil, fmt.Errorf("connection failed: %w", err)
 	}
-	return nil
+	return pool, nil
 }

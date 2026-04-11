@@ -16,6 +16,7 @@ import (
 	"caskpg/internal/keyring"
 	"caskpg/internal/profiles"
 	"caskpg/internal/queries"
+	"github.com/jackc/pgx/v5/pgxpool"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -30,6 +31,37 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	keyring.Init()
+}
+
+func (a *App) withProfileDatabasePool(profileID, databaseName string, callback func(pool *pgxpool.Pool) error) error {
+	profile, err := profiles.GetByID(profileID)
+	if err != nil {
+		return err
+	}
+
+	password, err := keyring.GetPassword("caskpg", profileID)
+	if err != nil {
+		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+	}
+
+	activeDatabase := databaseName
+	if activeDatabase == "" {
+		activeDatabase = profile.ActiveDatabase()
+	}
+
+	if activeDatabase == profile.ActiveDatabase() {
+		if pool := db.GetManager().GetPool(profileID); pool != nil {
+			return callback(pool)
+		}
+	}
+
+	pool, err := db.OpenPool(profile.BuildConnectionStringForDatabase(password, activeDatabase))
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	return callback(pool)
 }
 
 func (a *App) GetProfiles() ([]profiles.Profile, error) {
@@ -97,126 +129,91 @@ func (a *App) DeletePassword(profileID string) error {
 }
 
 func (a *App) GetDatabases(profileID string) ([]db.DatabaseInfo, error) {
-	pool := db.GetManager().GetPool(profileID)
-	if pool == nil {
-		return nil, fmt.Errorf("profile is not connected")
-	}
-
-	profile, err := profiles.GetByID(profileID)
-	if err != nil {
-		return nil, err
-	}
-
-	return []db.DatabaseInfo{{
-		ConnectionID: profileID,
-		Name:         profile.ActiveDatabase(),
-	}}, nil
+	var databases []db.DatabaseInfo
+	err := a.withProfileDatabasePool(profileID, "", func(pool *pgxpool.Pool) error {
+		var nextErr error
+		databases, nextErr = db.FetchDatabases(a.ctx, pool, profileID)
+		return nextErr
+	})
+	return databases, err
 }
 
 func (a *App) GetSchemas(profileID, databaseName string) ([]db.SchemaInfo, error) {
-	pool := db.GetManager().GetPool(profileID)
-	if pool == nil {
-		return nil, fmt.Errorf("profile is not connected")
-	}
-
-	schemas, err := db.FetchSchemas(a.ctx, pool, profileID, databaseName)
-	if err != nil {
-		return nil, err
-	}
-
-	return schemas, nil
+	var schemas []db.SchemaInfo
+	err := a.withProfileDatabasePool(profileID, databaseName, func(pool *pgxpool.Pool) error {
+		var nextErr error
+		schemas, nextErr = db.FetchSchemas(a.ctx, pool, profileID, databaseName)
+		return nextErr
+	})
+	return schemas, err
 }
 
 func (a *App) GetTables(profileID, databaseName, schemaName string) ([]db.TableInfo, error) {
-	pool := db.GetManager().GetPool(profileID)
-	if pool == nil {
-		return nil, fmt.Errorf("profile is not connected")
-	}
-
-	tables, err := db.FetchTables(a.ctx, pool, profileID, databaseName, schemaName)
-	if err != nil {
-		return nil, err
-	}
-
-	return tables, nil
+	var tables []db.TableInfo
+	err := a.withProfileDatabasePool(profileID, databaseName, func(pool *pgxpool.Pool) error {
+		var nextErr error
+		tables, nextErr = db.FetchTables(a.ctx, pool, profileID, databaseName, schemaName)
+		return nextErr
+	})
+	return tables, err
 }
 
 func (a *App) GetTableColumns(profileID, schemaName, tableName string) ([]db.ColumnDef, error) {
-	pool := db.GetManager().GetPool(profileID)
-	if pool == nil {
-		return nil, fmt.Errorf("profile is not connected")
-	}
-
-	columns, err := db.FetchColumns(a.ctx, pool, schemaName, tableName)
-	if err != nil {
-		return nil, err
-	}
-
-	return columns, nil
+	var columns []db.ColumnDef
+	err := a.withProfileDatabasePool(profileID, "", func(pool *pgxpool.Pool) error {
+		var nextErr error
+		columns, nextErr = db.FetchColumns(a.ctx, pool, schemaName, tableName)
+		return nextErr
+	})
+	return columns, err
 }
 
 func (a *App) GetTableIndexes(profileID, schemaName, tableName string) ([]db.TableIndexInfo, error) {
-	pool := db.GetManager().GetPool(profileID)
-	if pool == nil {
-		return nil, fmt.Errorf("profile is not connected")
-	}
-
-	indexes, err := db.FetchIndexes(a.ctx, pool, schemaName, tableName)
-	if err != nil {
-		return nil, err
-	}
-
-	return indexes, nil
+	var indexes []db.TableIndexInfo
+	err := a.withProfileDatabasePool(profileID, "", func(pool *pgxpool.Pool) error {
+		var nextErr error
+		indexes, nextErr = db.FetchIndexes(a.ctx, pool, schemaName, tableName)
+		return nextErr
+	})
+	return indexes, err
 }
 
 func (a *App) GetTableForeignKeys(profileID, schemaName, tableName string) ([]db.ForeignKeyInfo, error) {
-	pool := db.GetManager().GetPool(profileID)
-	if pool == nil {
-		return nil, fmt.Errorf("profile is not connected")
-	}
-
-	foreignKeys, err := db.FetchForeignKeys(a.ctx, pool, schemaName, tableName)
-	if err != nil {
-		return nil, err
-	}
-
-	return foreignKeys, nil
+	var foreignKeys []db.ForeignKeyInfo
+	err := a.withProfileDatabasePool(profileID, "", func(pool *pgxpool.Pool) error {
+		var nextErr error
+		foreignKeys, nextErr = db.FetchForeignKeys(a.ctx, pool, schemaName, tableName)
+		return nextErr
+	})
+	return foreignKeys, err
 }
 
 func (a *App) GetTablePage(params db.TablePageParams) (*db.TablePageResult, error) {
-	pool := db.GetManager().GetPool(params.ProfileID)
-	if pool == nil {
-		return nil, fmt.Errorf("profile is not connected")
-	}
-
-	return db.FetchTablePage(a.ctx, pool, params)
+	var result *db.TablePageResult
+	err := a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		var nextErr error
+		result, nextErr = db.FetchTablePage(a.ctx, pool, params)
+		return nextErr
+	})
+	return result, err
 }
 
 func (a *App) InsertTableRow(params db.InsertRowParams) error {
-	pool := db.GetManager().GetPool(params.ProfileID)
-	if pool == nil {
-		return fmt.Errorf("profile is not connected")
-	}
-
-	return db.InsertRow(a.ctx, pool, params)
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.InsertRow(a.ctx, pool, params)
+	})
 }
 
 func (a *App) UpdateTableRow(params db.UpdateRowParams) error {
-	pool := db.GetManager().GetPool(params.ProfileID)
-	if pool == nil {
-		return fmt.Errorf("profile is not connected")
-	}
-
-	return db.UpdateRow(a.ctx, pool, params)
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.UpdateRow(a.ctx, pool, params)
+	})
 }
 
 func (a *App) DeleteTableRow(params db.DeleteRowParams) error {
-	pool := db.GetManager().GetPool(params.ProfileID)
-	if pool == nil {
-		return fmt.Errorf("profile is not connected")
-	}
-
-	return db.DeleteRow(a.ctx, pool, params)
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.DeleteRow(a.ctx, pool, params)
+	})
 }
 
 func (a *App) RunQuery(params db.QueryExecutionParams) (*db.QueryResult, error) {

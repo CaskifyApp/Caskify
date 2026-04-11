@@ -154,3 +154,11 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 
 	return columns, nil
 }
+
+func FetchIndexes(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName string) ([]TableIndexInfo, error) {
+	return []TableIndexInfo{}, nil
+}
+
+func FetchForeignKeys(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName string) ([]ForeignKeyInfo, error) {
+	return []ForeignKeyInfo{}, nil
+}

@@ -59,15 +59,34 @@ type DeleteRowParams struct {
 }
 
 type ColumnDef struct {
-	Name         string  `json:"name"`
-	Type         string  `json:"type"`
-	IsNullable   bool    `json:"isNullable"`
-	DefaultVal   *string `json:"defaultVal,omitempty"`
-	HasDefault   bool    `json:"hasDefault"`
-	IsPrimaryKey bool    `json:"isPrimaryKey"`
-	IsIdentity   bool    `json:"isIdentity"`
-	IsGenerated  bool    `json:"isGenerated"`
-	IsUpdatable  bool    `json:"isUpdatable"`
+	OrdinalPosition int     `json:"ordinalPosition"`
+	Name            string  `json:"name"`
+	Type            string  `json:"type"`
+	IsNullable      bool    `json:"isNullable"`
+	DefaultVal      *string `json:"defaultVal,omitempty"`
+	HasDefault      bool    `json:"hasDefault"`
+	IsPrimaryKey    bool    `json:"isPrimaryKey"`
+	IsIdentity      bool    `json:"isIdentity"`
+	IsGenerated     bool    `json:"isGenerated"`
+	IsUpdatable     bool    `json:"isUpdatable"`
+}
+
+type TableIndexInfo struct {
+	Name      string   `json:"name"`
+	Columns   []string `json:"columns"`
+	Type      string   `json:"type"`
+	IsUnique  bool     `json:"isUnique"`
+	IsPrimary bool     `json:"isPrimary"`
+}
+
+type ForeignKeyInfo struct {
+	ConstraintName   string `json:"constraintName"`
+	ColumnName       string `json:"columnName"`
+	ReferencedSchema string `json:"referencedSchema"`
+	ReferencedTable  string `json:"referencedTable"`
+	ReferencedColumn string `json:"referencedColumn"`
+	UpdateRule       string `json:"updateRule"`
+	DeleteRule       string `json:"deleteRule"`
 }
 
 type TableInfo struct {

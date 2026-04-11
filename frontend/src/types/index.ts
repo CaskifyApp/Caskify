@@ -94,6 +94,7 @@ export interface DeleteRowParams {
 }
 
 export interface ColumnDef {
+  ordinalPosition: number;
   name: string;
   type: string;
   isNullable: boolean;
@@ -103,6 +104,24 @@ export interface ColumnDef {
   isIdentity: boolean;
   isGenerated: boolean;
   isUpdatable: boolean;
+}
+
+export interface TableIndexInfo {
+  name: string;
+  columns: string[];
+  type: string;
+  isUnique: boolean;
+  isPrimary: boolean;
+}
+
+export interface ForeignKeyInfo {
+  constraintName: string;
+  columnName: string;
+  referencedSchema: string;
+  referencedTable: string;
+  referencedColumn: string;
+  updateRule: string;
+  deleteRule: string;
 }
 
 export interface TableInfo {

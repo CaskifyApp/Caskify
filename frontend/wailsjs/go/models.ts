@@ -1,6 +1,7 @@
 export namespace db {
 	
 	export class ColumnDef {
+	    ordinalPosition: number;
 	    name: string;
 	    type: string;
 	    isNullable: boolean;
@@ -17,6 +18,7 @@ export namespace db {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ordinalPosition = source["ordinalPosition"];
 	        this.name = source["name"];
 	        this.type = source["type"];
 	        this.isNullable = source["isNullable"];
@@ -62,6 +64,30 @@ export namespace db {
 	        this.originalValues = source["originalValues"];
 	    }
 	}
+	export class ForeignKeyInfo {
+	    constraintName: string;
+	    columnName: string;
+	    referencedSchema: string;
+	    referencedTable: string;
+	    referencedColumn: string;
+	    updateRule: string;
+	    deleteRule: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ForeignKeyInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.constraintName = source["constraintName"];
+	        this.columnName = source["columnName"];
+	        this.referencedSchema = source["referencedSchema"];
+	        this.referencedTable = source["referencedTable"];
+	        this.referencedColumn = source["referencedColumn"];
+	        this.updateRule = source["updateRule"];
+	        this.deleteRule = source["deleteRule"];
+	    }
+	}
 	export class InsertRowParams {
 	    profileId: string;
 	    database: string;
@@ -96,6 +122,26 @@ export namespace db {
 	        this.connectionId = source["connectionId"];
 	        this.database = source["database"];
 	        this.name = source["name"];
+	    }
+	}
+	export class TableIndexInfo {
+	    name: string;
+	    columns: string[];
+	    type: string;
+	    isUnique: boolean;
+	    isPrimary: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new TableIndexInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.columns = source["columns"];
+	        this.type = source["type"];
+	        this.isUnique = source["isUnique"];
+	        this.isPrimary = source["isPrimary"];
 	    }
 	}
 	export class TableInfo {

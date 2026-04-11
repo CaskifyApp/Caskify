@@ -145,6 +145,34 @@ func (a *App) GetTableColumns(profileID, schemaName, tableName string) ([]db.Col
 	return columns, nil
 }
 
+func (a *App) GetTableIndexes(profileID, schemaName, tableName string) ([]db.TableIndexInfo, error) {
+	pool := db.GetManager().GetPool(profileID)
+	if pool == nil {
+		return nil, fmt.Errorf("profile is not connected")
+	}
+
+	indexes, err := db.FetchIndexes(a.ctx, pool, schemaName, tableName)
+	if err != nil {
+		return nil, err
+	}
+
+	return indexes, nil
+}
+
+func (a *App) GetTableForeignKeys(profileID, schemaName, tableName string) ([]db.ForeignKeyInfo, error) {
+	pool := db.GetManager().GetPool(profileID)
+	if pool == nil {
+		return nil, fmt.Errorf("profile is not connected")
+	}
+
+	foreignKeys, err := db.FetchForeignKeys(a.ctx, pool, schemaName, tableName)
+	if err != nil {
+		return nil, err
+	}
+
+	return foreignKeys, nil
+}
+
 func (a *App) GetTablePage(params db.TablePageParams) (*db.TablePageResult, error) {
 	pool := db.GetManager().GetPool(params.ProfileID)
 	if pool == nil {

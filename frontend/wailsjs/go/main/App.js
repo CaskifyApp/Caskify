@@ -46,6 +46,14 @@ export function GetTableColumns(arg1, arg2, arg3) {
   return window['go']['main']['App']['GetTableColumns'](arg1, arg2, arg3);
 }
 
+export function GetTableForeignKeys(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetTableForeignKeys'](arg1, arg2, arg3);
+}
+
+export function GetTableIndexes(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetTableIndexes'](arg1, arg2, arg3);
+}
+
 export function GetTablePage(arg1) {
   return window['go']['main']['App']['GetTablePage'](arg1);
 }

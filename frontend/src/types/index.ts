@@ -69,8 +69,13 @@ export interface DatabaseInfo {
 export interface TreeNode {
   id: string;
   label: string;
-  type: 'server' | 'database' | 'schema' | 'table';
+  type: 'connection' | 'database' | 'schema' | 'table';
+  connectionId: string;
+  database?: string;
+  schema?: string;
   children?: TreeNode[];
   expanded?: boolean;
+  loading?: boolean;
+  error?: string | null;
   metadata?: TableInfo;
 }

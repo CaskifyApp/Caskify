@@ -1,4 +1,6 @@
 import { Group, Panel, Separator } from 'react-resizable-panels';
+import { useState } from 'react';
+import { SaveQueryModal } from '@/components/Modals/SaveQueryModal';
 import { QueryEditor } from '@/components/QueryEditor/QueryEditor';
 import { QueryResultsPanel } from '@/components/QueryEditor/QueryResultsPanel';
 import { QueryToolbar } from '@/components/QueryEditor/QueryToolbar';
@@ -14,6 +16,7 @@ export function QueryView({ tab }: QueryViewProps) {
   const setQueryText = useTabStore((state) => state.setQueryText);
   const setQueryProfile = useTabStore((state) => state.setQueryProfile);
   const { runQuery } = useQueryExecution(tab);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">
@@ -24,6 +27,7 @@ export function QueryView({ tab }: QueryViewProps) {
         onProfileChange={(profileId) => setQueryProfile(tab.id, profileId)}
         onQueryTextChange={(queryText) => setQueryText(tab.id, queryText)}
         onRun={() => void runQuery()}
+        onSave={() => setSaveModalOpen(true)}
       />
 
       <Group orientation="vertical" className="min-h-0 flex-1 gap-2">
@@ -45,6 +49,12 @@ export function QueryView({ tab }: QueryViewProps) {
           />
         </Panel>
       </Group>
+
+      <SaveQueryModal
+        open={saveModalOpen}
+        onOpenChange={setSaveModalOpen}
+        queryText={tab.queryText ?? ''}
+      />
     </div>
   );
 }

@@ -18,6 +18,7 @@ interface QueryViewProps {
 export function QueryView({ tab }: QueryViewProps) {
   const setQueryText = useTabStore((state) => state.setQueryText);
   const setQueryProfile = useTabStore((state) => state.setQueryProfile);
+  const setQueryDatabase = useTabStore((state) => state.setQueryDatabase);
   const { runQuery } = useQueryExecution(tab);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [savedQueriesOpen, setSavedQueriesOpen] = useState(false);
@@ -51,9 +52,11 @@ export function QueryView({ tab }: QueryViewProps) {
     <div className="flex h-full flex-col gap-4 p-6">
       <QueryToolbar
         profileId={tab.connectionId}
+        databaseName={tab.databaseName ?? ''}
         queryText={tab.queryText ?? ''}
         running={tab.queryLoading ?? false}
         onProfileChange={(profileId) => setQueryProfile(tab.id, profileId)}
+        onDatabaseChange={(databaseName) => setQueryDatabase(tab.id, databaseName)}
         onQueryTextChange={(queryText) => setQueryText(tab.id, queryText)}
         onRun={() => void runQuery()}
         onSave={() => setSaveModalOpen(true)}

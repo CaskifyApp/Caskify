@@ -22,6 +22,7 @@ interface TabState {
   setStructureData: (tabId: string, columns: ColumnDef[], indexes: TableIndexInfo[], foreignKeys: ForeignKeyInfo[]) => void;
   setQueryText: (tabId: string, queryText: string) => void;
   setQueryProfile: (tabId: string, profileId: string) => void;
+  setQueryDatabase: (tabId: string, databaseName: string) => void;
   setQueryLoading: (tabId: string, loading: boolean) => void;
   setQueryError: (tabId: string, error: string | null) => void;
   setQueryResult: (tabId: string, queryResult: QueryResult | null) => void;
@@ -97,6 +98,7 @@ export const useTabStore = create<TabState>((set) => ({
         title: `Query ${queryIndex}`,
         mode: 'query',
         connectionId: connectedProfile?.id ?? '',
+        databaseName: connectedProfile?.defaultDatabase ?? connectedProfile?.database ?? '',
         queryText: '',
         queryResult: null,
         queryLoading: false,
@@ -249,6 +251,16 @@ export const useTabStore = create<TabState>((set) => ({
       tabs: updateTab(state.tabs, tabId, (tab) => ({
         ...tab,
         connectionId: profileId,
+        databaseName: '',
+      })),
+    }));
+  },
+
+  setQueryDatabase: (tabId, databaseName) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        databaseName,
       })),
     }));
   },

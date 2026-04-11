@@ -26,6 +26,7 @@ export function useTableData(tab: Tab | null) {
   const setTableData = useTabStore((state) => state.setTableData);
   const tabId = tab?.id ?? null;
   const connectionId = tab?.connectionId ?? null;
+  const databaseName = tab?.databaseName ?? null;
   const schemaName = tab?.schemaName ?? null;
   const tableName = tab?.tableName ?? null;
 
@@ -37,9 +38,9 @@ export function useTableData(tab: Tab | null) {
     return buildTablePageParams(tab);
   }, [
     connectionId,
+    databaseName,
     schemaName,
     tableName,
-    tab?.databaseName,
     tab?.pagination?.page,
     tab?.pagination?.limit,
     tab?.sortColumn,
@@ -48,7 +49,7 @@ export function useTableData(tab: Tab | null) {
   ]);
 
   useEffect(() => {
-    if (!tabId || !connectionId || !schemaName || !tableName || !params) {
+    if (!tabId || !connectionId || !databaseName || !schemaName || !tableName || !params) {
       return;
     }
 
@@ -60,7 +61,7 @@ export function useTableData(tab: Tab | null) {
 
       try {
         const [tableColumns, tableData] = await Promise.all([
-          wails.GetTableColumns(connectionId, schemaName, tableName),
+          wails.GetTableColumns(connectionId, databaseName, schemaName, tableName),
           wails.GetTablePage(params),
         ]);
 
@@ -89,7 +90,7 @@ export function useTableData(tab: Tab | null) {
     return () => {
       cancelled = true;
     };
-  }, [connectionId, params, schemaName, setTableData, setTableError, setTableLoading, tabId, tableName]);
+  }, [connectionId, databaseName, params, schemaName, setTableData, setTableError, setTableLoading, tabId, tableName]);
 
   return {
     tableData: tab?.tableData ?? null,

@@ -13,6 +13,11 @@ export function useQueryExecution(tab: Tab) {
       return;
     }
 
+    if (!tab.databaseName) {
+      setQueryError(tab.id, 'Choose a database before running a query.');
+      return;
+    }
+
     if (!tab.queryText?.trim()) {
       setQueryError(tab.id, 'Query text is empty.');
       return;
@@ -24,6 +29,7 @@ export function useQueryExecution(tab: Tab) {
     try {
       const payload: QueryExecutionParams = {
         profileId: tab.connectionId,
+        database: tab.databaseName,
         sql: tab.queryText,
       };
 

@@ -167,6 +167,7 @@ export namespace db {
 	}
 	export class QueryExecutionParams {
 	    profileId: string;
+	    database: string;
 	    sql: string;
 	
 	    static createFrom(source: any = {}) {
@@ -176,6 +177,7 @@ export namespace db {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.profileId = source["profileId"];
+	        this.database = source["database"];
 	        this.sql = source["sql"];
 	    }
 	}

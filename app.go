@@ -158,9 +158,9 @@ func (a *App) GetTables(profileID, databaseName, schemaName string) ([]db.TableI
 	return tables, err
 }
 
-func (a *App) GetTableColumns(profileID, schemaName, tableName string) ([]db.ColumnDef, error) {
+func (a *App) GetTableColumns(profileID, databaseName, schemaName, tableName string) ([]db.ColumnDef, error) {
 	var columns []db.ColumnDef
-	err := a.withProfileDatabasePool(profileID, "", func(pool *pgxpool.Pool) error {
+	err := a.withProfileDatabasePool(profileID, databaseName, func(pool *pgxpool.Pool) error {
 		var nextErr error
 		columns, nextErr = db.FetchColumns(a.ctx, pool, schemaName, tableName)
 		return nextErr
@@ -168,9 +168,9 @@ func (a *App) GetTableColumns(profileID, schemaName, tableName string) ([]db.Col
 	return columns, err
 }
 
-func (a *App) GetTableIndexes(profileID, schemaName, tableName string) ([]db.TableIndexInfo, error) {
+func (a *App) GetTableIndexes(profileID, databaseName, schemaName, tableName string) ([]db.TableIndexInfo, error) {
 	var indexes []db.TableIndexInfo
-	err := a.withProfileDatabasePool(profileID, "", func(pool *pgxpool.Pool) error {
+	err := a.withProfileDatabasePool(profileID, databaseName, func(pool *pgxpool.Pool) error {
 		var nextErr error
 		indexes, nextErr = db.FetchIndexes(a.ctx, pool, schemaName, tableName)
 		return nextErr
@@ -178,9 +178,9 @@ func (a *App) GetTableIndexes(profileID, schemaName, tableName string) ([]db.Tab
 	return indexes, err
 }
 
-func (a *App) GetTableForeignKeys(profileID, schemaName, tableName string) ([]db.ForeignKeyInfo, error) {
+func (a *App) GetTableForeignKeys(profileID, databaseName, schemaName, tableName string) ([]db.ForeignKeyInfo, error) {
 	var foreignKeys []db.ForeignKeyInfo
-	err := a.withProfileDatabasePool(profileID, "", func(pool *pgxpool.Pool) error {
+	err := a.withProfileDatabasePool(profileID, databaseName, func(pool *pgxpool.Pool) error {
 		var nextErr error
 		foreignKeys, nextErr = db.FetchForeignKeys(a.ctx, pool, schemaName, tableName)
 		return nextErr
@@ -217,21 +217,26 @@ func (a *App) DeleteTableRow(params db.DeleteRowParams) error {
 }
 
 func (a *App) RunQuery(params db.QueryExecutionParams) (*db.QueryResult, error) {
-	pool := db.GetManager().GetPool(params.ProfileID)
-	if pool == nil {
-		return nil, fmt.Errorf("profile is not connected")
-	}
-
-	queryResult, err := db.ExecuteQuery(a.ctx, pool, params.SQL)
+	var queryResult *db.QueryResult
+	err := a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		var nextErr error
+		queryResult, nextErr = db.ExecuteQuery(a.ctx, pool, params.SQL)
+		return nextErr
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	profile, err := profiles.GetByID(params.ProfileID)
-	if err == nil {
+	databaseName := params.Database
+	if databaseName == "" {
+		if profile, profileErr := profiles.GetByID(params.ProfileID); profileErr == nil {
+			databaseName = profile.ActiveDatabase()
+		}
+	}
+	if databaseName != "" {
 		_ = history.Add(history.HistoryEntry{
 			Query:    params.SQL,
-			Database: profile.ActiveDatabase(),
+			Database: databaseName,
 			ExecTime: queryResult.ExecutionTimeMs,
 		})
 	}

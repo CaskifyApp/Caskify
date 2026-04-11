@@ -2,6 +2,7 @@ package db
 
 type QueryExecutionParams struct {
 	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
 	SQL       string `json:"sql"`
 }
 

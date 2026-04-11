@@ -14,11 +14,12 @@ export function useTableStructure(tab: Tab | null) {
   const tabId = tab?.id ?? null;
   const subView = tab?.subView ?? 'data';
   const connectionId = tab?.connectionId ?? null;
+  const databaseName = tab?.databaseName ?? null;
   const schemaName = tab?.schemaName ?? null;
   const tableName = tab?.tableName ?? null;
 
   useEffect(() => {
-    if (!tabId || subView === 'data' || !connectionId || !schemaName || !tableName) {
+    if (!tabId || subView === 'data' || !connectionId || !databaseName || !schemaName || !tableName) {
       return;
     }
 
@@ -30,9 +31,9 @@ export function useTableStructure(tab: Tab | null) {
 
       try {
         const [columns, indexes, foreignKeys] = await Promise.all([
-          wails.GetTableColumns(connectionId, schemaName, tableName),
-          wails.GetTableIndexes(connectionId, schemaName, tableName),
-          wails.GetTableForeignKeys(connectionId, schemaName, tableName),
+          wails.GetTableColumns(connectionId, databaseName, schemaName, tableName),
+          wails.GetTableIndexes(connectionId, databaseName, schemaName, tableName),
+          wails.GetTableForeignKeys(connectionId, databaseName, schemaName, tableName),
         ]);
 
         if (cancelled) {
@@ -55,7 +56,7 @@ export function useTableStructure(tab: Tab | null) {
     return () => {
       cancelled = true;
     };
-  }, [connectionId, schemaName, setStructureData, setStructureError, setStructureLoading, subView, tabId, tableName]);
+  }, [connectionId, databaseName, schemaName, setStructureData, setStructureError, setStructureLoading, subView, tabId, tableName]);
 
   return {
     structureLoading: tab?.structureLoading ?? false,

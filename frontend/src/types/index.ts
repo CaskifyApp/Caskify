@@ -55,6 +55,7 @@ export interface QueryResult {
 
 export interface QueryExecutionParams {
   profileId: string;
+  database: string;
   sql: string;
 }
 

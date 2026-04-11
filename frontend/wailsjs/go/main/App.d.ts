@@ -44,11 +44,11 @@ export function GetSchemas(arg1:string,arg2:string):Promise<Array<db.SchemaInfo>
 
 export function GetSettings():Promise<config.Settings>;
 
-export function GetTableColumns(arg1:string,arg2:string,arg3:string):Promise<Array<db.ColumnDef>>;
+export function GetTableColumns(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<db.ColumnDef>>;
 
-export function GetTableForeignKeys(arg1:string,arg2:string,arg3:string):Promise<Array<db.ForeignKeyInfo>>;
+export function GetTableForeignKeys(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<db.ForeignKeyInfo>>;
 
-export function GetTableIndexes(arg1:string,arg2:string,arg3:string):Promise<Array<db.TableIndexInfo>>;
+export function GetTableIndexes(arg1:string,arg2:string,arg3:string,arg4:string):Promise<Array<db.TableIndexInfo>>;
 
 export function GetTablePage(arg1:db.TablePageParams):Promise<db.TablePageResult>;
 

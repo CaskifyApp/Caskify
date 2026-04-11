@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import type { ColumnDef, ForeignKeyInfo, TableIndexInfo, TablePageResult, Tab, TreeNode } from '@/types';
+import type { ColumnDef, ForeignKeyInfo, QueryResult, TableIndexInfo, TablePageResult, Tab, TreeNode } from '@/types';
 
 interface TabState {
   tabs: Tab[];
   activeTabId: string | null;
   openTableTab: (node: TreeNode) => void;
+  openQueryTab: () => void;
   setActiveTab: (tabId: string) => void;
   closeTab: (tabId: string) => void;
   setTableLoading: (tabId: string, loading: boolean) => void;
@@ -17,6 +18,11 @@ interface TabState {
   setStructureLoading: (tabId: string, loading: boolean) => void;
   setStructureError: (tabId: string, error: string | null) => void;
   setStructureData: (tabId: string, columns: ColumnDef[], indexes: TableIndexInfo[], foreignKeys: ForeignKeyInfo[]) => void;
+  setQueryText: (tabId: string, queryText: string) => void;
+  setQueryProfile: (tabId: string, profileId: string) => void;
+  setQueryLoading: (tabId: string, loading: boolean) => void;
+  setQueryError: (tabId: string, error: string | null) => void;
+  setQueryResult: (tabId: string, queryResult: QueryResult | null) => void;
 }
 
 function updateTab(tabs: Tab[], tabId: string, updater: (tab: Tab) => Tab) {
@@ -66,6 +72,27 @@ export const useTabStore = create<TabState>((set) => ({
         tableRefreshKey: 0,
         structureLoading: false,
         structureError: null,
+      };
+
+      return {
+        tabs: [...state.tabs, nextTab],
+        activeTabId: nextTab.id,
+      };
+    });
+  },
+
+  openQueryTab: () => {
+    set((state) => {
+      const queryIndex = state.tabs.filter((tab) => tab.mode === 'query').length + 1;
+      const nextTab: Tab = {
+        id: `query:${crypto.randomUUID()}`,
+        title: `Query ${queryIndex}`,
+        mode: 'query',
+        connectionId: '',
+        queryText: '',
+        queryResult: null,
+        queryLoading: false,
+        queryError: null,
       };
 
       return {
@@ -196,6 +223,53 @@ export const useTabStore = create<TabState>((set) => ({
         tableForeignKeys: foreignKeys,
         structureLoading: false,
         structureError: null,
+      })),
+    }));
+  },
+
+  setQueryText: (tabId, queryText) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        queryText,
+      })),
+    }));
+  },
+
+  setQueryProfile: (tabId, profileId) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        connectionId: profileId,
+      })),
+    }));
+  },
+
+  setQueryLoading: (tabId, loading) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        queryLoading: loading,
+      })),
+    }));
+  },
+
+  setQueryError: (tabId, error) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        queryError: error,
+      })),
+    }));
+  },
+
+  setQueryResult: (tabId, queryResult) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        queryResult,
+        queryLoading: false,
+        queryError: null,
       })),
     }));
   },

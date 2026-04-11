@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Play, Save, WandSparkles } from 'lucide-react';
+import { History, Play, Save, WandSparkles } from 'lucide-react';
 import { format as formatSQL } from 'sql-formatter';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,9 +13,11 @@ interface QueryToolbarProps {
   onQueryTextChange: (queryText: string) => void;
   onRun: () => void;
   onSave: () => void;
+  onShowSavedQueries: () => void;
+  onShowHistory: () => void;
 }
 
-export function QueryToolbar({ profileId, queryText, running, onProfileChange, onQueryTextChange, onRun, onSave }: QueryToolbarProps) {
+export function QueryToolbar({ profileId, queryText, running, onProfileChange, onQueryTextChange, onRun, onSave, onShowSavedQueries, onShowHistory }: QueryToolbarProps) {
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
   const connectedProfiles = useMemo(
@@ -46,6 +48,15 @@ export function QueryToolbar({ profileId, queryText, running, onProfileChange, o
       <Button variant="outline" size="sm" onClick={onSave} disabled={!queryText.trim()}>
         <Save data-icon="inline-start" />
         Save Query
+      </Button>
+
+      <Button variant="outline" size="sm" onClick={onShowSavedQueries}>
+        Saved Queries
+      </Button>
+
+      <Button variant="outline" size="sm" onClick={onShowHistory}>
+        <History data-icon="inline-start" />
+        History
       </Button>
 
       <Button

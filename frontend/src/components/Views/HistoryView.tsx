@@ -1,0 +1,88 @@
+import { useEffect, useState } from 'react';
+import * as wails from '../../../wailsjs/go/main/App';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import type { QueryHistoryEntry } from '@/types';
+
+interface HistoryViewProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelectQuery: (query: string) => void;
+}
+
+export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewProps) {
+  const [entries, setEntries] = useState<QueryHistoryEntry[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const historyEntries = (await wails.GetQueryHistory()) as QueryHistoryEntry[];
+        if (!cancelled) {
+          setEntries(historyEntries ?? []);
+        }
+      } catch (nextError) {
+        if (!cancelled) {
+          setError(String(nextError));
+        }
+      }
+    };
+
+    setError(null);
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Query History</DialogTitle>
+        </DialogHeader>
+
+        {error ? <div className="text-sm text-destructive">{error}</div> : null}
+
+        <div className="grid gap-3 max-h-[70vh] overflow-auto">
+          {entries.length === 0 ? (
+            <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground">No history yet.</div>
+          ) : entries.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              className="rounded-4xl border bg-card p-4 text-left shadow-sm"
+              onClick={() => onSelectQuery(entry.query)}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="font-medium text-foreground">{entry.database}</div>
+                <div className="text-xs text-muted-foreground">{entry.exec_time_ms} ms</div>
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">{entry.timestamp}</div>
+              <pre className="mt-2 line-clamp-4 whitespace-pre-wrap text-xs text-muted-foreground">{entry.query}</pre>
+            </button>
+          ))}
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await wails.ClearQueryHistory();
+              setEntries([]);
+            }}
+          >
+            Clear History
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

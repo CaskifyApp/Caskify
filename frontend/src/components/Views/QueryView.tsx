@@ -4,6 +4,8 @@ import { SaveQueryModal } from '@/components/Modals/SaveQueryModal';
 import { QueryEditor } from '@/components/QueryEditor/QueryEditor';
 import { QueryResultsPanel } from '@/components/QueryEditor/QueryResultsPanel';
 import { QueryToolbar } from '@/components/QueryEditor/QueryToolbar';
+import { HistoryView } from '@/components/Views/HistoryView';
+import { SavedQueriesView } from '@/components/Views/SavedQueriesView';
 import { useQueryExecution } from '@/hooks/useQueryExecution';
 import { useTabStore } from '@/store/tabStore';
 import type { Tab } from '@/types';
@@ -17,6 +19,8 @@ export function QueryView({ tab }: QueryViewProps) {
   const setQueryProfile = useTabStore((state) => state.setQueryProfile);
   const { runQuery } = useQueryExecution(tab);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [savedQueriesOpen, setSavedQueriesOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">
@@ -28,6 +32,8 @@ export function QueryView({ tab }: QueryViewProps) {
         onQueryTextChange={(queryText) => setQueryText(tab.id, queryText)}
         onRun={() => void runQuery()}
         onSave={() => setSaveModalOpen(true)}
+        onShowSavedQueries={() => setSavedQueriesOpen(true)}
+        onShowHistory={() => setHistoryOpen(true)}
       />
 
       <Group orientation="vertical" className="min-h-0 flex-1 gap-2">
@@ -54,6 +60,24 @@ export function QueryView({ tab }: QueryViewProps) {
         open={saveModalOpen}
         onOpenChange={setSaveModalOpen}
         queryText={tab.queryText ?? ''}
+      />
+
+      <SavedQueriesView
+        open={savedQueriesOpen}
+        onOpenChange={setSavedQueriesOpen}
+        onSelectQuery={(query) => {
+          setQueryText(tab.id, query);
+          setSavedQueriesOpen(false);
+        }}
+      />
+
+      <HistoryView
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        onSelectQuery={(query) => {
+          setQueryText(tab.id, query);
+          setHistoryOpen(false);
+        }}
       />
     </div>
   );

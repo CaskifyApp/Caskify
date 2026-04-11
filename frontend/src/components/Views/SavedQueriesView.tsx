@@ -1,0 +1,86 @@
+import { useEffect, useState } from 'react';
+import * as wails from '../../../wailsjs/go/main/App';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import type { SavedQueriesPayload } from '@/types';
+
+interface SavedQueriesViewProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelectQuery: (query: string) => void;
+}
+
+export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQueriesViewProps) {
+  const [payload, setPayload] = useState<SavedQueriesPayload>({ queries: [], folders: [] });
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const savedQueries = (await wails.GetSavedQueries()) as SavedQueriesPayload;
+        if (!cancelled) {
+          setPayload(savedQueries);
+        }
+      } catch (nextError) {
+        if (!cancelled) {
+          setError(String(nextError));
+        }
+      }
+    };
+
+    setError(null);
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  const folderMap = new Map(payload.folders.map((folder) => [folder.id, folder.name]));
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Saved Queries</DialogTitle>
+        </DialogHeader>
+
+        {error ? <div className="text-sm text-destructive">{error}</div> : null}
+
+        <div className="grid gap-3 max-h-[70vh] overflow-auto">
+          {payload.queries.length === 0 ? (
+            <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground">No saved queries yet.</div>
+          ) : payload.queries.map((savedQuery) => (
+            <div key={savedQuery.id} className="flex items-start justify-between gap-3 rounded-4xl border bg-card p-4 shadow-sm">
+              <div className="min-w-0">
+                <div className="font-medium text-foreground">{savedQuery.name}</div>
+                <div className="text-xs text-muted-foreground">{folderMap.get(savedQuery.folderId) ?? 'Ungrouped'}</div>
+                <pre className="mt-2 line-clamp-4 whitespace-pre-wrap text-xs text-muted-foreground">{savedQuery.query}</pre>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => onSelectQuery(savedQuery.query)}>Use Query</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    await wails.DeleteSavedQuery(savedQuery.id);
+                    const savedQueries = (await wails.GetSavedQueries()) as SavedQueriesPayload;
+                    setPayload(savedQueries);
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

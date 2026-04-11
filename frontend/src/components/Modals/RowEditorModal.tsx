@@ -3,6 +3,7 @@ import * as wails from '../../../wailsjs/go/main/App';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ColumnDef, InsertRowParams, UpdateRowParams } from '@/types';
 
 interface RowEditorModalProps {
@@ -22,6 +23,47 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const setDraftValue = (columnName: string, value: string) => {
+    setDraft((current) => ({
+      ...current,
+      [columnName]: value,
+    }));
+  };
+
+  const normalizeValue = (column: ColumnDef, value: string): unknown => {
+    if (value === '') {
+      return null;
+    }
+
+    if (column.type === 'boolean') {
+      return value === 'true';
+    }
+
+    if (column.type.includes('int') || column.type === 'numeric' || column.type === 'real' || column.type === 'double precision') {
+      return Number(value);
+    }
+
+    return value;
+  };
+
+  const isTimestampAuditColumn = (column: ColumnDef) => {
+    const normalizedName = column.name.toLowerCase();
+    const isAuditName = normalizedName === 'created_at' || normalizedName === 'updated_at' || normalizedName === 'deleted_at';
+    return isAuditName && column.hasDefault;
+  };
+
+  const shouldHideColumn = (column: ColumnDef) => {
+    if (mode === 'insert') {
+      return column.isPrimaryKey || column.isIdentity || column.isGenerated || isTimestampAuditColumn(column);
+    }
+
+    return column.isGenerated || column.isPrimaryKey || column.isIdentity || isTimestampAuditColumn(column);
+  };
+
+  const visibleColumns = columns.filter((column) => !shouldHideColumn(column));
+
+  const isReadonlyColumn = (column: ColumnDef) => column.isIdentity || column.isGenerated || column.isPrimaryKey || !column.isUpdatable;
 
   useEffect(() => {
     if (!open) {
@@ -47,7 +89,7 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
           database,
           schema,
           table,
-          values: draft,
+          values: Object.fromEntries(visibleColumns.map((column) => [column.name, normalizeValue(column, draft[column.name] ?? '')])),
         };
         await wails.InsertTableRow(payload);
       } else {
@@ -56,7 +98,7 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
           database,
           schema,
           table,
-          values: draft,
+          values: Object.fromEntries(visibleColumns.filter((column) => !isReadonlyColumn(column)).map((column) => [column.name, normalizeValue(column, draft[column.name] ?? '')])),
           originalValues: row ?? {},
         };
         await wails.UpdateTableRow(payload);
@@ -82,19 +124,45 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
         </DialogHeader>
 
         <div className="grid max-h-[60vh] gap-4 overflow-auto pr-1">
-          {columns.map((column) => (
+          {visibleColumns.map((column) => (
             <div key={column.name} className="grid gap-2">
               <label className="text-sm font-medium text-foreground">{column.name}</label>
-              <Input
-                value={draft[column.name] ?? ''}
-                onChange={(event) => setDraft((current) => ({
-                  ...current,
-                  [column.name]: event.target.value,
-                }))}
-              />
+              {column.type === 'boolean' ? (
+                <Select value={draft[column.name] ?? ''} onValueChange={(value) => setDraftValue(column.name, value ?? '')} disabled={isReadonlyColumn(column)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select boolean value" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">NULL</SelectItem>
+                    <SelectItem value="true">true</SelectItem>
+                    <SelectItem value="false">false</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  type={column.type.includes('int') || column.type === 'numeric' || column.type === 'real' || column.type === 'double precision' ? 'number' : 'text'}
+                  value={draft[column.name] ?? ''}
+                  onChange={(event) => setDraftValue(column.name, event.target.value)}
+                  disabled={isReadonlyColumn(column)}
+                />
+              )}
+              <div className="text-xs text-muted-foreground">
+                {column.type}
+                {column.isNullable ? ' • nullable' : ' • required'}
+                {column.hasDefault ? ' • defaulted' : ''}
+                {column.isIdentity ? ' • identity' : ''}
+                {column.isGenerated ? ' • generated' : ''}
+                {isReadonlyColumn(column) ? ' • read-only' : ''}
+              </div>
             </div>
           ))}
         </div>
+
+        {visibleColumns.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            All columns for this action are managed by PostgreSQL defaults or generated values.
+          </div>
+        ) : null}
 
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 

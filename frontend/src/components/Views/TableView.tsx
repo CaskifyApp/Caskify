@@ -30,10 +30,14 @@ export function TableView({ tab }: TableViewProps) {
 
   const handleSort = (column: string) => {
     const nextDirection = tab.sortColumn === column && tab.sortDir === 'asc' ? 'desc' : 'asc';
+    setSelectedRow(null);
+    setSelectedRowIndex(null);
     setTableSorting(tab.id, column, nextDirection);
   };
 
   const handleRefresh = () => {
+    setSelectedRow(null);
+    setSelectedRowIndex(null);
     setTablePagination(tab.id, tab.pagination?.page ?? 1, tab.pagination?.limit ?? 50);
   };
 
@@ -124,8 +128,16 @@ export function TableView({ tab }: TableViewProps) {
         limit={tab.pagination?.limit ?? 50}
         totalRows={tableData?.totalRows ?? 0}
         loading={tableLoading}
-        onPageChange={(page) => setTablePagination(tab.id, page, tab.pagination?.limit ?? 50)}
-        onLimitChange={(limit) => setTablePagination(tab.id, 1, limit)}
+        onPageChange={(page) => {
+          setSelectedRow(null);
+          setSelectedRowIndex(null);
+          setTablePagination(tab.id, page, tab.pagination?.limit ?? 50);
+        }}
+        onLimitChange={(limit) => {
+          setSelectedRow(null);
+          setSelectedRowIndex(null);
+          setTablePagination(tab.id, 1, limit);
+        }}
         onRefresh={handleRefresh}
       />
 
@@ -153,7 +165,11 @@ export function TableView({ tab }: TableViewProps) {
         database={tab.databaseName ?? ''}
         schema={tab.schemaName ?? ''}
         table={tab.tableName ?? ''}
-        onSaved={() => refreshTableData(tab.id)}
+        onSaved={() => {
+          setSelectedRow(null);
+          setSelectedRowIndex(null);
+          refreshTableData(tab.id);
+        }}
       />
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

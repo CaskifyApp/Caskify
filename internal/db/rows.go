@@ -55,6 +55,31 @@ func buildWhereClause(values map[string]any, startIndex int) (string, []any) {
 	return strings.Join(clauses, " AND "), args
 }
 
+func buildMutationMatchValues(columns []ColumnDef, originalValues map[string]any) map[string]any {
+	primaryKeyValues := make(map[string]any)
+	primaryKeyCount := 0
+
+	for _, column := range columns {
+		if !column.IsPrimaryKey {
+			continue
+		}
+
+		primaryKeyCount++
+		value, ok := originalValues[column.Name]
+		if !ok {
+			return originalValues
+		}
+
+		primaryKeyValues[column.Name] = value
+	}
+
+	if primaryKeyCount == 0 {
+		return originalValues
+	}
+
+	return primaryKeyValues
+}
+
 func InsertRow(ctx context.Context, pool *pgxpool.Pool, params InsertRowParams) error {
 	columns, err := FetchColumns(ctx, pool, params.Schema, params.Table)
 	if err != nil {
@@ -124,7 +149,8 @@ func UpdateRow(ctx context.Context, pool *pgxpool.Pool, params UpdateRowParams) 
 		args = append(args, params.Values[key])
 	}
 
-	whereClause, whereArgs := buildWhereClause(params.OriginalValues, len(args))
+	matchValues := buildMutationMatchValues(columns, params.OriginalValues)
+	whereClause, whereArgs := buildWhereClause(matchValues, len(args))
 	args = append(args, whereArgs...)
 
 	query := fmt.Sprintf(
@@ -159,7 +185,8 @@ func DeleteRow(ctx context.Context, pool *pgxpool.Pool, params DeleteRowParams) 
 		return err
 	}
 
-	whereClause, args := buildWhereClause(params.OriginalValues, 0)
+	matchValues := buildMutationMatchValues(columns, params.OriginalValues)
+	whereClause, args := buildWhereClause(matchValues, 0)
 	query := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s",
 		pgx.Identifier{params.Schema, params.Table}.Sanitize(),

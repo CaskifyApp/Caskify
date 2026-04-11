@@ -17,6 +17,9 @@ importers:
       '@codemirror/lang-sql':
         specifier: ^6.10.0
         version: 6.10.0
+      '@codemirror/view':
+        specifier: ^6.41.0
+        version: 6.41.0
       '@fontsource-variable/space-grotesk':
         specifier: ^5.2.10
         version: 5.2.10

@@ -135,3 +135,20 @@ body {
     @apply font-sans;
     }
 }
+
+.query-editor .cm-editor,
+.query-editor .cm-scroller,
+.query-editor .cm-content {
+  background-color: var(--card);
+  color: var(--card-foreground);
+}
+
+.query-editor .cm-gutters {
+  background-color: var(--card);
+  color: var(--muted-foreground);
+}
+
+.query-editor .cm-activeLine,
+.query-editor .cm-activeLineGutter {
+  background-color: color-mix(in oklch, var(--muted) 92%, transparent);
+}

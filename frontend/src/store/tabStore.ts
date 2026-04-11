@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { useConnectionStore } from '@/store/connectionStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import type { ColumnDef, ForeignKeyInfo, QueryResult, TableIndexInfo, TablePageResult, Tab, TreeNode } from '@/types';
 
 interface TabState {
@@ -62,7 +64,10 @@ export const useTabStore = create<TabState>((set) => ({
         schemaName: node.schema,
         tableName: node.label,
         subView: 'data',
-        pagination: { page: 1, limit: 50 },
+        pagination: {
+          page: 1,
+          limit: useSettingsStore.getState().settings.defaultRowsPerPage,
+        },
         tableData: null,
         tableColumns: [],
         tableIndexes: [],
@@ -84,11 +89,14 @@ export const useTabStore = create<TabState>((set) => ({
   openQueryTab: () => {
     set((state) => {
       const queryIndex = state.tabs.filter((tab) => tab.mode === 'query').length + 1;
+      const connectedProfile = useConnectionStore.getState().profiles.find(
+        (profile) => useConnectionStore.getState().connectionStatuses.get(profile.id)?.connected,
+      );
       const nextTab: Tab = {
         id: `query:${crypto.randomUUID()}`,
         title: `Query ${queryIndex}`,
         mode: 'query',
-        connectionId: '',
+        connectionId: connectedProfile?.id ?? '',
         queryText: '',
         queryResult: null,
         queryLoading: false,

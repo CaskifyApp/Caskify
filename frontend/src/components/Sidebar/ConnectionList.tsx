@@ -24,19 +24,40 @@ export function ConnectionList() {
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
+  const [initialProfile, setInitialProfile] = useState<Partial<Profile> | null>(null);
   const [profilePendingDelete, setProfilePendingDelete] = useState<Profile | null>(null);
 
   useEffect(() => {
     loadProfiles();
   }, [loadProfiles]);
 
+  useEffect(() => {
+    const handleQuickLocalServer = () => {
+      setEditingProfile(null);
+      setInitialProfile({
+        name: 'Local PostgreSQL',
+        host: 'localhost',
+        port: 5432,
+        defaultDatabase: 'postgres',
+        username: 'postgres',
+        ssl_mode: 'disable',
+      });
+      setModalOpen(true);
+    };
+
+    window.addEventListener('caskpg:quick-local-server', handleQuickLocalServer);
+    return () => window.removeEventListener('caskpg:quick-local-server', handleQuickLocalServer);
+  }, []);
+
   const handleEdit = (profile: Profile) => {
     setEditingProfile(profile);
+    setInitialProfile(null);
     setModalOpen(true);
   };
 
   const handleNew = () => {
     setEditingProfile(null);
+    setInitialProfile(null);
     setModalOpen(true);
   };
 
@@ -158,6 +179,7 @@ export function ConnectionList() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         editingProfile={editingProfile}
+        initialProfile={initialProfile}
       />
 
       <Dialog

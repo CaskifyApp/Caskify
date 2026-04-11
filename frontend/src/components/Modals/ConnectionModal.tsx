@@ -12,11 +12,12 @@ interface ConnectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingProfile?: Profile | null;
+  initialProfile?: Partial<Profile> | null;
 }
 
 type TestStatus = 'idle' | 'testing' | 'success' | 'failed';
 
-export function ConnectionModal({ open, onOpenChange, editingProfile }: ConnectionModalProps) {
+export function ConnectionModal({ open, onOpenChange, editingProfile, initialProfile }: ConnectionModalProps) {
   const [name, setName] = useState('');
   const [host, setHost] = useState('localhost');
   const [port, setPort] = useState('5432');
@@ -41,17 +42,17 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
       setSslMode(editingProfile.ssl_mode || 'disable');
       setPassword('');
     } else {
-      setName('');
-      setHost('localhost');
-      setPort('5432');
-      setDefaultDatabase('');
-      setUsername('');
+      setName(initialProfile?.name ?? 'Local PostgreSQL');
+      setHost(initialProfile?.host ?? 'localhost');
+      setPort(String(initialProfile?.port ?? 5432));
+      setDefaultDatabase(initialProfile?.defaultDatabase ?? 'postgres');
+      setUsername(initialProfile?.username ?? 'postgres');
       setPassword('');
-      setSslMode('disable');
+      setSslMode(initialProfile?.ssl_mode ?? 'disable');
     }
     setTestStatus('idle');
     setError(null);
-  }, [editingProfile, open]);
+  }, [editingProfile, initialProfile, open]);
 
   const buildConnString = () => {
     const databaseName = defaultDatabase || 'postgres';

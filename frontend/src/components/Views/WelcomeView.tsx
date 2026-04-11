@@ -14,6 +14,15 @@ export function WelcomeView() {
         <p className="mt-1 text-xs text-muted-foreground">
           You can also open a fresh SQL workspace any time from the New Query button in the tab bar.
         </p>
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            className="rounded-full border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            onClick={() => window.dispatchEvent(new CustomEvent('caskpg:quick-local-server'))}
+          >
+            Quick Add Local Server
+          </button>
+        </div>
       </div>
     </div>
   );

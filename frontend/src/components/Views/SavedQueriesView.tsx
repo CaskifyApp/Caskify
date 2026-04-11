@@ -60,7 +60,7 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
 
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
-        <div className="grid gap-3 max-h-[70vh] overflow-auto">
+        <div className="perf-scroll grid gap-3 max-h-[70vh] overflow-auto [contain:layout_paint]">
           {loading ? (
             <div className="flex items-center gap-2 rounded-4xl border bg-card p-5 text-sm text-muted-foreground">
               <Spinner />

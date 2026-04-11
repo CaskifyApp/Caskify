@@ -21,7 +21,7 @@ export function TableIndexesView({ indexes, loading, error }: TableIndexesViewPr
 
   return (
     <div className="overflow-hidden rounded-4xl border bg-card shadow-sm">
-      <div className="overflow-auto">
+      <div className="perf-scroll overflow-auto">
         <table className="min-w-full border-collapse text-sm">
           <thead className="bg-muted/40">
             <tr>

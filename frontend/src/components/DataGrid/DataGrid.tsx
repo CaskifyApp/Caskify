@@ -60,8 +60,8 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
 
   return (
     <>
-      <div className="overflow-hidden rounded-4xl border bg-card shadow-sm">
-        <div className="overflow-auto">
+      <div className="overflow-hidden rounded-4xl border bg-card shadow-sm [contain:layout_paint]">
+        <div className="perf-scroll overflow-auto">
           <table className="min-w-full border-collapse text-sm">
             <thead className="bg-muted/40">
               <tr>

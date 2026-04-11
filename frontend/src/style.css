@@ -152,3 +152,11 @@ body {
 .query-editor .cm-activeLineGutter {
   background-color: color-mix(in oklch, var(--muted) 92%, transparent);
 }
+
+@layer utilities {
+  .perf-scroll {
+    will-change: transform;
+    contain: layout style paint;
+    -webkit-overflow-scrolling: touch;
+  }
+}

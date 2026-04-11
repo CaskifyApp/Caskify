@@ -23,7 +23,7 @@ export function TableStructureView({ columns, foreignKeys, loading, error }: Tab
         {columns.length === 0 ? (
           <div className="px-4 py-5 text-sm text-muted-foreground">No column metadata found.</div>
         ) : (
-          <div className="overflow-auto">
+          <div className="perf-scroll overflow-auto">
             <table className="min-w-full border-collapse text-sm">
               <thead className="bg-muted/40">
                 <tr>
@@ -57,7 +57,7 @@ export function TableStructureView({ columns, foreignKeys, loading, error }: Tab
         {foreignKeys.length === 0 ? (
           <div className="px-4 py-5 text-sm text-muted-foreground">No foreign key relations found.</div>
         ) : (
-          <div className="overflow-auto">
+          <div className="perf-scroll overflow-auto">
             <table className="min-w-full border-collapse text-sm">
               <thead className="bg-muted/40">
                 <tr>

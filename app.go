@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"caskpg/internal/config"
 	"caskpg/internal/db"
@@ -334,6 +336,10 @@ func (a *App) ExportQueryResults(format string, result db.QueryResult) error {
 }
 
 func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOperationResult, error) {
+	if _, err := exec.LookPath("pg_dump"); err != nil {
+		return nil, fmt.Errorf("pg_dump is not available on this system")
+	}
+
 	profile, err := profiles.GetByID(params.ProfileID)
 	if err != nil {
 		return nil, err
@@ -374,6 +380,10 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 }
 
 func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {
+	if _, err := exec.LookPath("psql"); err != nil {
+		return nil, fmt.Errorf("psql is not available on this system")
+	}
+
 	profile, err := profiles.GetByID(params.ProfileID)
 	if err != nil {
 		return nil, err
@@ -397,6 +407,27 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 	if selectedPath == "" {
 		return nil, nil
 	}
+	if filepath.Ext(strings.ToLower(selectedPath)) != ".sql" {
+		return nil, fmt.Errorf("only .sql files are supported")
+	}
+	if _, err := os.Stat(selectedPath); err != nil {
+		return nil, err
+	}
+
+	choice, err := wailsruntime.MessageDialog(a.ctx, wailsruntime.MessageDialogOptions{
+		Type:          wailsruntime.QuestionDialog,
+		Title:         "Confirm Database Restore",
+		Message:       fmt.Sprintf("This will restore SQL into database '%s'. Continue?", profile.Database),
+		Buttons:       []string{"Cancel", "Restore"},
+		DefaultButton: "Cancel",
+		CancelButton:  "Cancel",
+	})
+	if err != nil {
+		return nil, err
+	}
+	if choice != "Restore" {
+		return nil, nil
+	}
 
 	if err := db.ImportDatabaseSQL(a.ctx, *profile, password, selectedPath); err != nil {
 		return nil, err
@@ -410,9 +441,14 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 
 func (a *App) CheckDatabaseTools() (map[string]bool, error) {
 	return map[string]bool{
-		"pg_dump": false,
-		"psql":    false,
+		"pg_dump": commandExists("pg_dump"),
+		"psql":    commandExists("psql"),
 	}, nil
+}
+
+func commandExists(name string) bool {
+	_, err := exec.LookPath(name)
+	return err == nil
 }
 
 func (a *App) Greet(name string) string {

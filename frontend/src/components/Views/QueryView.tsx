@@ -1,5 +1,6 @@
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import { useState } from 'react';
+import { useEffect } from 'react';
 import { SaveQueryModal } from '@/components/Modals/SaveQueryModal';
 import { QueryEditor } from '@/components/QueryEditor/QueryEditor';
 import { QueryResultsPanel } from '@/components/QueryEditor/QueryResultsPanel';
@@ -21,6 +22,30 @@ export function QueryView({ tab }: QueryViewProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [savedQueriesOpen, setSavedQueriesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  useEffect(() => {
+    const handleRun = (event: Event) => {
+      const customEvent = event as CustomEvent<{ tabId: string }>;
+      if (customEvent.detail?.tabId === tab.id) {
+        void runQuery();
+      }
+    };
+
+    const handleSave = (event: Event) => {
+      const customEvent = event as CustomEvent<{ tabId: string }>;
+      if (customEvent.detail?.tabId === tab.id) {
+        setSaveModalOpen(true);
+      }
+    };
+
+    window.addEventListener('caskpg:run-query', handleRun);
+    window.addEventListener('caskpg:save-query', handleSave);
+
+    return () => {
+      window.removeEventListener('caskpg:run-query', handleRun);
+      window.removeEventListener('caskpg:save-query', handleSave);
+    };
+  }, [runQuery, tab.id]);
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">

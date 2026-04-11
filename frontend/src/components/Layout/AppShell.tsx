@@ -1,11 +1,13 @@
 import { ConnectionList } from '@/components/Sidebar/ConnectionList';
 import { TabBar } from '@/components/TabBar/TabBar';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { QueryView } from '@/components/Views/QueryView';
 import { TableView } from '@/components/Views/TableView';
 import { WelcomeView } from '@/components/Views/WelcomeView';
 import { useTabStore } from '@/store/tabStore';
 
 export function AppShell() {
+  useKeyboardShortcuts();
   const tabs = useTabStore((state) => state.tabs);
   const activeTabId = useTabStore((state) => state.activeTabId);
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null;

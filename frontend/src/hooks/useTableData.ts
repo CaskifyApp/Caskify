@@ -24,23 +24,42 @@ export function useTableData(tab: Tab | null) {
   const setTableLoading = useTabStore((state) => state.setTableLoading);
   const setTableError = useTabStore((state) => state.setTableError);
   const setTableData = useTabStore((state) => state.setTableData);
+  const tabId = tab?.id ?? null;
+  const connectionId = tab?.connectionId ?? null;
+  const schemaName = tab?.schemaName ?? null;
+  const tableName = tab?.tableName ?? null;
 
-  const params = useMemo(() => (tab ? buildTablePageParams(tab) : null), [tab]);
+  const params = useMemo(() => {
+    if (!tab) {
+      return null;
+    }
+
+    return buildTablePageParams(tab);
+  }, [
+    connectionId,
+    schemaName,
+    tableName,
+    tab?.databaseName,
+    tab?.pagination?.page,
+    tab?.pagination?.limit,
+    tab?.sortColumn,
+    tab?.sortDir,
+  ]);
 
   useEffect(() => {
-    if (!tab || !params) {
+    if (!tabId || !connectionId || !schemaName || !tableName || !params) {
       return;
     }
 
     let cancelled = false;
 
     const load = async () => {
-      setTableLoading(tab.id, true);
-      setTableError(tab.id, null);
+      setTableLoading(tabId, true);
+      setTableError(tabId, null);
 
       try {
         const [tableColumns, tableData] = await Promise.all([
-          wails.GetTableColumns(tab.connectionId, tab.schemaName!, tab.tableName!),
+          wails.GetTableColumns(connectionId, schemaName, tableName),
           wails.GetTablePage(params),
         ]);
 
@@ -53,14 +72,14 @@ export function useTableData(tab: Tab | null) {
           sortDir: tableData.sortDir === 'desc' ? 'desc' : tableData.sortDir === 'asc' ? 'asc' : undefined,
         };
 
-        setTableData(tab.id, normalizedTableData, tableColumns);
+        setTableData(tabId, normalizedTableData, tableColumns);
       } catch (error) {
         if (cancelled) {
           return;
         }
 
-        setTableLoading(tab.id, false);
-        setTableError(tab.id, String(error));
+        setTableLoading(tabId, false);
+        setTableError(tabId, String(error));
       }
     };
 
@@ -69,7 +88,7 @@ export function useTableData(tab: Tab | null) {
     return () => {
       cancelled = true;
     };
-  }, [params, setTableData, setTableError, setTableLoading, tab]);
+  }, [connectionId, params, schemaName, setTableData, setTableError, setTableLoading, tabId, tableName]);
 
   return {
     tableData: tab?.tableData ?? null,

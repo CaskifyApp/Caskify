@@ -12,6 +12,7 @@ interface TabState {
   setTableData: (tabId: string, tableData: TablePageResult, tableColumns: ColumnDef[]) => void;
   setTablePagination: (tabId: string, page: number, limit: number) => void;
   setTableSorting: (tabId: string, sortColumn?: string, sortDir?: 'asc' | 'desc') => void;
+  refreshTableData: (tabId: string) => void;
 }
 
 function updateTab(tabs: Tab[], tabId: string, updater: (tab: Tab) => Tab) {
@@ -56,6 +57,7 @@ export const useTabStore = create<TabState>((set) => ({
         tableColumns: [],
         tableLoading: false,
         tableError: null,
+        tableRefreshKey: 0,
       };
 
       return {
@@ -132,6 +134,20 @@ export const useTabStore = create<TabState>((set) => ({
           page: 1,
           limit: tab.pagination?.limit ?? 50,
         },
+      })),
+    }));
+  },
+
+  refreshTableData: (tabId) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        pagination: {
+          page: tab.pagination?.page ?? 1,
+          limit: tab.pagination?.limit ?? 50,
+        },
+        tableLoading: false,
+        tableRefreshKey: (tab.tableRefreshKey ?? 0) + 1,
       })),
     }));
   },

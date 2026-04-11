@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
+import * as wails from '../../../wailsjs/go/main/App';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { ColumnDef } from '@/types';
+import type { ColumnDef, InsertRowParams, UpdateRowParams } from '@/types';
 
 interface RowEditorModalProps {
   open: boolean;
@@ -10,10 +11,17 @@ interface RowEditorModalProps {
   columns: ColumnDef[];
   row: Record<string, unknown> | null;
   mode: 'insert' | 'edit';
+  profileId: string;
+  database: string;
+  schema: string;
+  table: string;
+  onSaved: () => void;
 }
 
-export function RowEditorModal({ open, onOpenChange, columns, row, mode }: RowEditorModalProps) {
+export function RowEditorModal({ open, onOpenChange, columns, row, mode, profileId, database, schema, table, onSaved }: RowEditorModalProps) {
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -27,6 +35,41 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode }: RowEd
     }
     setDraft(nextDraft);
   }, [columns, open, row]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+
+    try {
+      if (mode === 'insert') {
+        const payload: InsertRowParams = {
+          profileId,
+          database,
+          schema,
+          table,
+          values: draft,
+        };
+        await wails.InsertTableRow(payload);
+      } else {
+        const payload: UpdateRowParams = {
+          profileId,
+          database,
+          schema,
+          table,
+          values: draft,
+          originalValues: row ?? {},
+        };
+        await wails.UpdateTableRow(payload);
+      }
+
+      onSaved();
+      onOpenChange(false);
+    } catch (nextError) {
+      setError(String(nextError));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,11 +96,13 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode }: RowEd
           ))}
         </div>
 
+        {error ? <div className="text-sm text-destructive">{error}</div> : null}
+
         <DialogFooter className="sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             Close
           </Button>
-          <Button disabled>
+          <Button onClick={() => void handleSave()} disabled={saving}>
             Save Changes
           </Button>
         </DialogFooter>

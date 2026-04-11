@@ -16,6 +16,7 @@ export function TableView({ tab }: TableViewProps) {
   const { tableData, tableLoading, tableError } = useTableData(tab);
   const setTablePagination = useTabStore((state) => state.setTablePagination);
   const setTableSorting = useTabStore((state) => state.setTableSorting);
+  const refreshTableData = useTabStore((state) => state.refreshTableData);
   const [rowEditorOpen, setRowEditorOpen] = useState(false);
   const [rowEditorMode, setRowEditorMode] = useState<'insert' | 'edit'>('edit');
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
@@ -102,6 +103,11 @@ export function TableView({ tab }: TableViewProps) {
         columns={tab.tableColumns ?? []}
         row={selectedRow}
         mode={rowEditorMode}
+        profileId={tab.connectionId}
+        database={tab.databaseName ?? ''}
+        schema={tab.schemaName ?? ''}
+        table={tab.tableName ?? ''}
+        onSaved={() => refreshTableData(tab.id)}
       />
     </div>
   );

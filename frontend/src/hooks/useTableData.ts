@@ -44,6 +44,7 @@ export function useTableData(tab: Tab | null) {
     tab?.pagination?.limit,
     tab?.sortColumn,
     tab?.sortDir,
+    tab?.tableRefreshKey,
   ]);
 
   useEffect(() => {

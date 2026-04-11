@@ -32,6 +32,7 @@ export interface Tab {
   tableColumns?: ColumnDef[];
   tableLoading?: boolean;
   tableError?: string | null;
+  tableRefreshKey?: number;
   isRunning?: boolean;
   execError?: string | null;
 }

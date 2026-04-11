@@ -11,6 +11,9 @@ export function WelcomeView() {
         <p className="mt-2 text-sm text-muted-foreground">
           Connect a saved profile from the sidebar, expand a database tree, then pick a table to open a workspace tab.
         </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          You can also open a fresh SQL workspace any time from the New Query button in the tab bar.
+        </p>
       </div>
     </div>
   );

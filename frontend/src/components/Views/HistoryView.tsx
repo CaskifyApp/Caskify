@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import type { QueryHistoryEntry } from '@/types';
 
 interface HistoryViewProps {
@@ -13,6 +14,7 @@ interface HistoryViewProps {
 export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewProps) {
   const [entries, setEntries] = useState<QueryHistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -23,6 +25,7 @@ export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewPr
 
     const load = async () => {
       try {
+        setLoading(true);
         const historyEntries = (await wails.GetQueryHistory()) as QueryHistoryEntry[];
         if (!cancelled) {
           setEntries(historyEntries ?? []);
@@ -30,6 +33,10 @@ export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewPr
       } catch (nextError) {
         if (!cancelled) {
           setError(String(nextError));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
         }
       }
     };
@@ -52,7 +59,12 @@ export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewPr
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
         <div className="grid gap-3 max-h-[70vh] overflow-auto">
-          {entries.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center gap-2 rounded-4xl border bg-card p-5 text-sm text-muted-foreground">
+              <Spinner />
+              <span>Loading query history...</span>
+            </div>
+          ) : entries.length === 0 ? (
             <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground">No history yet.</div>
           ) : entries.map((entry) => (
             <button

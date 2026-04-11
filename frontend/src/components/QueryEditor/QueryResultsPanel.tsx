@@ -10,7 +10,7 @@ interface QueryResultsPanelProps {
 
 export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelProps) {
   if (loading) {
-    return <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">Running query...</div>;
+    return <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">Running query and waiting for PostgreSQL response...</div>;
   }
 
   if (error) {
@@ -18,7 +18,7 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
   }
 
   if (!result) {
-    return <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">Run a query to see results here.</div>;
+    return <div className="rounded-4xl border border-dashed bg-card/80 p-5 text-sm text-muted-foreground shadow-sm">Run a query to see rows, execution time, and command feedback here.</div>;
   }
 
   return (

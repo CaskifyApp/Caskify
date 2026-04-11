@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import type { SavedQueriesPayload } from '@/types';
 
 interface SavedQueriesViewProps {
@@ -13,6 +14,7 @@ interface SavedQueriesViewProps {
 export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQueriesViewProps) {
   const [payload, setPayload] = useState<SavedQueriesPayload>({ queries: [], folders: [] });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -23,6 +25,7 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
 
     const load = async () => {
       try {
+        setLoading(true);
         const savedQueries = (await wails.GetSavedQueries()) as SavedQueriesPayload;
         if (!cancelled) {
           setPayload(savedQueries);
@@ -30,6 +33,10 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
       } catch (nextError) {
         if (!cancelled) {
           setError(String(nextError));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
         }
       }
     };
@@ -54,7 +61,12 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
         <div className="grid gap-3 max-h-[70vh] overflow-auto">
-          {payload.queries.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center gap-2 rounded-4xl border bg-card p-5 text-sm text-muted-foreground">
+              <Spinner />
+              <span>Loading saved queries...</span>
+            </div>
+          ) : payload.queries.length === 0 ? (
             <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground">No saved queries yet.</div>
           ) : payload.queries.map((savedQuery) => (
             <div key={savedQuery.id} className="flex items-start justify-between gap-3 rounded-4xl border bg-card p-4 shadow-sm">

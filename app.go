@@ -154,6 +154,33 @@ func (a *App) GetTablePage(params db.TablePageParams) (*db.TablePageResult, erro
 	return db.FetchTablePage(a.ctx, pool, params)
 }
 
+func (a *App) InsertTableRow(params db.InsertRowParams) error {
+	pool := db.GetManager().GetPool(params.ProfileID)
+	if pool == nil {
+		return fmt.Errorf("profile is not connected")
+	}
+
+	return db.InsertRow(a.ctx, pool, params)
+}
+
+func (a *App) UpdateTableRow(params db.UpdateRowParams) error {
+	pool := db.GetManager().GetPool(params.ProfileID)
+	if pool == nil {
+		return fmt.Errorf("profile is not connected")
+	}
+
+	return db.UpdateRow(a.ctx, pool, params)
+}
+
+func (a *App) DeleteTableRow(params db.DeleteRowParams) error {
+	pool := db.GetManager().GetPool(params.ProfileID)
+	if pool == nil {
+		return fmt.Errorf("profile is not connected")
+	}
+
+	return db.DeleteRow(a.ctx, pool, params)
+}
+
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }

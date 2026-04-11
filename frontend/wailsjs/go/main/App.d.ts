@@ -9,6 +9,8 @@ export function DeletePassword(arg1:string):Promise<void>;
 
 export function DeleteProfile(arg1:string):Promise<void>;
 
+export function DeleteTableRow(arg1:db.DeleteRowParams):Promise<void>;
+
 export function DisconnectProfile(arg1:string):Promise<void>;
 
 export function GetDatabases(arg1:string):Promise<Array<db.DatabaseInfo>>;
@@ -29,6 +31,8 @@ export function GetTables(arg1:string,arg2:string,arg3:string):Promise<Array<db.
 
 export function Greet(arg1:string):Promise<string>;
 
+export function InsertTableRow(arg1:db.InsertRowParams):Promise<void>;
+
 export function IsProfileConnected(arg1:string):Promise<boolean>;
 
 export function SavePassword(arg1:string,arg2:string):Promise<void>;
@@ -38,3 +42,5 @@ export function SaveProfile(arg1:profiles.Profile):Promise<profiles.Profile>;
 export function TestConnection(arg1:string):Promise<void>;
 
 export function UpdateProfile(arg1:profiles.Profile):Promise<void>;
+
+export function UpdateTableRow(arg1:db.UpdateRowParams):Promise<void>;

@@ -34,6 +34,46 @@ export namespace db {
 	        this.name = source["name"];
 	    }
 	}
+	export class DeleteRowParams {
+	    profileId: string;
+	    database: string;
+	    schema: string;
+	    table: string;
+	    originalValues: Record<string, any>;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeleteRowParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	        this.database = source["database"];
+	        this.schema = source["schema"];
+	        this.table = source["table"];
+	        this.originalValues = source["originalValues"];
+	    }
+	}
+	export class InsertRowParams {
+	    profileId: string;
+	    database: string;
+	    schema: string;
+	    table: string;
+	    values: Record<string, any>;
+	
+	    static createFrom(source: any = {}) {
+	        return new InsertRowParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	        this.database = source["database"];
+	        this.schema = source["schema"];
+	        this.table = source["table"];
+	        this.values = source["values"];
+	    }
+	}
 	export class SchemaInfo {
 	    connectionId: string;
 	    database: string;
@@ -124,6 +164,28 @@ export namespace db {
 	        this.table = source["table"];
 	        this.schema = source["schema"];
 	        this.database = source["database"];
+	    }
+	}
+	export class UpdateRowParams {
+	    profileId: string;
+	    database: string;
+	    schema: string;
+	    table: string;
+	    values: Record<string, any>;
+	    originalValues: Record<string, any>;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateRowParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	        this.database = source["database"];
+	        this.schema = source["schema"];
+	        this.table = source["table"];
+	        this.values = source["values"];
+	        this.originalValues = source["originalValues"];
 	    }
 	}
 

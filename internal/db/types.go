@@ -33,6 +33,31 @@ type TablePageResult struct {
 	Database   string           `json:"database"`
 }
 
+type InsertRowParams struct {
+	ProfileID string         `json:"profileId"`
+	Database  string         `json:"database"`
+	Schema    string         `json:"schema"`
+	Table     string         `json:"table"`
+	Values    map[string]any `json:"values"`
+}
+
+type UpdateRowParams struct {
+	ProfileID      string         `json:"profileId"`
+	Database       string         `json:"database"`
+	Schema         string         `json:"schema"`
+	Table          string         `json:"table"`
+	Values         map[string]any `json:"values"`
+	OriginalValues map[string]any `json:"originalValues"`
+}
+
+type DeleteRowParams struct {
+	ProfileID      string         `json:"profileId"`
+	Database       string         `json:"database"`
+	Schema         string         `json:"schema"`
+	Table          string         `json:"table"`
+	OriginalValues map[string]any `json:"originalValues"`
+}
+
 type ColumnDef struct {
 	Name         string  `json:"name"`
 	Type         string  `json:"type"`

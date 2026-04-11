@@ -14,6 +14,10 @@ export function DeleteProfile(arg1) {
   return window['go']['main']['App']['DeleteProfile'](arg1);
 }
 
+export function DeleteTableRow(arg1) {
+  return window['go']['main']['App']['DeleteTableRow'](arg1);
+}
+
 export function DisconnectProfile(arg1) {
   return window['go']['main']['App']['DisconnectProfile'](arg1);
 }
@@ -54,6 +58,10 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function InsertTableRow(arg1) {
+  return window['go']['main']['App']['InsertTableRow'](arg1);
+}
+
 export function IsProfileConnected(arg1) {
   return window['go']['main']['App']['IsProfileConnected'](arg1);
 }
@@ -72,4 +80,8 @@ export function TestConnection(arg1) {
 
 export function UpdateProfile(arg1) {
   return window['go']['main']['App']['UpdateProfile'](arg1);
+}
+
+export function UpdateTableRow(arg1) {
+  return window['go']['main']['App']['UpdateTableRow'](arg1);
 }

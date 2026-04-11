@@ -67,6 +67,31 @@ export interface TablePageResult {
   database: string;
 }
 
+export interface InsertRowParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  table: string;
+  values: Record<string, unknown>;
+}
+
+export interface UpdateRowParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  table: string;
+  values: Record<string, unknown>;
+  originalValues: Record<string, unknown>;
+}
+
+export interface DeleteRowParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  table: string;
+  originalValues: Record<string, unknown>;
+}
+
 export interface ColumnDef {
   name: string;
   type: string;

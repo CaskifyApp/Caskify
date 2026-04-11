@@ -132,13 +132,17 @@ build_appimage() {
 }
 
 build_deb() {
-  echo "deb target is not implemented yet."
-  return 1
+  local output="$DIST_DIR/caskpg_${VERSION}_amd64.deb"
+
+  require_command nfpm
+  run env VERSION="$VERSION" nfpm package --config "$ROOT_DIR/build/linux/nfpm.yaml" --packager deb --target "$output"
 }
 
 build_rpm() {
-  echo "rpm target is not implemented yet."
-  return 1
+  local output="$DIST_DIR/caskpg_${VERSION}-1.x86_64.rpm"
+
+  require_command nfpm
+  run env VERSION="$VERSION" nfpm package --config "$ROOT_DIR/build/linux/nfpm.yaml" --packager rpm --target "$output"
 }
 
 build_arch() {

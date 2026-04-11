@@ -1,0 +1,26 @@
+name: caskpg
+arch: amd64
+platform: linux
+version: ${VERSION}
+section: utils
+priority: optional
+maintainer: Drenzzz <realdrenzzz@gmail.com>
+description: PostgreSQL Manager for Linux
+homepage: https://github.com/drenzzz/CaskPG
+license: MIT
+
+contents:
+  - src: ./build/bin/caskpg
+    dst: /usr/bin/caskpg
+    file_info:
+      mode: 0755
+  - src: ./build/linux/caskpg.desktop
+    dst: /usr/share/applications/caskpg.desktop
+  - src: ./build/appicon.png
+    dst: /usr/share/icons/hicolor/512x512/apps/caskpg.png
+
+rpm:
+  summary: PostgreSQL Manager for Linux
+
+deb:
+  compression: gzip

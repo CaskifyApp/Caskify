@@ -49,6 +49,18 @@ export namespace db {
 	        this.isUpdatable = source["isUpdatable"];
 	    }
 	}
+	export class DatabaseBackupParams {
+	    profileId: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatabaseBackupParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	    }
+	}
 	export class DatabaseInfo {
 	    connectionId: string;
 	    name: string;
@@ -61,6 +73,32 @@ export namespace db {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.connectionId = source["connectionId"];
 	        this.name = source["name"];
+	    }
+	}
+	export class DatabaseOperationResult {
+	    path: string;
+	    message: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatabaseOperationResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.message = source["message"];
+	    }
+	}
+	export class DatabaseRestoreParams {
+	    profileId: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatabaseRestoreParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
 	    }
 	}
 	export class DeleteRowParams {

@@ -57,6 +57,19 @@ export interface QueryExecutionParams {
   sql: string;
 }
 
+export interface DatabaseBackupParams {
+  profileId: string;
+}
+
+export interface DatabaseRestoreParams {
+  profileId: string;
+}
+
+export interface DatabaseOperationResult {
+  path: string;
+  message: string;
+}
+
 export interface SavedQuery {
   id: string;
   name: string;

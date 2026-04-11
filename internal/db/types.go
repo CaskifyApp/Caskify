@@ -5,6 +5,19 @@ type QueryExecutionParams struct {
 	SQL       string `json:"sql"`
 }
 
+type DatabaseBackupParams struct {
+	ProfileID string `json:"profileId"`
+}
+
+type DatabaseRestoreParams struct {
+	ProfileID string `json:"profileId"`
+}
+
+type DatabaseOperationResult struct {
+	Path    string `json:"path"`
+	Message string `json:"message"`
+}
+
 type QueryResult struct {
 	Columns         []string         `json:"columns"`
 	Rows            []map[string]any `json:"rows"`

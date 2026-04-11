@@ -333,6 +333,21 @@ func (a *App) ExportQueryResults(format string, result db.QueryResult) error {
 	return writer.Error()
 }
 
+func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOperationResult, error) {
+	return nil, fmt.Errorf("database export is not implemented yet")
+}
+
+func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {
+	return nil, fmt.Errorf("database import is not implemented yet")
+}
+
+func (a *App) CheckDatabaseTools() (map[string]bool, error) {
+	return map[string]bool{
+		"pg_dump": false,
+		"psql":    false,
+	}, nil
+}
+
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }

@@ -6,6 +6,8 @@ import {history} from '../models';
 import {queries} from '../models';
 import {config} from '../models';
 
+export function CheckDatabaseTools():Promise<Record<string, boolean>>;
+
 export function ClearQueryHistory():Promise<void>;
 
 export function ConnectProfile(arg1:string):Promise<void>;
@@ -21,6 +23,8 @@ export function DeleteSavedQuery(arg1:string):Promise<void>;
 export function DeleteTableRow(arg1:db.DeleteRowParams):Promise<void>;
 
 export function DisconnectProfile(arg1:string):Promise<void>;
+
+export function ExportDatabaseSQL(arg1:db.DatabaseBackupParams):Promise<db.DatabaseOperationResult>;
 
 export function ExportQueryResults(arg1:string,arg2:db.QueryResult):Promise<void>;
 
@@ -51,6 +55,8 @@ export function GetTablePage(arg1:db.TablePageParams):Promise<db.TablePageResult
 export function GetTables(arg1:string,arg2:string,arg3:string):Promise<Array<db.TableInfo>>;
 
 export function Greet(arg1:string):Promise<string>;
+
+export function ImportDatabaseSQL(arg1:db.DatabaseRestoreParams):Promise<db.DatabaseOperationResult>;
 
 export function InsertTableRow(arg1:db.InsertRowParams):Promise<void>;
 

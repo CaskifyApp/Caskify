@@ -61,10 +61,10 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
     return column.isGenerated || column.isPrimaryKey || column.isIdentity || isTimestampAuditColumn(column);
   };
 
+  const isReadonlyColumn = (column: ColumnDef) => column.isIdentity || column.isGenerated || column.isPrimaryKey || !column.isUpdatable;
+
   const visibleColumns = columns.filter((column) => !shouldHideColumn(column));
   const editableColumns = visibleColumns.filter((column) => !isReadonlyColumn(column));
-
-  const isReadonlyColumn = (column: ColumnDef) => column.isIdentity || column.isGenerated || column.isPrimaryKey || !column.isUpdatable;
 
   useEffect(() => {
     if (!open) {

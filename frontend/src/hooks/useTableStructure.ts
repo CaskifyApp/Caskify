@@ -1,27 +1,32 @@
 import { useEffect } from 'react';
 import * as wails from '../../wailsjs/go/main/App';
 import { useTabStore } from '@/store/tabStore';
-import type { Tab } from '@/types';
+import type { ColumnDef, ForeignKeyInfo, TableIndexInfo, Tab } from '@/types';
+
+const EMPTY_COLUMNS: ColumnDef[] = [];
+const EMPTY_INDEXES: TableIndexInfo[] = [];
+const EMPTY_FOREIGN_KEYS: ForeignKeyInfo[] = [];
 
 export function useTableStructure(tab: Tab | null) {
   const setStructureLoading = useTabStore((state) => state.setStructureLoading);
   const setStructureError = useTabStore((state) => state.setStructureError);
   const setStructureData = useTabStore((state) => state.setStructureData);
+  const tabId = tab?.id ?? null;
+  const subView = tab?.subView ?? 'data';
+  const connectionId = tab?.connectionId ?? null;
+  const schemaName = tab?.schemaName ?? null;
+  const tableName = tab?.tableName ?? null;
 
   useEffect(() => {
-    if (!tab || tab.subView === 'data' || !tab.connectionId || !tab.schemaName || !tab.tableName) {
+    if (!tabId || subView === 'data' || !connectionId || !schemaName || !tableName) {
       return;
     }
-
-    const connectionId = tab.connectionId;
-    const schemaName = tab.schemaName;
-    const tableName = tab.tableName;
 
     let cancelled = false;
 
     const load = async () => {
-      setStructureLoading(tab.id, true);
-      setStructureError(tab.id, null);
+      setStructureLoading(tabId, true);
+      setStructureError(tabId, null);
 
       try {
         const [columns, indexes, foreignKeys] = await Promise.all([
@@ -34,14 +39,14 @@ export function useTableStructure(tab: Tab | null) {
           return;
         }
 
-        setStructureData(tab.id, columns, indexes, foreignKeys);
+        setStructureData(tabId, columns, indexes, foreignKeys);
       } catch (error) {
         if (cancelled) {
           return;
         }
 
-        setStructureLoading(tab.id, false);
-        setStructureError(tab.id, String(error));
+        setStructureLoading(tabId, false);
+        setStructureError(tabId, String(error));
       }
     };
 
@@ -50,13 +55,13 @@ export function useTableStructure(tab: Tab | null) {
     return () => {
       cancelled = true;
     };
-  }, [setStructureData, setStructureError, setStructureLoading, tab]);
+  }, [connectionId, schemaName, setStructureData, setStructureError, setStructureLoading, subView, tabId, tableName]);
 
   return {
     structureLoading: tab?.structureLoading ?? false,
     structureError: tab?.structureError ?? null,
-    tableColumns: tab?.tableColumns ?? [],
-    tableIndexes: tab?.tableIndexes ?? [],
-    tableForeignKeys: tab?.tableForeignKeys ?? [],
+    tableColumns: tab?.tableColumns ?? EMPTY_COLUMNS,
+    tableIndexes: tab?.tableIndexes ?? EMPTY_INDEXES,
+    tableForeignKeys: tab?.tableForeignKeys ?? EMPTY_FOREIGN_KEYS,
   };
 }

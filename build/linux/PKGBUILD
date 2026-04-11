@@ -1,0 +1,16 @@
+pkgname=caskpg
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc="PostgreSQL Manager for Linux"
+arch=('x86_64')
+url="https://github.com/drenzzz/CaskPG"
+license=('MIT')
+depends=('gtk3' 'webkit2gtk-4.1' 'libsecret')
+source=('caskpg' 'caskpg.desktop' 'caskpg.png')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
+
+package() {
+  install -Dm755 "$srcdir/caskpg" "$pkgdir/usr/bin/caskpg"
+  install -Dm644 "$srcdir/caskpg.desktop" "$pkgdir/usr/share/applications/caskpg.desktop"
+  install -Dm644 "$srcdir/caskpg.png" "$pkgdir/usr/share/icons/hicolor/512x512/apps/caskpg.png"
+}

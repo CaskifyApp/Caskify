@@ -146,8 +146,22 @@ build_rpm() {
 }
 
 build_arch() {
-  echo "arch target is not implemented yet."
-  return 1
+  local workdir="$DIST_DIR/PKGBUILD/caskpg"
+
+  require_command makepkg
+  run rm -rf "$workdir"
+  run mkdir -p "$workdir"
+  run cp "$BUILD_BIN" "$workdir/caskpg"
+  run cp "$ROOT_DIR/build/linux/caskpg.desktop" "$workdir/caskpg.desktop"
+  run cp "$ROOT_DIR/build/appicon.png" "$workdir/caskpg.png"
+
+  if $DRY_RUN; then
+    echo "[dry-run] sed 's/@VERSION@/$VERSION/g' '$ROOT_DIR/build/linux/PKGBUILD' > '$workdir/PKGBUILD'"
+  else
+    sed "s/@VERSION@/$VERSION/g" "$ROOT_DIR/build/linux/PKGBUILD" > "$workdir/PKGBUILD"
+  fi
+
+  run bash -lc "cd '$workdir' && makepkg --force --nodeps"
 }
 
 main() {

@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Settings } from 'lucide-react';
 import { ConnectionList } from '@/components/Sidebar/ConnectionList';
 import { TabBar } from '@/components/TabBar/TabBar';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { QueryView } from '@/components/Views/QueryView';
-import { SettingsView } from '@/components/Views/SettingsView';
-import { TableView } from '@/components/Views/TableView';
+import { Spinner } from '@/components/ui/spinner';
 import { WelcomeView } from '@/components/Views/WelcomeView';
 import { Button } from '@/components/ui/button';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTabStore } from '@/store/tabStore';
+
+const QueryView = lazy(() => import('@/components/Views/QueryView').then((module) => ({ default: module.QueryView })));
+const SettingsView = lazy(() => import('@/components/Views/SettingsView').then((module) => ({ default: module.SettingsView })));
+const TableView = lazy(() => import('@/components/Views/TableView').then((module) => ({ default: module.TableView })));
 
 export function AppShell() {
   useKeyboardShortcuts();
@@ -22,6 +24,13 @@ export function AppShell() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
   }, [settings.theme]);
+
+  const loadingFallback = (
+    <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
+      <Spinner />
+      <span>Loading workspace...</span>
+    </div>
+  );
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -44,11 +53,17 @@ export function AppShell() {
       <main className="flex min-w-0 flex-1 flex-col bg-muted/20">
         <TabBar />
         <div className="min-h-0 flex-1 overflow-auto">
-          {activeTab ? (activeTab.mode === 'query' ? <QueryView tab={activeTab} /> : <TableView tab={activeTab} />) : <WelcomeView />}
+          {activeTab ? (
+            <Suspense fallback={loadingFallback}>
+              {activeTab.mode === 'query' ? <QueryView tab={activeTab} /> : <TableView tab={activeTab} />}
+            </Suspense>
+          ) : <WelcomeView />}
         </div>
       </main>
 
-      <SettingsView open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <Suspense fallback={null}>
+        <SettingsView open={settingsOpen} onOpenChange={setSettingsOpen} />
+      </Suspense>
     </div>
   );
 }

@@ -2,13 +2,18 @@ package db
 
 import (
 	"context"
-	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func FetchDatabases(ctx context.Context, pool *pgxpool.Pool, profileID string) ([]DatabaseInfo, error) {
-	rows, err := pool.Query(ctx, "SELECT datname FROM pg_database WHERE datistemplate = false")
+	rows, err := pool.Query(ctx, `
+		SELECT datname
+		FROM pg_database
+		WHERE datistemplate = false
+		ORDER BY datname
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -22,11 +27,21 @@ func FetchDatabases(ctx context.Context, pool *pgxpool.Pool, profileID string) (
 		}
 		dbs = append(dbs, DatabaseInfo{ConnectionID: profileID, Name: db})
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return dbs, nil
 }
 
 func FetchSchemas(ctx context.Context, pool *pgxpool.Pool, profileID, dbName string) ([]SchemaInfo, error) {
-	rows, err := pool.Query(ctx, "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('pg_catalog', 'information_schema')")
+	rows, err := pool.Query(ctx, `
+		SELECT schema_name
+		FROM information_schema.schemata
+		WHERE schema_name NOT IN ('pg_catalog', 'information_schema')
+		ORDER BY schema_name
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -40,12 +55,29 @@ func FetchSchemas(ctx context.Context, pool *pgxpool.Pool, profileID, dbName str
 		}
 		schemas = append(schemas, SchemaInfo{ConnectionID: profileID, Database: dbName, Name: s})
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return schemas, nil
 }
 
 func FetchTables(ctx context.Context, pool *pgxpool.Pool, profileID, databaseName, schemaName string) ([]TableInfo, error) {
-	query := fmt.Sprintf("SELECT table_name, (SELECT count(*) FROM %s.%s) as row_count FROM information_schema.tables WHERE table_schema = $1 AND table_type = 'BASE TABLE'", schemaName, "pg_class")
-	rows, err := pool.Query(ctx, query, schemaName)
+	rows, err := pool.Query(ctx, `
+		SELECT
+			t.table_name,
+			COALESCE(c.reltuples::bigint, 0) AS row_count
+		FROM information_schema.tables AS t
+		LEFT JOIN pg_namespace AS n
+			ON n.nspname = t.table_schema
+		LEFT JOIN pg_class AS c
+			ON c.relnamespace = n.oid
+			AND c.relname = t.table_name
+		WHERE t.table_schema = $1
+			AND t.table_type = 'BASE TABLE'
+		ORDER BY t.table_name
+	`, schemaName)
 	if err != nil {
 		return nil, err
 	}
@@ -62,14 +94,20 @@ func FetchTables(ctx context.Context, pool *pgxpool.Pool, profileID, databaseNam
 		}
 		tables = append(tables, t)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return tables, nil
 }
 
 func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName string) ([]ColumnDef, error) {
 	query := `
-		SELECT column_name, data_type, is_nullable, column_default 
-		FROM information_schema.columns 
-		WHERE table_schema = $1 AND table_name = $2`
+		SELECT column_name, data_type, is_nullable, column_default
+		FROM information_schema.columns
+		WHERE table_schema = $1 AND table_name = $2
+		ORDER BY ordinal_position`
 	rows, err := pool.Query(ctx, query, schemaName, tableName)
 	if err != nil {
 		return nil, err
@@ -79,10 +117,17 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 	var columns []ColumnDef
 	for rows.Next() {
 		var c ColumnDef
-		if err := rows.Scan(&c.Name, &c.Type, &c.IsNullable, &c.DefaultVal); err != nil {
+		var nullable string
+		if err := rows.Scan(&c.Name, &c.Type, &nullable, &c.DefaultVal); err != nil {
 			return nil, err
 		}
+		c.IsNullable = strings.EqualFold(nullable, "YES")
 		columns = append(columns, c)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return columns, nil
 }

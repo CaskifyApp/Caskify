@@ -14,6 +14,7 @@ export function ConnectionList() {
   const profiles = useConnectionStore((state) => state.profiles);
   const loadProfiles = useConnectionStore((state) => state.loadProfiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
+  const setError = useConnectionStore((state) => state.setError);
   const { remove, deleting } = useDeleteProfile();
   const { connect, connecting } = useConnectProfile();
   const { disconnect, disconnecting } = useDisconnectProfile();
@@ -49,7 +50,8 @@ export function ConnectionList() {
   const handleConnect = async (profileId: string) => {
     try {
       await connect(profileId);
-    } catch {
+    } catch (error) {
+      setError(String(error));
     }
   };
 
@@ -136,6 +138,12 @@ export function ConnectionList() {
                     connected={isConnected}
                     onTableSelect={openTableTab}
                   />
+
+                  {status?.error ? (
+                    <div className="px-3 pb-2 text-xs text-destructive">
+                      {status.error}
+                    </div>
+                  ) : null}
                 </li>
               );
             })}

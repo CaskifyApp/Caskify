@@ -60,7 +60,7 @@ func (a *App) ConnectProfile(profileID string) error {
 	}
 	password, err := keyring.GetPassword("caskpg", profileID)
 	if err != nil {
-		return fmt.Errorf("password not found in keyring: %w", err)
+		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
 	}
 	connString := profile.BuildConnectionString(password)
 	return db.GetManager().Connect(profileID, connString)

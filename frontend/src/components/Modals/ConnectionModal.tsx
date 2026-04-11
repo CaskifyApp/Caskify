@@ -99,7 +99,8 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
     }
   };
 
-  const isFormValid = name && host && database && username;
+  const isPasswordValid = editingProfile ? true : password.trim().length > 0;
+  const isFormValid = name && host && database && username && isPasswordValid;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -211,6 +212,10 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
 
         {error && testStatus !== 'failed' && (
           <div className="text-sm text-destructive">{error}</div>
+        )}
+
+        {!editingProfile && !isPasswordValid && (
+          <div className="text-sm text-destructive">Password is required for a new connection.</div>
         )}
 
         <DialogFooter className="flex-row gap-2 justify-end">

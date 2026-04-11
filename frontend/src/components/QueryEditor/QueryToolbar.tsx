@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Play, WandSparkles } from 'lucide-react';
 import { format as formatSQL } from 'sql-formatter';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,10 @@ interface QueryToolbarProps {
 
 export function QueryToolbar({ profileId, queryText, running, onProfileChange, onQueryTextChange, onRun }: QueryToolbarProps) {
   const profiles = useConnectionStore((state) => state.profiles);
-  const connectedProfiles = useConnectionStore((state) =>
-    profiles.filter((profile) => state.connectionStatuses.get(profile.id)?.connected)
+  const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
+  const connectedProfiles = useMemo(
+    () => profiles.filter((profile) => connectionStatuses.get(profile.id)?.connected),
+    [profiles, connectionStatuses]
   );
 
   return (

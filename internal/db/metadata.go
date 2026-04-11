@@ -112,6 +112,7 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 
 	query := `
 		SELECT
+			c.ordinal_position,
 			c.column_name,
 			c.data_type,
 			c.is_nullable,
@@ -141,7 +142,7 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 	for rows.Next() {
 		var c ColumnDef
 		var nullable string
-		if err := rows.Scan(&c.Name, &c.Type, &nullable, &c.DefaultVal, &c.HasDefault, &c.IsPrimaryKey, &c.IsIdentity, &c.IsGenerated, &c.IsUpdatable); err != nil {
+		if err := rows.Scan(&c.OrdinalPosition, &c.Name, &c.Type, &nullable, &c.DefaultVal, &c.HasDefault, &c.IsPrimaryKey, &c.IsIdentity, &c.IsGenerated, &c.IsUpdatable); err != nil {
 			return nil, err
 		}
 		c.IsNullable = strings.EqualFold(nullable, "YES")
@@ -156,9 +157,105 @@ func FetchColumns(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName
 }
 
 func FetchIndexes(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName string) ([]TableIndexInfo, error) {
-	return []TableIndexInfo{}, nil
+	query := `
+		SELECT
+			i.relname AS index_name,
+			array_agg(a.attname ORDER BY x.ordinality) AS column_names,
+			am.amname AS index_type,
+			idx.indisunique,
+			idx.indisprimary
+		FROM pg_class AS t
+		JOIN pg_namespace AS n
+			ON n.oid = t.relnamespace
+		JOIN pg_index AS idx
+			ON idx.indrelid = t.oid
+		JOIN pg_class AS i
+			ON i.oid = idx.indexrelid
+		JOIN pg_am AS am
+			ON am.oid = i.relam
+		JOIN LATERAL unnest(idx.indkey) WITH ORDINALITY AS x(attnum, ordinality)
+			ON TRUE
+		JOIN pg_attribute AS a
+			ON a.attrelid = t.oid
+			AND a.attnum = x.attnum
+		WHERE n.nspname = $1
+			AND t.relname = $2
+		GROUP BY i.relname, am.amname, idx.indisunique, idx.indisprimary
+		ORDER BY idx.indisprimary DESC, i.relname`
+
+	rows, err := pool.Query(ctx, query, schemaName, tableName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	indexes := make([]TableIndexInfo, 0)
+	for rows.Next() {
+		var index TableIndexInfo
+		if err := rows.Scan(&index.Name, &index.Columns, &index.Type, &index.IsUnique, &index.IsPrimary); err != nil {
+			return nil, err
+		}
+		indexes = append(indexes, index)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return indexes, nil
 }
 
 func FetchForeignKeys(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName string) ([]ForeignKeyInfo, error) {
-	return []ForeignKeyInfo{}, nil
+	query := `
+		SELECT
+			tc.constraint_name,
+			kcu.column_name,
+			ccu.table_schema AS referenced_schema,
+			ccu.table_name AS referenced_table,
+			ccu.column_name AS referenced_column,
+			rc.update_rule,
+			rc.delete_rule
+		FROM information_schema.table_constraints AS tc
+		JOIN information_schema.key_column_usage AS kcu
+			ON tc.constraint_name = kcu.constraint_name
+			AND tc.table_schema = kcu.table_schema
+		JOIN information_schema.constraint_column_usage AS ccu
+			ON ccu.constraint_name = tc.constraint_name
+			AND ccu.table_schema = tc.table_schema
+		JOIN information_schema.referential_constraints AS rc
+			ON rc.constraint_name = tc.constraint_name
+			AND rc.constraint_schema = tc.table_schema
+		WHERE tc.constraint_type = 'FOREIGN KEY'
+			AND tc.table_schema = $1
+			AND tc.table_name = $2
+		ORDER BY kcu.ordinal_position`
+
+	rows, err := pool.Query(ctx, query, schemaName, tableName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	foreignKeys := make([]ForeignKeyInfo, 0)
+	for rows.Next() {
+		var foreignKey ForeignKeyInfo
+		if err := rows.Scan(
+			&foreignKey.ConstraintName,
+			&foreignKey.ColumnName,
+			&foreignKey.ReferencedSchema,
+			&foreignKey.ReferencedTable,
+			&foreignKey.ReferencedColumn,
+			&foreignKey.UpdateRule,
+			&foreignKey.DeleteRule,
+		); err != nil {
+			return nil, err
+		}
+		foreignKeys = append(foreignKeys, foreignKey)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return foreignKeys, nil
 }

@@ -4,9 +4,12 @@ interface DataGridProps {
   data: TablePageResult | null;
   loading: boolean;
   error: string | null;
+  sortColumn?: string;
+  sortDir?: 'asc' | 'desc';
+  onSort?: (column: string) => void;
 }
 
-export function DataGrid({ data, loading, error }: DataGridProps) {
+export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort }: DataGridProps) {
   if (loading) {
     return (
       <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">
@@ -55,7 +58,14 @@ export function DataGrid({ data, loading, error }: DataGridProps) {
             <tr>
               {data.columns.map((column) => (
                 <th key={column} className="border-b px-4 py-3 text-left font-medium text-foreground">
-                  {column}
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2"
+                    onClick={() => onSort?.(column)}
+                  >
+                    <span>{column}</span>
+                    {sortColumn === column ? <span className="text-xs text-muted-foreground">{sortDir === 'desc' ? 'DESC' : 'ASC'}</span> : null}
+                  </button>
                 </th>
               ))}
             </tr>

@@ -5,11 +5,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useConnectionStore } from '@/store/connectionStore';
 import { useDeleteProfile, useConnectProfile, useDisconnectProfile } from '@/hooks/useConnection';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
+import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
 import { useState } from 'react';
 import type { Profile } from '@/types';
 
 export function ConnectionList() {
-  const { profiles, loadProfiles } = useConnectionStore();
+  const profiles = useConnectionStore((state) => state.profiles);
+  const loadProfiles = useConnectionStore((state) => state.loadProfiles);
+  const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
   const { remove, deleting } = useDeleteProfile();
   const { connect, connecting } = useConnectProfile();
   const { disconnect, disconnecting } = useDisconnectProfile();
@@ -71,58 +74,62 @@ export function ConnectionList() {
         ) : (
           <ul className="p-2">
             {profiles.map((profile) => {
-              const status = useConnectionStore.getState().connectionStatuses.get(profile.id);
+              const status = connectionStatuses.get(profile.id);
               const isConnected = status?.connected || false;
               
               return (
-                <li key={profile.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted group">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{profile.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {profile.host}:{profile.port}/{profile.database}
+                <li key={profile.id} className="rounded-lg hover:bg-muted/60 group">
+                  <div className="flex items-center gap-2 p-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{profile.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {profile.host}:{profile.port}/{profile.database}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {isConnected ? (
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => handleDisconnect(profile.id)}
+                          disabled={disconnecting}
+                          title="Disconnect"
+                        >
+                          <PlugZap className="size-3 text-green-500" />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => handleConnect(profile.id)}
+                          disabled={connecting}
+                          title="Connect"
+                        >
+                          <Plug className="size-3" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => handleEdit(profile)}
+                        title="Edit"
+                      >
+                        <Edit2 className="size-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() => setProfilePendingDelete(profile)}
+                        disabled={deleting}
+                        title="Delete"
+                      >
+                        <Trash2 className="size-3 text-destructive" />
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {isConnected ? (
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => handleDisconnect(profile.id)}
-                        disabled={disconnecting}
-                        title="Disconnect"
-                      >
-                        <PlugZap className="size-3 text-green-500" />
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => handleConnect(profile.id)}
-                        disabled={connecting}
-                        title="Connect"
-                      >
-                        <Plug className="size-3" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      onClick={() => handleEdit(profile)}
-                      title="Edit"
-                    >
-                      <Edit2 className="size-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      onClick={() => setProfilePendingDelete(profile)}
-                      disabled={deleting}
-                      title="Delete"
-                    >
-                      <Trash2 className="size-3 text-destructive" />
-                    </Button>
-                  </div>
+
+                  <DatabaseTree connectionId={profile.id} connected={isConnected} />
                 </li>
               );
             })}

@@ -55,7 +55,7 @@ export function AppShell() {
         <div className="perf-scroll min-h-0 flex-1 overflow-auto [contain:layout_paint]">
           {activeTab ? (
             <Suspense fallback={loadingFallback}>
-              {activeTab.mode === 'query' ? <QueryView tab={activeTab} /> : <TableView tab={activeTab} />}
+              {activeTab.mode === 'query' ? <QueryView key={activeTab.id} tab={activeTab} /> : <TableView key={activeTab.id} tab={activeTab} />}
             </Suspense>
           ) : <WelcomeView />}
         </div>

@@ -15,6 +15,7 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
   const [payload, setPayload] = useState<SavedQueriesPayload>({ queries: [], folders: [] });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -81,12 +82,21 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
                   variant="outline"
                   size="sm"
                   onClick={async () => {
-                    await wails.DeleteSavedQuery(savedQuery.id);
-                    const savedQueries = (await wails.GetSavedQueries()) as SavedQueriesPayload;
-                    setPayload(savedQueries);
+                    try {
+                      setDeletingId(savedQuery.id);
+                      setError(null);
+                      await wails.DeleteSavedQuery(savedQuery.id);
+                      const savedQueries = (await wails.GetSavedQueries()) as SavedQueriesPayload;
+                      setPayload(savedQueries);
+                    } catch (nextError) {
+                      setError(String(nextError));
+                    } finally {
+                      setDeletingId(null);
+                    }
                   }}
+                  disabled={deletingId === savedQuery.id}
                 >
-                  Delete
+                  {deletingId === savedQuery.id ? 'Deleting...' : 'Delete'}
                 </Button>
               </div>
             </div>

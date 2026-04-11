@@ -15,6 +15,7 @@ export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewPr
   const [entries, setEntries] = useState<QueryHistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -87,11 +88,20 @@ export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewPr
           <Button
             variant="outline"
             onClick={async () => {
-              await wails.ClearQueryHistory();
-              setEntries([]);
+              try {
+                setClearing(true);
+                setError(null);
+                await wails.ClearQueryHistory();
+                setEntries([]);
+              } catch (nextError) {
+                setError(String(nextError));
+              } finally {
+                setClearing(false);
+              }
             }}
+            disabled={clearing}
           >
-            Clear History
+            {clearing ? 'Clearing...' : 'Clear History'}
           </Button>
         </DialogFooter>
       </DialogContent>

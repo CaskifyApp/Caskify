@@ -105,9 +105,30 @@ ensure_binary() {
   fi
 }
 
+require_command() {
+  local command_name="$1"
+  if $DRY_RUN; then
+    return 0
+  fi
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    echo "Missing required command: $command_name" >&2
+    return 1
+  fi
+}
+
 build_appimage() {
-  echo "AppImage target is not implemented yet."
-  return 1
+  local appdir="$DIST_DIR/AppDir"
+  local output="$DIST_DIR/caskpg_${VERSION}_amd64.AppImage"
+
+  require_command appimagetool
+  run rm -rf "$appdir"
+  run mkdir -p "$appdir/usr/bin" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/512x512/apps"
+  run cp "$BUILD_BIN" "$appdir/usr/bin/caskpg"
+  run cp "$ROOT_DIR/build/linux/caskpg.desktop" "$appdir/usr/share/applications/caskpg.desktop"
+  run cp "$ROOT_DIR/build/appicon.png" "$appdir/usr/share/icons/hicolor/512x512/apps/caskpg.png"
+  run cp "$ROOT_DIR/build/linux/AppRun" "$appdir/AppRun"
+  run chmod +x "$appdir/AppRun" "$appdir/usr/bin/caskpg"
+  run appimagetool "$appdir" "$output"
 }
 
 build_deb() {

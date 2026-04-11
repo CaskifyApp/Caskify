@@ -44,16 +44,19 @@ func GetByID(id string) (*Profile, error) {
 	return nil, fmt.Errorf("profile not found")
 }
 
-func Save(profile Profile) error {
+func Save(profile Profile) (Profile, error) {
 	if profile.ID == "" {
 		profile.ID = uuid.New().String()
 	}
 	profiles, err := GetAll()
 	if err != nil {
-		return err
+		return Profile{}, err
 	}
 	profiles = append(profiles, profile)
-	return writeAll(profiles)
+	if err := writeAll(profiles); err != nil {
+		return Profile{}, err
+	}
+	return profile, nil
 }
 
 func Update(profile Profile) error {

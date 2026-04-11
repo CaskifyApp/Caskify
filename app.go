@@ -30,9 +30,9 @@ func (a *App) GetProfile(id string) (*profiles.Profile, error) {
 	return profiles.GetByID(id)
 }
 
-func (a *App) SaveProfile(profile profiles.Profile) error {
+func (a *App) SaveProfile(profile profiles.Profile) (profiles.Profile, error) {
 	if err := profile.Validate(); err != nil {
-		return err
+		return profiles.Profile{}, err
 	}
 	return profiles.Save(profile)
 }

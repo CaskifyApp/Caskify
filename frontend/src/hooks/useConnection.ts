@@ -14,9 +14,9 @@ export function useSaveProfile() {
   const save = useCallback(async (profile: Profile, password?: string) => {
     setSaving(true);
     try {
-      await saveProfile(profile);
-      if (password && profile.id) {
-        await useConnectionStore.getState().savePassword(profile.id, password);
+      const savedProfile = await saveProfile(profile);
+      if (password) {
+        await useConnectionStore.getState().savePassword(savedProfile.id, password);
       }
     } finally {
       setSaving(false);

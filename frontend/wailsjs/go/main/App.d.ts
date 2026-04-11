@@ -22,7 +22,7 @@ export function IsProfileConnected(arg1:string):Promise<boolean>;
 
 export function SavePassword(arg1:string,arg2:string):Promise<void>;
 
-export function SaveProfile(arg1:profiles.Profile):Promise<void>;
+export function SaveProfile(arg1:profiles.Profile):Promise<profiles.Profile>;
 
 export function TestConnection(arg1:string):Promise<void>;
 

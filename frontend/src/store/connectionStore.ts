@@ -9,7 +9,7 @@ interface ConnectionState {
   isLoading: boolean;
   error: string | null;
   loadProfiles: () => Promise<void>;
-  saveProfile: (profile: Profile) => Promise<void>;
+  saveProfile: (profile: Profile) => Promise<Profile>;
   updateProfile: (profile: Profile) => Promise<void>;
   deleteProfile: (id: string) => Promise<void>;
   connectProfile: (id: string) => Promise<void>;
@@ -47,8 +47,9 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   saveProfile: async (profile: Profile) => {
     set({ isLoading: true, error: null });
     try {
-      await wails.SaveProfile(profile);
+      const savedProfile = await wails.SaveProfile(profile);
       await get().loadProfiles();
+      return savedProfile;
     } catch (err) {
       set({ error: String(err), isLoading: false });
       throw err;
@@ -70,14 +71,6 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await wails.DeleteProfile(id);
-      const { activeConnections, connectionStatuses } = get();
-      activeConnections.delete(id);
-      connectionStatuses.delete(id);
-      set({ 
-        activeConnections: new Map(activeConnections),
-        connectionStatuses: new Map(connectionStatuses),
-        isLoading: false 
-      });
       await get().loadProfiles();
     } catch (err) {
       set({ error: String(err), isLoading: false });

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Plus, Trash2, Edit2, Plug, PlugZap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useDeleteProfile, useConnectProfile, useDisconnectProfile } from '@/hooks/useConnection';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
@@ -15,6 +16,7 @@ export function ConnectionList() {
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
+  const [profilePendingDelete, setProfilePendingDelete] = useState<Profile | null>(null);
 
   useEffect(() => {
     loadProfiles();
@@ -30,10 +32,13 @@ export function ConnectionList() {
     setModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this connection?')) {
-      await remove(id);
+  const handleDelete = async () => {
+    if (!profilePendingDelete) {
+      return;
     }
+
+    await remove(profilePendingDelete.id);
+    setProfilePendingDelete(null);
   };
 
   const handleConnect = async (profileId: string) => {
@@ -111,7 +116,7 @@ export function ConnectionList() {
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      onClick={() => handleDelete(profile.id)}
+                      onClick={() => setProfilePendingDelete(profile)}
                       disabled={deleting}
                       title="Delete"
                     >
@@ -130,6 +135,39 @@ export function ConnectionList() {
         onOpenChange={setModalOpen}
         editingProfile={editingProfile}
       />
+
+      <Dialog
+        open={profilePendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setProfilePendingDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Delete Connection</DialogTitle>
+            <DialogDescription>
+              {profilePendingDelete
+                ? `Delete connection "${profilePendingDelete.name}"? This removes the saved profile and its stored password.`
+                : 'Delete this connection?'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="gap-2 justify-end sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => setProfilePendingDelete(null)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

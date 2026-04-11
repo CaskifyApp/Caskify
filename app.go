@@ -217,7 +217,21 @@ func (a *App) RunQuery(params db.QueryExecutionParams) (*db.QueryResult, error) 
 		return nil, fmt.Errorf("profile is not connected")
 	}
 
-	return db.ExecuteQuery(a.ctx, pool, params.SQL)
+	queryResult, err := db.ExecuteQuery(a.ctx, pool, params.SQL)
+	if err != nil {
+		return nil, err
+	}
+
+	profile, err := profiles.GetByID(params.ProfileID)
+	if err == nil {
+		_ = history.Add(history.HistoryEntry{
+			Query:    params.SQL,
+			Database: profile.Database,
+			ExecTime: queryResult.ExecutionTimeMs,
+		})
+	}
+
+	return queryResult, nil
 }
 
 func (a *App) GetSavedQueries() (*queries.SavedQueries, error) {

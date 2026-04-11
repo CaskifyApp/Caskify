@@ -45,6 +45,14 @@ func Save(query SavedQuery) error {
 	if err != nil {
 		return err
 	}
+
+	for index, existingQuery := range sq.Queries {
+		if existingQuery.ID == query.ID {
+			sq.Queries[index] = query
+			return writeAll(sq)
+		}
+	}
+
 	sq.Queries = append(sq.Queries, query)
 	return writeAll(sq)
 }

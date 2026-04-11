@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=CaskPG
+Comment=PostgreSQL Manager for Linux
+Exec=caskpg
+Icon=caskpg
+Terminal=false
+Categories=Development;Database;
+StartupNotify=true

@@ -1,7 +1,8 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "caskpg",
+  "name": "CaskPG",
   "outputfilename": "caskpg",
+  "version": "0.1.0",
   "frontend:install": "pnpm install",
   "frontend:build": "pnpm run build",
   "frontend:dev:watcher": "pnpm run dev",
@@ -9,9 +10,5 @@
   "author": {
     "name": "Drenzzz",
     "email": "realdrenzzz@gmail.com"
-  },
-  "linuxoptions": {
-    "webview2installmode": "download",
-    "wasmembed": false
   }
 }

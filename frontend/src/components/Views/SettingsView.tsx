@@ -1,7 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useConnectionStore } from '@/store/connectionStore';
 import { useSettingsStore } from '@/store/settingsStore';
 
 interface SettingsViewProps {
@@ -13,12 +16,60 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   const settings = useSettingsStore((state) => state.settings);
   const loadSettings = useSettingsStore((state) => state.loadSettings);
   const updateSettings = useSettingsStore((state) => state.updateSettings);
+  const profiles = useConnectionStore((state) => state.profiles);
+  const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
+  const [profileId, setProfileId] = useState('');
+  const [toolStatus, setToolStatus] = useState<Record<string, boolean>>({ pg_dump: false, psql: false });
+  const [databaseActionError, setDatabaseActionError] = useState<string | null>(null);
+  const [databaseActionMessage, setDatabaseActionMessage] = useState<string | null>(null);
+  const [databaseActionLoading, setDatabaseActionLoading] = useState(false);
+
+  const connectedProfiles = useMemo(
+    () => profiles.filter((profile) => connectionStatuses.get(profile.id)?.connected),
+    [profiles, connectionStatuses]
+  );
 
   useEffect(() => {
     if (open) {
       void loadSettings();
+      void wails.CheckDatabaseTools().then((status) => setToolStatus(status)).catch((error) => setDatabaseActionError(String(error)));
     }
   }, [loadSettings, open]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    if (!profileId && connectedProfiles.length > 0) {
+      setProfileId(connectedProfiles[0].id);
+    }
+  }, [connectedProfiles, open, profileId]);
+
+  const runDatabaseAction = async (action: 'export' | 'import') => {
+    if (!profileId) {
+      setDatabaseActionError('Choose a connected profile first.');
+      return;
+    }
+
+    setDatabaseActionLoading(true);
+    setDatabaseActionError(null);
+    setDatabaseActionMessage(null);
+
+    try {
+      const result = action === 'export'
+        ? await wails.ExportDatabaseSQL({ profileId })
+        : await wails.ImportDatabaseSQL({ profileId });
+
+      if (result) {
+        setDatabaseActionMessage(result.message);
+      }
+    } catch (error) {
+      setDatabaseActionError(String(error));
+    } finally {
+      setDatabaseActionLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,6 +109,43 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
               <div>Ctrl+Enter — Run query</div>
               <div>Ctrl+S — Save query</div>
               <div>Ctrl+R / F5 — Refresh current workspace</div>
+            </div>
+          </section>
+
+          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
+            <h3 className="font-medium text-foreground">Database Backup & Restore</h3>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Connected Profile</label>
+              <Select value={profileId} onValueChange={(value) => setProfileId(value ?? '')}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose connected profile" />
+                </SelectTrigger>
+                <SelectContent>
+                  {connectedProfiles.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-1 text-sm text-muted-foreground">
+              <div>pg_dump: {toolStatus.pg_dump ? 'available' : 'missing'}</div>
+              <div>psql: {toolStatus.psql ? 'available' : 'missing'}</div>
+            </div>
+
+            {databaseActionError ? <div className="text-sm text-destructive">{databaseActionError}</div> : null}
+            {databaseActionMessage ? <div className="text-sm text-primary">{databaseActionMessage}</div> : null}
+
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => void runDatabaseAction('export')} disabled={databaseActionLoading || !toolStatus.pg_dump}>
+                Export SQL
+              </Button>
+              <Button variant="outline" onClick={() => void runDatabaseAction('import')} disabled={databaseActionLoading || !toolStatus.psql}>
+                Import SQL
+              </Button>
             </div>
           </section>
         </div>

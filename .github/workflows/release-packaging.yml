@@ -1,0 +1,100 @@
+name: Release Packaging
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Packaging target (appimage, deb, rpm, arch, all)"
+        required: true
+        default: "all"
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  package-linux:
+    if: github.event.inputs.target != 'arch'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [appimage, deb, rpm]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libsecret-1-dev rpm
+
+      - name: Install packaging tools
+        run: |
+          if [[ "${{ matrix.target }}" == "appimage" ]]; then
+            wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+            chmod +x appimagetool
+            sudo mv appimagetool /usr/local/bin/appimagetool
+          fi
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Make release scripts executable
+        run: chmod +x build/packaging/release.sh build/linux/AppRun
+
+      - name: Build package
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          VERSION_VALUE="${VERSION#v}"
+          VERSION="$VERSION_VALUE" bash build/packaging/release.sh "${{ matrix.target }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}-artifacts
+          path: dist/*
+
+  package-arch:
+    if: github.event.inputs.target == 'arch' || github.event.inputs.target == 'all' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install CI dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm base-devel git go nodejs pnpm gtk3 webkit2gtk-4.1 libsecret
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make release scripts executable
+        run: chmod +x build/packaging/release.sh build/linux/AppRun
+
+      - name: Build package
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          VERSION_VALUE="${VERSION#v}"
+          VERSION="$VERSION_VALUE" bash build/packaging/release.sh arch
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-artifacts
+          path: dist/PKGBUILD/**/*

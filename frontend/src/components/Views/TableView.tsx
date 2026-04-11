@@ -1,4 +1,6 @@
 import { TableProperties } from 'lucide-react';
+import { DataGrid } from '@/components/DataGrid/DataGrid';
+import { useTableData } from '@/hooks/useTableData';
 import type { Tab } from '@/types';
 
 interface TableViewProps {
@@ -6,6 +8,8 @@ interface TableViewProps {
 }
 
 export function TableView({ tab }: TableViewProps) {
+  const { tableData, tableLoading, tableError } = useTableData(tab);
+
   return (
     <div className="flex h-full flex-col gap-4 p-6">
       <div className="rounded-4xl border bg-card p-5 shadow-sm">
@@ -23,9 +27,7 @@ export function TableView({ tab }: TableViewProps) {
         </div>
       </div>
 
-      <div className="rounded-4xl border border-dashed bg-card/80 p-5 text-sm text-muted-foreground shadow-sm">
-        Table workspace is ready. The data grid, structure tabs, and row actions will be implemented in the next phase.
-      </div>
+      <DataGrid data={tableData} loading={tableLoading} error={tableError} />
     </div>
   );
 }

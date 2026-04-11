@@ -4,7 +4,10 @@ import * as wails from '../../../wailsjs/go/main/App';
 import { DataGrid } from '@/components/DataGrid/DataGrid';
 import { DataGridToolbar } from '@/components/DataGrid/DataGridToolbar';
 import { useTableData } from '@/hooks/useTableData';
+import { useTableStructure } from '@/hooks/useTableStructure';
 import { RowEditorModal } from '@/components/Modals/RowEditorModal';
+import { TableIndexesView } from '@/components/Views/TableIndexesView';
+import { TableStructureView } from '@/components/Views/TableStructureView';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTabStore } from '@/store/tabStore';
@@ -17,8 +20,10 @@ interface TableViewProps {
 
 export function TableView({ tab }: TableViewProps) {
   const { tableData, tableLoading, tableError } = useTableData(tab);
+  const { structureLoading, structureError, tableColumns, tableIndexes, tableForeignKeys } = useTableStructure(tab);
   const setTablePagination = useTabStore((state) => state.setTablePagination);
   const setTableSorting = useTabStore((state) => state.setTableSorting);
+  const setTableSubView = useTabStore((state) => state.setTableSubView);
   const refreshTableData = useTabStore((state) => state.refreshTableData);
   const [rowEditorOpen, setRowEditorOpen] = useState(false);
   const [rowEditorMode, setRowEditorMode] = useState<'insert' | 'edit'>('edit');
@@ -136,44 +141,77 @@ export function TableView({ tab }: TableViewProps) {
             Delete Selected Row
           </Button>
         </div>
+
+        <div className="mt-4 flex items-center gap-2">
+          <Button variant={tab.subView === 'data' ? 'default' : 'outline'} size="sm" onClick={() => setTableSubView(tab.id, 'data')}>
+            Data
+          </Button>
+          <Button variant={tab.subView === 'structure' ? 'default' : 'outline'} size="sm" onClick={() => setTableSubView(tab.id, 'structure')}>
+            Structure
+          </Button>
+          <Button variant={tab.subView === 'indexes' ? 'default' : 'outline'} size="sm" onClick={() => setTableSubView(tab.id, 'indexes')}>
+            Indexes
+          </Button>
+        </div>
       </div>
 
-      <DataGridToolbar
-        page={tab.pagination?.page ?? 1}
-        limit={tab.pagination?.limit ?? 50}
-        totalRows={tableData?.totalRows ?? 0}
-        loading={tableLoading}
-        onPageChange={(page) => {
-          setSelectedRow(null);
-          setSelectedRowIndex(null);
-          setTablePagination(tab.id, page, tab.pagination?.limit ?? 50);
-        }}
-        onLimitChange={(limit) => {
-          setSelectedRow(null);
-          setSelectedRowIndex(null);
-          setTablePagination(tab.id, 1, limit);
-        }}
-        onRefresh={handleRefresh}
-      />
+      {tab.subView === 'data' ? (
+        <>
+          <DataGridToolbar
+            page={tab.pagination?.page ?? 1}
+            limit={tab.pagination?.limit ?? 50}
+            totalRows={tableData?.totalRows ?? 0}
+            loading={tableLoading}
+            onPageChange={(page) => {
+              setSelectedRow(null);
+              setSelectedRowIndex(null);
+              setTablePagination(tab.id, page, tab.pagination?.limit ?? 50);
+            }}
+            onLimitChange={(limit) => {
+              setSelectedRow(null);
+              setSelectedRowIndex(null);
+              setTablePagination(tab.id, 1, limit);
+            }}
+            onRefresh={handleRefresh}
+          />
 
-      <DataGrid
-        data={tableData}
-        loading={tableLoading}
-        error={tableError}
-        sortColumn={tab.sortColumn}
-        sortDir={tab.sortDir}
-        onSort={handleSort}
-        selectedRowIndex={selectedRowIndex}
-        onRowSelect={(rowIndex, row) => {
-          setSelectedRowIndex(rowIndex);
-          setSelectedRow(row);
-        }}
-      />
+          <DataGrid
+            data={tableData}
+            loading={tableLoading}
+            error={tableError}
+            sortColumn={tab.sortColumn}
+            sortDir={tab.sortDir}
+            onSort={handleSort}
+            selectedRowIndex={selectedRowIndex}
+            onRowSelect={(rowIndex, row) => {
+              setSelectedRowIndex(rowIndex);
+              setSelectedRow(row);
+            }}
+          />
+        </>
+      ) : null}
+
+      {tab.subView === 'structure' ? (
+        <TableStructureView
+          columns={tableColumns}
+          foreignKeys={tableForeignKeys}
+          loading={structureLoading}
+          error={structureError}
+        />
+      ) : null}
+
+      {tab.subView === 'indexes' ? (
+        <TableIndexesView
+          indexes={tableIndexes}
+          loading={structureLoading}
+          error={structureError}
+        />
+      ) : null}
 
       <RowEditorModal
         open={rowEditorOpen}
         onOpenChange={setRowEditorOpen}
-        columns={tab.tableColumns ?? []}
+        columns={tableColumns}
         row={selectedRow}
         mode={rowEditorMode}
         profileId={tab.connectionId}

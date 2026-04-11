@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ColumnDef, TablePageResult, Tab, TreeNode } from '@/types';
+import type { ColumnDef, ForeignKeyInfo, TableIndexInfo, TablePageResult, Tab, TreeNode } from '@/types';
 
 interface TabState {
   tabs: Tab[];
@@ -13,6 +13,10 @@ interface TabState {
   setTablePagination: (tabId: string, page: number, limit: number) => void;
   setTableSorting: (tabId: string, sortColumn?: string, sortDir?: 'asc' | 'desc') => void;
   refreshTableData: (tabId: string) => void;
+  setTableSubView: (tabId: string, subView: 'data' | 'structure' | 'indexes') => void;
+  setStructureLoading: (tabId: string, loading: boolean) => void;
+  setStructureError: (tabId: string, error: string | null) => void;
+  setStructureData: (tabId: string, columns: ColumnDef[], indexes: TableIndexInfo[], foreignKeys: ForeignKeyInfo[]) => void;
 }
 
 function updateTab(tabs: Tab[], tabId: string, updater: (tab: Tab) => Tab) {
@@ -55,9 +59,13 @@ export const useTabStore = create<TabState>((set) => ({
         pagination: { page: 1, limit: 50 },
         tableData: null,
         tableColumns: [],
+        tableIndexes: [],
+        tableForeignKeys: [],
         tableLoading: false,
         tableError: null,
         tableRefreshKey: 0,
+        structureLoading: false,
+        structureError: null,
       };
 
       return {
@@ -148,6 +156,46 @@ export const useTabStore = create<TabState>((set) => ({
         },
         tableLoading: false,
         tableRefreshKey: (tab.tableRefreshKey ?? 0) + 1,
+      })),
+    }));
+  },
+
+  setTableSubView: (tabId, subView) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        subView,
+      })),
+    }));
+  },
+
+  setStructureLoading: (tabId, loading) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        structureLoading: loading,
+      })),
+    }));
+  },
+
+  setStructureError: (tabId, error) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        structureError: error,
+      })),
+    }));
+  },
+
+  setStructureData: (tabId, columns, indexes, foreignKeys) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        tableColumns: columns,
+        tableIndexes: indexes,
+        tableForeignKeys: foreignKeys,
+        structureLoading: false,
+        structureError: null,
       })),
     }));
   },

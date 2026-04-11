@@ -30,9 +30,13 @@ export interface Tab {
   queryResult?: QueryResult | null;
   tableData?: TablePageResult | null;
   tableColumns?: ColumnDef[];
+  tableIndexes?: TableIndexInfo[];
+  tableForeignKeys?: ForeignKeyInfo[];
   tableLoading?: boolean;
   tableError?: string | null;
   tableRefreshKey?: number;
+  structureLoading?: boolean;
+  structureError?: string | null;
   isRunning?: boolean;
   execError?: string | null;
 }

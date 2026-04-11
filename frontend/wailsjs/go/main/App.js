@@ -38,6 +38,14 @@ export function GetSchemas(arg1, arg2) {
   return window['go']['main']['App']['GetSchemas'](arg1, arg2);
 }
 
+export function GetTableColumns(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetTableColumns'](arg1, arg2, arg3);
+}
+
+export function GetTablePage(arg1) {
+  return window['go']['main']['App']['GetTablePage'](arg1);
+}
+
 export function GetTables(arg1, arg2, arg3) {
   return window['go']['main']['App']['GetTables'](arg1, arg2, arg3);
 }

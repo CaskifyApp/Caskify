@@ -21,6 +21,10 @@ export function GetProfiles():Promise<Array<profiles.Profile>>;
 
 export function GetSchemas(arg1:string,arg2:string):Promise<Array<db.SchemaInfo>>;
 
+export function GetTableColumns(arg1:string,arg2:string,arg3:string):Promise<Array<db.ColumnDef>>;
+
+export function GetTablePage(arg1:db.TablePageParams):Promise<db.TablePageResult>;
+
 export function GetTables(arg1:string,arg2:string,arg3:string):Promise<Array<db.TableInfo>>;
 
 export function Greet(arg1:string):Promise<string>;

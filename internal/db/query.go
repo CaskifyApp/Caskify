@@ -8,6 +8,21 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+func FetchTablePage(ctx context.Context, pool *pgxpool.Pool, params TablePageParams) (*TablePageResult, error) {
+	return &TablePageResult{
+		Columns:    []string{},
+		Rows:       []map[string]any{},
+		TotalRows:  0,
+		Page:       params.Page,
+		Limit:      params.Limit,
+		SortColumn: params.SortColumn,
+		SortDir:    params.SortDir,
+		Table:      params.Table,
+		Schema:     params.Schema,
+		Database:   params.Database,
+	}, nil
+}
+
 func ExecuteQuery(ctx context.Context, pool *pgxpool.Pool, sql string) (*QueryResult, error) {
 	start := time.Now()
 	rows, err := pool.Query(ctx, sql)

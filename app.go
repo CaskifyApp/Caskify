@@ -131,6 +131,29 @@ func (a *App) GetTables(profileID, databaseName, schemaName string) ([]db.TableI
 	return tables, nil
 }
 
+func (a *App) GetTableColumns(profileID, schemaName, tableName string) ([]db.ColumnDef, error) {
+	pool := db.GetManager().GetPool(profileID)
+	if pool == nil {
+		return nil, fmt.Errorf("profile is not connected")
+	}
+
+	columns, err := db.FetchColumns(a.ctx, pool, schemaName, tableName)
+	if err != nil {
+		return nil, err
+	}
+
+	return columns, nil
+}
+
+func (a *App) GetTablePage(params db.TablePageParams) (*db.TablePageResult, error) {
+	pool := db.GetManager().GetPool(params.ProfileID)
+	if pool == nil {
+		return nil, fmt.Errorf("profile is not connected")
+	}
+
+	return db.FetchTablePage(a.ctx, pool, params)
+}
+
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }

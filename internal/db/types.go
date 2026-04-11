@@ -9,6 +9,30 @@ type QueryResult struct {
 	ExecutionTime time.Duration   `json:"executionTime"`
 }
 
+type TablePageParams struct {
+	ProfileID  string `json:"profileId"`
+	Database   string `json:"database"`
+	Schema     string `json:"schema"`
+	Table      string `json:"table"`
+	Page       int    `json:"page"`
+	Limit      int    `json:"limit"`
+	SortColumn string `json:"sortColumn,omitempty"`
+	SortDir    string `json:"sortDir,omitempty"`
+}
+
+type TablePageResult struct {
+	Columns    []string         `json:"columns"`
+	Rows       []map[string]any `json:"rows"`
+	TotalRows  int64            `json:"totalRows"`
+	Page       int              `json:"page"`
+	Limit      int              `json:"limit"`
+	SortColumn string           `json:"sortColumn,omitempty"`
+	SortDir    string           `json:"sortDir,omitempty"`
+	Table      string           `json:"table"`
+	Schema     string           `json:"schema"`
+	Database   string           `json:"database"`
+}
+
 type ColumnDef struct {
 	Name         string  `json:"name"`
 	Type         string  `json:"type"`

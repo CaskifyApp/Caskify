@@ -69,11 +69,11 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
           ) : payload.queries.length === 0 ? (
             <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground">No saved queries yet.</div>
           ) : payload.queries.map((savedQuery) => (
-            <div key={savedQuery.id} className="flex items-start justify-between gap-3 rounded-4xl border bg-card p-4 shadow-sm">
+            <div key={savedQuery.id} className="flex items-start justify-between gap-3 rounded-3xl border bg-card px-4 py-3">
               <div className="min-w-0">
                 <div className="font-medium text-foreground">{savedQuery.name}</div>
                 <div className="text-xs text-muted-foreground">{folderMap.get(savedQuery.folderId) ?? 'Ungrouped'}</div>
-                <pre className="mt-2 line-clamp-4 whitespace-pre-wrap text-xs text-muted-foreground">{savedQuery.query}</pre>
+                <div className="mt-2 line-clamp-2 text-xs text-muted-foreground">{savedQuery.query}</div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => onSelectQuery(savedQuery.query)}>Use Query</Button>

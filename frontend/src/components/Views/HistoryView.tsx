@@ -70,7 +70,7 @@ export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewPr
             <button
               key={entry.id}
               type="button"
-              className="rounded-4xl border bg-card p-4 text-left shadow-sm"
+              className="rounded-3xl border bg-card px-4 py-3 text-left"
               onClick={() => onSelectQuery(entry.query)}
             >
               <div className="flex items-center justify-between gap-3">
@@ -78,7 +78,7 @@ export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewPr
                 <div className="text-xs text-muted-foreground">{entry.exec_time_ms} ms</div>
               </div>
               <div className="mt-1 text-xs text-muted-foreground">{entry.timestamp}</div>
-              <pre className="mt-2 line-clamp-4 whitespace-pre-wrap text-xs text-muted-foreground">{entry.query}</pre>
+              <div className="mt-2 line-clamp-2 text-xs text-muted-foreground">{entry.query}</div>
             </button>
           ))}
         </div>

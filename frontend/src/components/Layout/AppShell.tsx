@@ -45,14 +45,14 @@ export function AppShell() {
             <Settings className="size-4" />
           </Button>
         </div>
-        <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="perf-scroll min-h-0 flex-1 overflow-hidden [contain:layout_paint]">
           <ConnectionList />
         </div>
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col bg-muted/20">
         <TabBar />
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div className="perf-scroll min-h-0 flex-1 overflow-auto [contain:layout_paint]">
           {activeTab ? (
             <Suspense fallback={loadingFallback}>
               {activeTab.mode === 'query' ? <QueryView tab={activeTab} /> : <TableView tab={activeTab} />}

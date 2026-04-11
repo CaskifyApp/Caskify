@@ -62,6 +62,7 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
   };
 
   const visibleColumns = columns.filter((column) => !shouldHideColumn(column));
+  const editableColumns = visibleColumns.filter((column) => !isReadonlyColumn(column));
 
   const isReadonlyColumn = (column: ColumnDef) => column.isIdentity || column.isGenerated || column.isPrimaryKey || !column.isUpdatable;
 
@@ -69,6 +70,8 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
     if (!open) {
       return;
     }
+
+    setError(null);
 
     const nextDraft: Record<string, string> = {};
     for (const column of columns) {
@@ -119,7 +122,7 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
         <DialogHeader>
           <DialogTitle>{mode === 'insert' ? 'Insert Row' : 'Edit Row'}</DialogTitle>
           <DialogDescription>
-            Row actions are wired up at the UI level. Persistence will be connected in the next implementation step.
+            Review editable fields and save your changes. Generated and read-only columns are hidden automatically.
           </DialogDescription>
         </DialogHeader>
 
@@ -158,9 +161,9 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
           ))}
         </div>
 
-        {visibleColumns.length === 0 ? (
+        {editableColumns.length === 0 ? (
           <div className="text-sm text-muted-foreground">
-            All columns for this action are managed by PostgreSQL defaults or generated values.
+            No editable columns are available for this action.
           </div>
         ) : null}
 
@@ -170,8 +173,8 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             Close
           </Button>
-          <Button onClick={() => void handleSave()} disabled={saving}>
-            Save Changes
+          <Button onClick={() => void handleSave()} disabled={saving || editableColumns.length === 0}>
+            {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogFooter>
       </DialogContent>

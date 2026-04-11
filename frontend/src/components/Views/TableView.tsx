@@ -1,5 +1,5 @@
 import { TableProperties } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { DataGrid } from '@/components/DataGrid/DataGrid';
 import { DataGridToolbar } from '@/components/DataGrid/DataGridToolbar';
@@ -27,6 +27,19 @@ export function TableView({ tab }: TableViewProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!rowEditorOpen) {
+      setSelectedRow(null);
+      setSelectedRowIndex(null);
+    }
+  }, [rowEditorOpen]);
+
+  useEffect(() => {
+    if (!deleteDialogOpen) {
+      setDeleteError(null);
+    }
+  }, [deleteDialogOpen]);
 
   const handleSort = (column: string) => {
     const nextDirection = tab.sortColumn === column && tab.sortDir === 'asc' ? 'desc' : 'asc';
@@ -90,9 +103,11 @@ export function TableView({ tab }: TableViewProps) {
           <Button
             variant="outline"
             size="sm"
+            disabled={tableLoading}
             onClick={() => {
               setRowEditorMode('insert');
               setSelectedRow(null);
+              setSelectedRowIndex(null);
               setRowEditorOpen(true);
             }}
           >
@@ -101,7 +116,7 @@ export function TableView({ tab }: TableViewProps) {
           <Button
             variant="outline"
             size="sm"
-            disabled={!selectedRow}
+            disabled={!selectedRow || tableLoading}
             onClick={() => {
               setRowEditorMode('edit');
               setRowEditorOpen(true);
@@ -112,7 +127,7 @@ export function TableView({ tab }: TableViewProps) {
           <Button
             variant="outline"
             size="sm"
-            disabled={!selectedRow}
+            disabled={!selectedRow || tableLoading}
             onClick={() => {
               setDeleteError(null);
               setDeleteDialogOpen(true);
@@ -188,7 +203,7 @@ export function TableView({ tab }: TableViewProps) {
               Cancel
             </Button>
             <Button onClick={() => void handleDeleteRow()} disabled={deleteLoading}>
-              Delete Row
+              {deleteLoading ? 'Deleting...' : 'Delete Row'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,3 +1,4 @@
+import { Group, Panel, Separator } from 'react-resizable-panels';
 import { QueryEditor } from '@/components/QueryEditor/QueryEditor';
 import { QueryResultsPanel } from '@/components/QueryEditor/QueryResultsPanel';
 import { QueryToolbar } from '@/components/QueryEditor/QueryToolbar';
@@ -25,17 +26,25 @@ export function QueryView({ tab }: QueryViewProps) {
         onRun={() => void runQuery()}
       />
 
-      <QueryEditor
-        value={tab.queryText ?? ''}
-        onChange={(queryText) => setQueryText(tab.id, queryText)}
-        onRun={() => void runQuery()}
-      />
+      <Group orientation="vertical" className="min-h-0 flex-1 gap-2">
+        <Panel defaultSize={55} minSize={30}>
+          <QueryEditor
+            value={tab.queryText ?? ''}
+            onChange={(queryText) => setQueryText(tab.id, queryText)}
+            onRun={() => void runQuery()}
+          />
+        </Panel>
 
-      <QueryResultsPanel
-        result={tab.queryResult ?? null}
-        loading={tab.queryLoading ?? false}
-        error={tab.queryError ?? null}
-      />
+        <Separator className="h-2 rounded-full bg-border/60" />
+
+        <Panel defaultSize={45} minSize={20}>
+          <QueryResultsPanel
+            result={tab.queryResult ?? null}
+            loading={tab.queryLoading ?? false}
+            error={tab.queryError ?? null}
+          />
+        </Panel>
+      </Group>
     </div>
   );
 }

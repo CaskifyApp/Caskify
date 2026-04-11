@@ -22,7 +22,7 @@ export function TabItem({ tab, active, onSelect, onClose }: TabItemProps) {
         type="button"
         className="min-w-0 flex-1 truncate text-left"
         onClick={() => onSelect(tab.id)}
-        title={`${tab.schemaName}.${tab.tableName}`}
+        title={tab.mode === 'table' ? `${tab.schemaName}.${tab.tableName}` : tab.title}
       >
         {tab.title}
       </button>

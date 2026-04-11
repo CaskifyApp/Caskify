@@ -1,5 +1,6 @@
 import { ConnectionList } from '@/components/Sidebar/ConnectionList';
 import { TabBar } from '@/components/TabBar/TabBar';
+import { QueryView } from '@/components/Views/QueryView';
 import { TableView } from '@/components/Views/TableView';
 import { WelcomeView } from '@/components/Views/WelcomeView';
 import { useTabStore } from '@/store/tabStore';
@@ -24,7 +25,7 @@ export function AppShell() {
       <main className="flex min-w-0 flex-1 flex-col bg-muted/20">
         <TabBar />
         <div className="min-h-0 flex-1 overflow-auto">
-          {activeTab ? <TableView tab={activeTab} /> : <WelcomeView />}
+          {activeTab ? (activeTab.mode === 'query' ? <QueryView tab={activeTab} /> : <TableView tab={activeTab} />) : <WelcomeView />}
         </div>
       </main>
     </div>

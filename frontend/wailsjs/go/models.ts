@@ -281,6 +281,31 @@ export namespace db {
 
 }
 
+export namespace history {
+	
+	export class HistoryEntry {
+	    id: string;
+	    query: string;
+	    database: string;
+	    timestamp: string;
+	    exec_time_ms: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new HistoryEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.query = source["query"];
+	        this.database = source["database"];
+	        this.timestamp = source["timestamp"];
+	        this.exec_time_ms = source["exec_time_ms"];
+	    }
+	}
+
+}
+
 export namespace profiles {
 	
 	export class Profile {
@@ -306,6 +331,75 @@ export namespace profiles {
 	        this.username = source["username"];
 	        this.ssl_mode = source["ssl_mode"];
 	    }
+	}
+
+}
+
+export namespace queries {
+	
+	export class Folder {
+	    id: string;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Folder(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	    }
+	}
+	export class SavedQuery {
+	    id: string;
+	    name: string;
+	    query: string;
+	    folderId: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SavedQuery(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.query = source["query"];
+	        this.folderId = source["folderId"];
+	    }
+	}
+	export class SavedQueries {
+	    queries: SavedQuery[];
+	    folders: Folder[];
+	
+	    static createFrom(source: any = {}) {
+	        return new SavedQueries(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.queries = this.convertValues(source["queries"], SavedQuery);
+	        this.folders = this.convertValues(source["folders"], Folder);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 
 }

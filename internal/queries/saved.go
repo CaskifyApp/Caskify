@@ -13,7 +13,7 @@ type SavedQuery struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Query    string `json:"query"`
-	FolderID string `json:"folder_id"`
+	FolderID string `json:"folderId"`
 }
 
 type SavedQueries struct {
@@ -61,6 +61,50 @@ func Delete(id string) error {
 		}
 	}
 	sq.Queries = filtered
+	return writeAll(sq)
+}
+
+func SaveFolder(folder Folder) error {
+	if folder.ID == "" {
+		folder.ID = uuid.New().String()
+	}
+
+	sq, err := GetAll()
+	if err != nil {
+		return err
+	}
+
+	for index, existingFolder := range sq.Folders {
+		if existingFolder.ID == folder.ID {
+			sq.Folders[index] = folder
+			return writeAll(sq)
+		}
+	}
+
+	sq.Folders = append(sq.Folders, folder)
+	return writeAll(sq)
+}
+
+func DeleteFolder(id string) error {
+	sq, err := GetAll()
+	if err != nil {
+		return err
+	}
+
+	filteredFolders := make([]Folder, 0, len(sq.Folders))
+	for _, folder := range sq.Folders {
+		if folder.ID != id {
+			filteredFolders = append(filteredFolders, folder)
+		}
+	}
+
+	for index, savedQuery := range sq.Queries {
+		if savedQuery.FolderID == id {
+			sq.Queries[index].FolderID = ""
+		}
+	}
+
+	sq.Folders = filteredFolders
 	return writeAll(sq)
 }
 

@@ -7,17 +7,25 @@ import (
 	"time"
 
 	"caskpg/internal/config"
+	"github.com/google/uuid"
 )
 
 type HistoryEntry struct {
-	ID        string    `json:"id"`
-	Query     string    `json:"query"`
-	Database  string    `json:"database"`
-	Timestamp time.Time `json:"timestamp"`
-	ExecTime  int64     `json:"exec_time_ms"`
+	ID        string `json:"id"`
+	Query     string `json:"query"`
+	Database  string `json:"database"`
+	Timestamp string `json:"timestamp"`
+	ExecTime  int64  `json:"exec_time_ms"`
 }
 
 func Add(entry HistoryEntry) error {
+	if entry.ID == "" {
+		entry.ID = uuid.New().String()
+	}
+	if entry.Timestamp == "" {
+		entry.Timestamp = time.Now().UTC().Format(time.RFC3339)
+	}
+
 	entries, err := GetAll()
 	if err != nil {
 		return err

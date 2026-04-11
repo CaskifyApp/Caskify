@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"caskpg/internal/db"
+	"caskpg/internal/history"
 	"caskpg/internal/keyring"
 	"caskpg/internal/profiles"
+	"caskpg/internal/queries"
 )
 
 type App struct {
@@ -216,6 +218,34 @@ func (a *App) RunQuery(params db.QueryExecutionParams) (*db.QueryResult, error) 
 	}
 
 	return db.ExecuteQuery(a.ctx, pool, params.SQL)
+}
+
+func (a *App) GetSavedQueries() (*queries.SavedQueries, error) {
+	return queries.GetAll()
+}
+
+func (a *App) SaveSavedQuery(savedQuery queries.SavedQuery) error {
+	return queries.Save(savedQuery)
+}
+
+func (a *App) DeleteSavedQuery(id string) error {
+	return queries.Delete(id)
+}
+
+func (a *App) SaveQueryFolder(folder queries.Folder) error {
+	return queries.SaveFolder(folder)
+}
+
+func (a *App) DeleteQueryFolder(id string) error {
+	return queries.DeleteFolder(id)
+}
+
+func (a *App) GetQueryHistory() ([]history.HistoryEntry, error) {
+	return history.GetAll()
+}
+
+func (a *App) ClearQueryHistory() error {
+	return history.Clear()
 }
 
 func (a *App) Greet(name string) string {

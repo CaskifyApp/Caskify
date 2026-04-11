@@ -57,6 +57,31 @@ export interface QueryExecutionParams {
   sql: string;
 }
 
+export interface SavedQuery {
+  id: string;
+  name: string;
+  query: string;
+  folderId: string;
+}
+
+export interface QueryFolder {
+  id: string;
+  name: string;
+}
+
+export interface SavedQueriesPayload {
+  queries: SavedQuery[];
+  folders: QueryFolder[];
+}
+
+export interface QueryHistoryEntry {
+  id: string;
+  query: string;
+  database: string;
+  timestamp: string;
+  exec_time_ms: number;
+}
+
 export interface TablePageParams {
   profileId: string;
   database: string;

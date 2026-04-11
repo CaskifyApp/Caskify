@@ -2,13 +2,19 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
+	"caskpg/internal/config"
 	"caskpg/internal/db"
 	"caskpg/internal/history"
 	"caskpg/internal/keyring"
 	"caskpg/internal/profiles"
 	"caskpg/internal/queries"
+	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type App struct {
@@ -260,6 +266,63 @@ func (a *App) GetQueryHistory() ([]history.HistoryEntry, error) {
 
 func (a *App) ClearQueryHistory() error {
 	return history.Clear()
+}
+
+func (a *App) ExportQueryResults(format string, result db.QueryResult) error {
+	if len(result.Rows) == 0 && len(result.Columns) == 0 {
+		return fmt.Errorf("there is no query result to export")
+	}
+
+	defaultExtension := ".csv"
+	if format == "json" {
+		defaultExtension = ".json"
+	}
+
+	defaultFilename := filepath.Join(config.GetDataDir(), "query-results"+defaultExtension)
+	selectedPath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
+		DefaultFilename: defaultFilename,
+		Title:           "Export Query Results",
+	})
+	if err != nil {
+		return err
+	}
+	if selectedPath == "" {
+		return nil
+	}
+
+	if err := os.MkdirAll(filepath.Dir(selectedPath), 0o755); err != nil {
+		return err
+	}
+
+	if format == "json" {
+		data, err := json.MarshalIndent(result.Rows, "", "  ")
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(selectedPath, data, 0o644)
+	}
+
+	file, err := os.Create(selectedPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	if err := writer.Write(result.Columns); err != nil {
+		return err
+	}
+	for _, row := range result.Rows {
+		record := make([]string, len(result.Columns))
+		for index, column := range result.Columns {
+			record[index] = fmt.Sprint(row[column])
+		}
+		if err := writer.Write(record); err != nil {
+			return err
+		}
+	}
+	writer.Flush()
+	return writer.Error()
 }
 
 func (a *App) Greet(name string) string {

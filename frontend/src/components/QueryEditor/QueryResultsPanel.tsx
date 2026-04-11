@@ -1,3 +1,5 @@
+import * as wails from '../../../wailsjs/go/main/App';
+import { Button } from '@/components/ui/button';
 import type { QueryResult } from '@/types';
 
 interface QueryResultsPanelProps {
@@ -21,12 +23,23 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
 
   return (
     <div className="grid gap-3">
-      <div className="flex items-center gap-2 rounded-4xl border bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
-        <span>{result.rowsAffected} rows</span>
-        <span>•</span>
-        <span>{result.executionTimeMs} ms</span>
-        <span>•</span>
-        <span>{result.statementType}</span>
+      <div className="flex items-center justify-between gap-3 rounded-4xl border bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
+        <div className="flex items-center gap-2">
+          <span>{result.rowsAffected} rows</span>
+          <span>•</span>
+          <span>{result.executionTimeMs} ms</span>
+          <span>•</span>
+          <span>{result.statementType}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => void wails.ExportQueryResults('csv', result)} disabled={result.columns.length === 0}>
+            Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => void wails.ExportQueryResults('json', result)}>
+            Export JSON
+          </Button>
+        </div>
       </div>
 
       {result.columns.length === 0 ? (

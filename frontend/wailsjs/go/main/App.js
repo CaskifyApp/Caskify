@@ -34,6 +34,10 @@ export function DisconnectProfile(arg1) {
   return window['go']['main']['App']['DisconnectProfile'](arg1);
 }
 
+export function ExportQueryResults(arg1, arg2) {
+  return window['go']['main']['App']['ExportQueryResults'](arg1, arg2);
+}
+
 export function GetDatabases(arg1) {
   return window['go']['main']['App']['GetDatabases'](arg1);
 }

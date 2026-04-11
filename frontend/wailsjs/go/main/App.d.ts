@@ -21,6 +21,8 @@ export function DeleteTableRow(arg1:db.DeleteRowParams):Promise<void>;
 
 export function DisconnectProfile(arg1:string):Promise<void>;
 
+export function ExportQueryResults(arg1:string,arg2:db.QueryResult):Promise<void>;
+
 export function GetDatabases(arg1:string):Promise<Array<db.DatabaseInfo>>;
 
 export function GetPassword(arg1:string):Promise<string>;

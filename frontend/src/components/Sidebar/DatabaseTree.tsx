@@ -5,6 +5,8 @@ import { useSidebarStore } from '@/store/sidebarStore';
 import { TableTreeItem } from '@/components/Sidebar/TableTreeItem';
 import type { TreeNode } from '@/types';
 
+const EMPTY_TREE: TreeNode[] = [];
+
 interface DatabaseTreeProps {
   connectionId: string;
   connected: boolean;
@@ -12,10 +14,11 @@ interface DatabaseTreeProps {
 }
 
 export function DatabaseTree({ connectionId, connected, onTableSelect }: DatabaseTreeProps) {
-  const tree = useSidebarStore((state) => state.treeByConnection[connectionId] ?? []);
+  const tree = useSidebarStore((state) => state.treeByConnection[connectionId]);
   const loading = useSidebarStore((state) => state.loadingNodeIds[`${connectionId}:databases`] ?? false);
   const error = useSidebarStore((state) => state.errorByNodeId[`${connectionId}:databases`] ?? null);
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
+  const nodes = tree ?? EMPTY_TREE;
 
   useEffect(() => {
     if (!connected) {
@@ -29,7 +32,7 @@ export function DatabaseTree({ connectionId, connected, onTableSelect }: Databas
     return null;
   }
 
-  if (loading && tree.length === 0) {
+  if (loading && nodes.length === 0) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
         <Spinner className="size-3.5" />
@@ -42,7 +45,7 @@ export function DatabaseTree({ connectionId, connected, onTableSelect }: Databas
     return <div className="px-3 py-2 text-xs text-destructive">{error}</div>;
   }
 
-  if (tree.length === 0) {
+  if (nodes.length === 0) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
         <FolderSearch className="size-3.5" />
@@ -53,7 +56,7 @@ export function DatabaseTree({ connectionId, connected, onTableSelect }: Databas
 
   return (
     <ul className="mt-2 flex flex-col gap-1">
-      {tree.map((node) => (
+      {nodes.map((node) => (
         <TableTreeItem key={node.id} node={node} onTableSelect={onTableSelect} />
       ))}
     </ul>

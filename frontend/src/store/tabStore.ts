@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Tab, TreeNode } from '@/types';
+import type { ColumnDef, TablePageResult, Tab, TreeNode } from '@/types';
 
 interface TabState {
   tabs: Tab[];
@@ -7,6 +7,15 @@ interface TabState {
   openTableTab: (node: TreeNode) => void;
   setActiveTab: (tabId: string) => void;
   closeTab: (tabId: string) => void;
+  setTableLoading: (tabId: string, loading: boolean) => void;
+  setTableError: (tabId: string, error: string | null) => void;
+  setTableData: (tabId: string, tableData: TablePageResult, tableColumns: ColumnDef[]) => void;
+  setTablePagination: (tabId: string, page: number, limit: number) => void;
+  setTableSorting: (tabId: string, sortColumn?: string, sortDir?: 'asc' | 'desc') => void;
+}
+
+function updateTab(tabs: Tab[], tabId: string, updater: (tab: Tab) => Tab) {
+  return tabs.map((tab) => (tab.id === tabId ? updater(tab) : tab));
 }
 
 function buildTableTabId(node: TreeNode) {
@@ -43,6 +52,10 @@ export const useTabStore = create<TabState>((set) => ({
         tableName: node.label,
         subView: 'data',
         pagination: { page: 1, limit: 50 },
+        tableData: null,
+        tableColumns: [],
+        tableLoading: false,
+        tableError: null,
       };
 
       return {
@@ -68,5 +81,58 @@ export const useTabStore = create<TabState>((set) => ({
         activeTabId: nextActiveTabId,
       };
     });
+  },
+
+  setTableLoading: (tabId, loading) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        tableLoading: loading,
+      })),
+    }));
+  },
+
+  setTableError: (tabId, error) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        tableError: error,
+      })),
+    }));
+  },
+
+  setTableData: (tabId, tableData, tableColumns) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        tableData,
+        tableColumns,
+        tableLoading: false,
+        tableError: null,
+      })),
+    }));
+  },
+
+  setTablePagination: (tabId, page, limit) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        pagination: { page, limit },
+      })),
+    }));
+  },
+
+  setTableSorting: (tabId, sortColumn, sortDir) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        sortColumn,
+        sortDir,
+        pagination: {
+          page: 1,
+          limit: tab.pagination?.limit ?? 50,
+        },
+      })),
+    }));
   },
 }));

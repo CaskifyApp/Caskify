@@ -11,13 +11,14 @@ import (
 )
 
 type Profile struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Database string `json:"database"`
-	Username string `json:"username"`
-	SSLMode  string `json:"ssl_mode"`
+	ID              string `json:"id"`
+	Name            string `json:"name"`
+	Host            string `json:"host"`
+	Port            int    `json:"port"`
+	DefaultDatabase string `json:"defaultDatabase,omitempty"`
+	Database        string `json:"database,omitempty"`
+	Username        string `json:"username"`
+	SSLMode         string `json:"ssl_mode"`
 }
 
 func GetAll() ([]Profile, error) {
@@ -31,6 +32,12 @@ func GetAll() ([]Profile, error) {
 	if profiles == nil {
 		profiles = []Profile{}
 	}
+	for index := range profiles {
+		if profiles[index].DefaultDatabase == "" {
+			profiles[index].DefaultDatabase = profiles[index].Database
+		}
+		profiles[index].Database = ""
+	}
 	return profiles, err
 }
 
@@ -40,6 +47,9 @@ func GetByID(id string) (*Profile, error) {
 		return nil, err
 	}
 	for _, p := range profiles {
+		if p.DefaultDatabase == "" {
+			p.DefaultDatabase = p.Database
+		}
 		if p.ID == id {
 			return &p, nil
 		}
@@ -51,6 +61,10 @@ func Save(profile Profile) (Profile, error) {
 	if profile.ID == "" {
 		profile.ID = uuid.New().String()
 	}
+	if profile.DefaultDatabase == "" {
+		profile.DefaultDatabase = profile.Database
+	}
+	profile.Database = ""
 	profiles, err := GetAll()
 	if err != nil {
 		return Profile{}, err
@@ -63,6 +77,10 @@ func Save(profile Profile) (Profile, error) {
 }
 
 func Update(profile Profile) error {
+	if profile.DefaultDatabase == "" {
+		profile.DefaultDatabase = profile.Database
+	}
+	profile.Database = ""
 	profiles, err := GetAll()
 	if err != nil {
 		return err
@@ -90,6 +108,16 @@ func Delete(id string) error {
 	return writeAll(filtered)
 }
 
+func (p *Profile) ActiveDatabase() string {
+	if p.DefaultDatabase != "" {
+		return p.DefaultDatabase
+	}
+	if p.Database != "" {
+		return p.Database
+	}
+	return "postgres"
+}
+
 func (p *Profile) BuildConnectionString(password string) string {
 	sslMode := p.SSLMode
 	if sslMode == "" {
@@ -101,7 +129,7 @@ func (p *Profile) BuildConnectionString(password string) string {
 		password,
 		p.Host,
 		p.Port,
-		p.Database,
+		p.ActiveDatabase(),
 		sslMode,
 	)
 }
@@ -115,9 +143,6 @@ func (p *Profile) Validate() error {
 	}
 	if p.Port <= 0 || p.Port > 65535 {
 		return fmt.Errorf("invalid port number")
-	}
-	if p.Database == "" {
-		return fmt.Errorf("database name is required")
 	}
 	if p.Username == "" {
 		return fmt.Errorf("username is required")

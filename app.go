@@ -109,7 +109,7 @@ func (a *App) GetDatabases(profileID string) ([]db.DatabaseInfo, error) {
 
 	return []db.DatabaseInfo{{
 		ConnectionID: profileID,
-		Name:         profile.Database,
+		Name:         profile.ActiveDatabase(),
 	}}, nil
 }
 
@@ -234,7 +234,7 @@ func (a *App) RunQuery(params db.QueryExecutionParams) (*db.QueryResult, error) 
 	if err == nil {
 		_ = history.Add(history.HistoryEntry{
 			Query:    params.SQL,
-			Database: profile.Database,
+			Database: profile.ActiveDatabase(),
 			ExecTime: queryResult.ExecutionTimeMs,
 		})
 	}
@@ -351,7 +351,7 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 	}
 
 	selectedPath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
-		DefaultFilename: filepath.Join(config.GetDataDir(), profile.Database+".sql"),
+		DefaultFilename: filepath.Join(config.GetDataDir(), profile.ActiveDatabase()+".sql"),
 		Title:           "Export Database SQL",
 		Filters: []wailsruntime.FileFilter{{
 			DisplayName: "SQL File",
@@ -417,7 +417,7 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 	choice, err := wailsruntime.MessageDialog(a.ctx, wailsruntime.MessageDialogOptions{
 		Type:          wailsruntime.QuestionDialog,
 		Title:         "Confirm Database Restore",
-		Message:       fmt.Sprintf("This will restore SQL into database '%s'. Continue?", profile.Database),
+		Message:       fmt.Sprintf("This will restore SQL into database '%s'. Continue?", profile.ActiveDatabase()),
 		Buttons:       []string{"Cancel", "Restore"},
 		DefaultButton: "Cancel",
 		CancelButton:  "Cancel",

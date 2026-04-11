@@ -3,7 +3,8 @@ export interface Profile {
   name: string;
   host: string;
   port: number;
-  database: string;
+  database?: string;
+  defaultDatabase?: string;
   username: string;
   ssl_mode: string;
 }

@@ -370,7 +370,8 @@ export namespace profiles {
 	    name: string;
 	    host: string;
 	    port: number;
-	    database: string;
+	    defaultDatabase?: string;
+	    database?: string;
 	    username: string;
 	    ssl_mode: string;
 	
@@ -384,6 +385,7 @@ export namespace profiles {
 	        this.name = source["name"];
 	        this.host = source["host"];
 	        this.port = source["port"];
+	        this.defaultDatabase = source["defaultDatabase"];
 	        this.database = source["database"];
 	        this.username = source["username"];
 	        this.ssl_mode = source["ssl_mode"];

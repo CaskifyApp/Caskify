@@ -87,7 +87,7 @@ export function ConnectionList() {
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate">{profile.name}</div>
                       <div className="text-xs text-muted-foreground truncate">
-                        {profile.host}:{profile.port}/{profile.database}
+                        {profile.host}:{profile.port}{profile.defaultDatabase ? `/${profile.defaultDatabase}` : ''}
                       </div>
                     </div>
 

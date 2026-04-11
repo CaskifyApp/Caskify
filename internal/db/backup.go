@@ -19,7 +19,7 @@ func ExportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, 
 		"--username", profile.Username,
 		"--format", "plain",
 		"--file", outputPath,
-		profile.Database,
+		profile.ActiveDatabase(),
 	)
 
 	command.Env = append(os.Environ(),

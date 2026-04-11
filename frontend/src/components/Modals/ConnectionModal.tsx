@@ -20,7 +20,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
   const [name, setName] = useState('');
   const [host, setHost] = useState('localhost');
   const [port, setPort] = useState('5432');
-  const [database, setDatabase] = useState('');
+  const [defaultDatabase, setDefaultDatabase] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [sslMode, setSslMode] = useState('disable');
@@ -36,7 +36,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
       setName(editingProfile.name);
       setHost(editingProfile.host);
       setPort(String(editingProfile.port));
-      setDatabase(editingProfile.database);
+      setDefaultDatabase(editingProfile.defaultDatabase ?? '');
       setUsername(editingProfile.username);
       setSslMode(editingProfile.ssl_mode || 'disable');
       setPassword('');
@@ -44,7 +44,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
       setName('');
       setHost('localhost');
       setPort('5432');
-      setDatabase('');
+      setDefaultDatabase('');
       setUsername('');
       setPassword('');
       setSslMode('disable');
@@ -54,7 +54,8 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
   }, [editingProfile, open]);
 
   const buildConnString = () => {
-    return `postgres://${username}:${password}@${host}:${port}/${database}?sslmode=${sslMode}`;
+    const databaseName = defaultDatabase || 'postgres';
+    return `postgres://${username}:${password}@${host}:${port}/${databaseName}?sslmode=${sslMode}`;
   };
 
   const handleTest = async () => {
@@ -82,7 +83,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
       name,
       host,
       port: parseInt(port, 10),
-      database,
+      defaultDatabase,
       username,
       ssl_mode: sslMode,
     };
@@ -100,7 +101,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
   };
 
   const isPasswordValid = editingProfile ? true : password.trim().length > 0;
-  const isFormValid = name && host && database && username && isPasswordValid;
+  const isFormValid = name && host && username && isPasswordValid;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -108,7 +109,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
         <DialogHeader>
           <DialogTitle>{editingProfile ? 'Edit Connection' : 'New Connection'}</DialogTitle>
           <DialogDescription>
-            Fill in the connection details for your PostgreSQL database.
+            Fill in the server details for your PostgreSQL instance.
           </DialogDescription>
         </DialogHeader>
         
@@ -147,13 +148,13 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
           </div>
           
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="database" className="text-right">Database</Label>
+            <Label htmlFor="database" className="text-right">Default DB</Label>
             <Input
               id="database"
-              value={database}
-              onChange={(e) => setDatabase(e.target.value)}
+              value={defaultDatabase}
+              onChange={(e) => setDefaultDatabase(e.target.value)}
               className="col-span-3"
-              placeholder="postgres"
+              placeholder="postgres (optional)"
             />
           </div>
           
@@ -222,7 +223,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile }: Connecti
           <Button 
             variant="outline" 
             onClick={handleTest} 
-            disabled={!host || !database || !username || testing}
+            disabled={!host || !username || testing}
             className="gap-2"
           >
             {testing && <Loader2 className="size-4 animate-spin" />}

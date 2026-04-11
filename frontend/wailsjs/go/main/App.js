@@ -18,6 +18,10 @@ export function DisconnectProfile(arg1) {
   return window['go']['main']['App']['DisconnectProfile'](arg1);
 }
 
+export function GetDatabases(arg1) {
+  return window['go']['main']['App']['GetDatabases'](arg1);
+}
+
 export function GetPassword(arg1) {
   return window['go']['main']['App']['GetPassword'](arg1);
 }
@@ -28,6 +32,14 @@ export function GetProfile(arg1) {
 
 export function GetProfiles() {
   return window['go']['main']['App']['GetProfiles']();
+}
+
+export function GetSchemas(arg1, arg2) {
+  return window['go']['main']['App']['GetSchemas'](arg1, arg2);
+}
+
+export function GetTables(arg1, arg2, arg3) {
+  return window['go']['main']['App']['GetTables'](arg1, arg2, arg3);
 }
 
 export function Greet(arg1) {

@@ -86,6 +86,48 @@ func (a *App) DeletePassword(profileID string) error {
 	return keyring.DeletePassword("caskpg", profileID)
 }
 
+func (a *App) GetDatabases(profileID string) ([]db.DatabaseInfo, error) {
+	pool := db.GetManager().GetPool(profileID)
+	if pool == nil {
+		return nil, fmt.Errorf("profile is not connected")
+	}
+
+	databases, err := db.FetchDatabases(a.ctx, pool, profileID)
+	if err != nil {
+		return nil, err
+	}
+
+	return databases, nil
+}
+
+func (a *App) GetSchemas(profileID, databaseName string) ([]db.SchemaInfo, error) {
+	pool := db.GetManager().GetPool(profileID)
+	if pool == nil {
+		return nil, fmt.Errorf("profile is not connected")
+	}
+
+	schemas, err := db.FetchSchemas(a.ctx, pool, profileID, databaseName)
+	if err != nil {
+		return nil, err
+	}
+
+	return schemas, nil
+}
+
+func (a *App) GetTables(profileID, databaseName, schemaName string) ([]db.TableInfo, error) {
+	pool := db.GetManager().GetPool(profileID)
+	if pool == nil {
+		return nil, fmt.Errorf("profile is not connected")
+	}
+
+	tables, err := db.FetchTables(a.ctx, pool, profileID, databaseName, schemaName)
+	if err != nil {
+		return nil, err
+	}
+
+	return tables, nil
+}
+
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }

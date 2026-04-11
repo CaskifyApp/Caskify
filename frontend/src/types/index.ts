@@ -34,7 +34,7 @@ export interface Tab {
 
 export interface QueryResult {
   columns: string[];
-  rows: Record<string, unknown>[];
+  rows: unknown[][];
   rowsAffected: number;
   executionTime: number;
 }
@@ -48,9 +48,22 @@ export interface ColumnDef {
 }
 
 export interface TableInfo {
+  connectionId: string;
+  database: string;
   schema: string;
   name: string;
   rowCount: number;
+}
+
+export interface SchemaInfo {
+  connectionId: string;
+  database: string;
+  name: string;
+}
+
+export interface DatabaseInfo {
+  connectionId: string;
+  name: string;
 }
 
 export interface TreeNode {

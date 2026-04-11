@@ -1,3 +1,58 @@
+export namespace db {
+	
+	export class DatabaseInfo {
+	    connectionId: string;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DatabaseInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.connectionId = source["connectionId"];
+	        this.name = source["name"];
+	    }
+	}
+	export class SchemaInfo {
+	    connectionId: string;
+	    database: string;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SchemaInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.connectionId = source["connectionId"];
+	        this.database = source["database"];
+	        this.name = source["name"];
+	    }
+	}
+	export class TableInfo {
+	    connectionId: string;
+	    database: string;
+	    schema: string;
+	    name: string;
+	    rowCount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new TableInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.connectionId = source["connectionId"];
+	        this.database = source["database"];
+	        this.schema = source["schema"];
+	        this.name = source["name"];
+	        this.rowCount = source["rowCount"];
+	    }
+	}
+
+}
+
 export namespace profiles {
 	
 	export class Profile {

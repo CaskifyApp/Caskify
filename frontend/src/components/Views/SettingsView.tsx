@@ -42,6 +42,8 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
               <label className="text-sm font-medium">Default Rows Per Page</label>
               <Input
                 type="number"
+                min={25}
+                max={5000}
                 value={String(settings.defaultRowsPerPage)}
                 onChange={(event) => void updateSettings({ defaultRowsPerPage: Number(event.target.value) || 50 })}
               />

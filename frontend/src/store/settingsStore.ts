@@ -13,16 +13,23 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultRowsPerPage: 50,
 };
 
+function normalizeSettings(settings: AppSettings): AppSettings {
+  return {
+    theme: settings.theme === 'light' ? 'light' : 'dark',
+    defaultRowsPerPage: Math.min(5000, Math.max(25, settings.defaultRowsPerPage || DEFAULT_SETTINGS.defaultRowsPerPage)),
+  };
+}
+
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
 
   loadSettings: async () => {
-    const settings = (await wails.GetSettings()) as AppSettings;
+    const settings = normalizeSettings((await wails.GetSettings()) as AppSettings);
     set({ settings });
   },
 
   updateSettings: async (partial) => {
-    const nextSettings = { ...get().settings, ...partial };
+    const nextSettings = normalizeSettings({ ...get().settings, ...partial });
     await wails.SaveSettings(nextSettings);
     set({ settings: nextSettings });
   },

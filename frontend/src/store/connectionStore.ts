@@ -102,11 +102,12 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
 
   disconnectProfile: async (id: string) => {
     try {
-      wails.DisconnectProfile(id);
+      await wails.DisconnectProfile(id);
       const { activeConnections, connectionStatuses } = get();
       activeConnections.delete(id);
       connectionStatuses.set(id, { profileId: id, connected: false });
       set({ 
+        error: null,
         activeConnections: new Map(activeConnections),
         connectionStatuses: new Map(connectionStatuses)
       });

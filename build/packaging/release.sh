@@ -8,6 +8,8 @@ DIST_DIR="$ROOT_DIR/dist"
 BUILD_BIN="$ROOT_DIR/build/bin/caskpg"
 VERSION="${VERSION:-0.1.0}"
 DRY_RUN=false
+TOOLS_DIR="$ROOT_DIR/build/tools"
+APPIMAGETOOL_URL="https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
 
 declare -a TARGETS=()
 SUPPORTED_TARGETS=(appimage deb rpm arch all)
@@ -116,19 +118,57 @@ require_command() {
   fi
 }
 
+ensure_appimagetool() {
+  if $DRY_RUN; then
+    echo "appimagetool"
+    return 0
+  fi
+
+  if command -v appimagetool >/dev/null 2>&1; then
+    command -v appimagetool
+    return 0
+  fi
+
+  local local_tool="$TOOLS_DIR/appimagetool"
+  if [[ -x "$local_tool" ]]; then
+    echo "$local_tool"
+    return 0
+  fi
+
+  mkdir -p "$TOOLS_DIR"
+
+  if command -v wget >/dev/null 2>&1; then
+    echo "> wget -O $local_tool $APPIMAGETOOL_URL" >&2
+    wget -q -O "$local_tool" "$APPIMAGETOOL_URL"
+  elif command -v curl >/dev/null 2>&1; then
+    echo "> curl -L -o $local_tool $APPIMAGETOOL_URL" >&2
+    curl -fsSL -o "$local_tool" "$APPIMAGETOOL_URL"
+  else
+    echo "Missing required command: wget or curl" >&2
+    return 1
+  fi
+
+  chmod +x "$local_tool"
+  echo "$local_tool"
+}
+
 build_appimage() {
   local appdir="$DIST_DIR/AppDir"
   local output="$DIST_DIR/caskpg_${VERSION}_amd64.AppImage"
+  local appimagetool_bin
 
-  require_command appimagetool
+  appimagetool_bin="$(ensure_appimagetool)"
   run rm -rf "$appdir"
   run mkdir -p "$appdir/usr/bin" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/512x512/apps"
   run cp "$BUILD_BIN" "$appdir/usr/bin/caskpg"
   run cp "$ROOT_DIR/build/linux/caskpg.desktop" "$appdir/usr/share/applications/caskpg.desktop"
+  run cp "$ROOT_DIR/build/linux/caskpg.desktop" "$appdir/caskpg.desktop"
   run cp "$ROOT_DIR/build/appicon.png" "$appdir/usr/share/icons/hicolor/512x512/apps/caskpg.png"
+  run cp "$ROOT_DIR/build/appicon.png" "$appdir/caskpg.png"
+  run cp "$ROOT_DIR/build/appicon.png" "$appdir/.DirIcon"
   run cp "$ROOT_DIR/build/linux/AppRun" "$appdir/AppRun"
   run chmod +x "$appdir/AppRun" "$appdir/usr/bin/caskpg"
-  run appimagetool "$appdir" "$output"
+  run "$appimagetool_bin" "$appdir" "$output"
 }
 
 build_deb() {

@@ -1,5 +1,7 @@
 import { QueryEditor } from '@/components/QueryEditor/QueryEditor';
+import { QueryResultsPanel } from '@/components/QueryEditor/QueryResultsPanel';
 import { QueryToolbar } from '@/components/QueryEditor/QueryToolbar';
+import { useQueryExecution } from '@/hooks/useQueryExecution';
 import { useTabStore } from '@/store/tabStore';
 import type { Tab } from '@/types';
 
@@ -10,6 +12,7 @@ interface QueryViewProps {
 export function QueryView({ tab }: QueryViewProps) {
   const setQueryText = useTabStore((state) => state.setQueryText);
   const setQueryProfile = useTabStore((state) => state.setQueryProfile);
+  const { runQuery } = useQueryExecution(tab);
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">
@@ -19,18 +22,20 @@ export function QueryView({ tab }: QueryViewProps) {
         running={tab.queryLoading ?? false}
         onProfileChange={(profileId) => setQueryProfile(tab.id, profileId)}
         onQueryTextChange={(queryText) => setQueryText(tab.id, queryText)}
-        onRun={() => undefined}
+        onRun={() => void runQuery()}
       />
 
       <QueryEditor
         value={tab.queryText ?? ''}
         onChange={(queryText) => setQueryText(tab.id, queryText)}
-        onRun={() => undefined}
+        onRun={() => void runQuery()}
       />
 
-      <div className="rounded-4xl border border-dashed bg-card/80 p-5 text-sm text-muted-foreground shadow-sm">
-        Query results panel will appear here after query execution is wired.
-      </div>
+      <QueryResultsPanel
+        result={tab.queryResult ?? null}
+        loading={tab.queryLoading ?? false}
+        error={tab.queryError ?? null}
+      />
     </div>
   );
 }

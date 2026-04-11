@@ -10,7 +10,7 @@ import (
 	"caskpg/internal/profiles"
 )
 
-func ExportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, outputPath string) error {
+func ExportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, databaseName, outputPath string) error {
 	command := exec.CommandContext(
 		ctx,
 		"pg_dump",
@@ -19,7 +19,7 @@ func ExportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, 
 		"--username", profile.Username,
 		"--format", "plain",
 		"--file", outputPath,
-		profile.ActiveDatabase(),
+		databaseName,
 	)
 
 	command.Env = append(os.Environ(),

@@ -352,8 +352,13 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 		return nil, fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
 	}
 
+	databaseName := params.Database
+	if databaseName == "" {
+		databaseName = profile.ActiveDatabase()
+	}
+
 	selectedPath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
-		DefaultFilename: filepath.Join(config.GetDataDir(), profile.ActiveDatabase()+".sql"),
+		DefaultFilename: filepath.Join(config.GetDataDir(), databaseName+".sql"),
 		Title:           "Export Database SQL",
 		Filters: []wailsruntime.FileFilter{{
 			DisplayName: "SQL File",
@@ -371,7 +376,7 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 		return nil, err
 	}
 
-	if err := db.ExportDatabaseSQL(a.ctx, *profile, password, selectedPath); err != nil {
+	if err := db.ExportDatabaseSQL(a.ctx, *profile, password, databaseName, selectedPath); err != nil {
 		return nil, err
 	}
 
@@ -394,6 +399,11 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 	password, err := keyring.GetPassword("caskpg", params.ProfileID)
 	if err != nil {
 		return nil, fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+	}
+
+	databaseName := params.Database
+	if databaseName == "" {
+		databaseName = profile.ActiveDatabase()
 	}
 
 	selectedPath, err := wailsruntime.OpenFileDialog(a.ctx, wailsruntime.OpenDialogOptions{
@@ -419,7 +429,7 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 	choice, err := wailsruntime.MessageDialog(a.ctx, wailsruntime.MessageDialogOptions{
 		Type:          wailsruntime.QuestionDialog,
 		Title:         "Confirm Database Restore",
-		Message:       fmt.Sprintf("This will restore SQL into database '%s'. Continue?", profile.ActiveDatabase()),
+		Message:       fmt.Sprintf("This will restore SQL into database '%s'. Continue?", databaseName),
 		Buttons:       []string{"Cancel", "Restore"},
 		DefaultButton: "Cancel",
 		CancelButton:  "Cancel",
@@ -431,7 +441,7 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 		return nil, nil
 	}
 
-	if err := db.ImportDatabaseSQL(a.ctx, *profile, password, selectedPath); err != nil {
+	if err := db.ImportDatabaseSQL(a.ctx, *profile, password, databaseName, selectedPath); err != nil {
 		return nil, err
 	}
 

@@ -51,6 +51,7 @@ export namespace db {
 	}
 	export class DatabaseBackupParams {
 	    profileId: string;
+	    database: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new DatabaseBackupParams(source);
@@ -59,6 +60,7 @@ export namespace db {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.profileId = source["profileId"];
+	        this.database = source["database"];
 	    }
 	}
 	export class DatabaseInfo {
@@ -91,6 +93,7 @@ export namespace db {
 	}
 	export class DatabaseRestoreParams {
 	    profileId: string;
+	    database: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new DatabaseRestoreParams(source);
@@ -99,6 +102,7 @@ export namespace db {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.profileId = source["profileId"];
+	        this.database = source["database"];
 	    }
 	}
 	export class DeleteRowParams {

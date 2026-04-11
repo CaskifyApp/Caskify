@@ -61,10 +61,12 @@ export interface QueryExecutionParams {
 
 export interface DatabaseBackupParams {
   profileId: string;
+  database: string;
 }
 
 export interface DatabaseRestoreParams {
   profileId: string;
+  database: string;
 }
 
 export interface DatabaseOperationResult {

@@ -8,10 +8,12 @@ type QueryExecutionParams struct {
 
 type DatabaseBackupParams struct {
 	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
 }
 
 type DatabaseRestoreParams struct {
 	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
 }
 
 type DatabaseOperationResult struct {

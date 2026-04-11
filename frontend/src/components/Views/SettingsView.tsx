@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useSettingsStore } from '@/store/settingsStore';
+import type { DatabaseInfo } from '@/types';
 
 interface SettingsViewProps {
   open: boolean;
@@ -19,13 +20,15 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
   const [profileId, setProfileId] = useState('');
+  const [databaseName, setDatabaseName] = useState('');
+  const [databases, setDatabases] = useState<DatabaseInfo[]>([]);
   const [toolStatus, setToolStatus] = useState<Record<string, boolean>>({ pg_dump: false, psql: false });
   const [databaseActionError, setDatabaseActionError] = useState<string | null>(null);
   const [databaseActionMessage, setDatabaseActionMessage] = useState<string | null>(null);
   const [databaseActionLoading, setDatabaseActionLoading] = useState(false);
 
-  const connectedProfiles = useMemo(
-    () => profiles.filter((profile) => connectionStatuses.get(profile.id)?.connected),
+  const availableProfiles = useMemo(
+    () => profiles.filter((profile) => connectionStatuses.get(profile.id)?.connected || profile.host === 'localhost'),
     [profiles, connectionStatuses]
   );
 
@@ -41,14 +44,43 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
       return;
     }
 
-    if (!profileId && connectedProfiles.length > 0) {
-      setProfileId(connectedProfiles[0].id);
+    if (!profileId && availableProfiles.length > 0) {
+      setProfileId(availableProfiles[0].id);
     }
-  }, [connectedProfiles, open, profileId]);
+  }, [availableProfiles, open, profileId]);
+
+  useEffect(() => {
+    if (!open || !profileId) {
+      return;
+    }
+
+    let cancelled = false;
+    void wails.GetDatabases(profileId).then((items) => {
+      if (!cancelled) {
+        setDatabases(items ?? []);
+        if (!databaseName && items?.length) {
+          setDatabaseName(items[0].name);
+        }
+      }
+    }).catch((error) => {
+      if (!cancelled) {
+        setDatabases([]);
+        setDatabaseActionError(String(error));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [databaseName, open, profileId]);
 
   const runDatabaseAction = async (action: 'export' | 'import') => {
     if (!profileId) {
-      setDatabaseActionError('Choose a connected profile first.');
+      setDatabaseActionError('Choose a server profile first.');
+      return;
+    }
+    if (!databaseName) {
+      setDatabaseActionError('Choose a database first.');
       return;
     }
 
@@ -58,8 +90,8 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
     try {
       const result = action === 'export'
-        ? await wails.ExportDatabaseSQL({ profileId })
-        : await wails.ImportDatabaseSQL({ profileId });
+        ? await wails.ExportDatabaseSQL({ profileId, database: databaseName })
+        : await wails.ImportDatabaseSQL({ profileId, database: databaseName });
 
       if (result) {
         setDatabaseActionMessage(result.message);
@@ -116,15 +148,34 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             <h3 className="font-medium text-foreground">Database Backup & Restore</h3>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium">Connected Profile</label>
-              <Select value={profileId} onValueChange={(value) => setProfileId(value ?? '')}>
+              <label className="text-sm font-medium">Server Profile</label>
+              <Select value={profileId} onValueChange={(value) => {
+                setProfileId(value ?? '');
+                setDatabaseName('');
+              }}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose connected profile" />
+                  <SelectValue placeholder="Choose server profile" />
                 </SelectTrigger>
                 <SelectContent>
-                  {connectedProfiles.map((profile) => (
+                  {availableProfiles.map((profile) => (
                     <SelectItem key={profile.id} value={profile.id}>
                       {profile.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Database</label>
+              <Select value={databaseName} onValueChange={(value) => setDatabaseName(value ?? '')}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose database" />
+                </SelectTrigger>
+                <SelectContent>
+                  {databases.map((database) => (
+                    <SelectItem key={database.name} value={database.name}>
+                      {database.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

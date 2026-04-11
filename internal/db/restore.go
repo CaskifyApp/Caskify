@@ -10,14 +10,14 @@ import (
 	"caskpg/internal/profiles"
 )
 
-func ImportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, inputPath string) error {
+func ImportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, databaseName, inputPath string) error {
 	command := exec.CommandContext(
 		ctx,
 		"psql",
 		"--host", profile.Host,
 		"--port", strconv.Itoa(profile.Port),
 		"--username", profile.Username,
-		"--dbname", profile.ActiveDatabase(),
+		"--dbname", databaseName,
 		"--single-transaction",
 		"--set", "ON_ERROR_STOP=on",
 		"--file", inputPath,

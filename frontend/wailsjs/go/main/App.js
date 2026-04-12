@@ -22,6 +22,14 @@ export function CreateEmptyDatabase(arg1) {
   return window['go']['main']['App']['CreateEmptyDatabase'](arg1);
 }
 
+export function CreateSchema(arg1) {
+  return window['go']['main']['App']['CreateSchema'](arg1);
+}
+
+export function CreateTable(arg1) {
+  return window['go']['main']['App']['CreateTable'](arg1);
+}
+
 export function DeletePassword(arg1) {
   return window['go']['main']['App']['DeletePassword'](arg1);
 }
@@ -44,6 +52,18 @@ export function DeleteTableRow(arg1) {
 
 export function DisconnectProfile(arg1) {
   return window['go']['main']['App']['DisconnectProfile'](arg1);
+}
+
+export function DropDatabase(arg1) {
+  return window['go']['main']['App']['DropDatabase'](arg1);
+}
+
+export function DropSchema(arg1) {
+  return window['go']['main']['App']['DropSchema'](arg1);
+}
+
+export function DropTable(arg1) {
+  return window['go']['main']['App']['DropTable'](arg1);
 }
 
 export function ExportDatabaseSQL(arg1) {
@@ -120,6 +140,10 @@ export function InsertTableRow(arg1) {
 
 export function IsProfileConnected(arg1) {
   return window['go']['main']['App']['IsProfileConnected'](arg1);
+}
+
+export function RenameTable(arg1) {
+  return window['go']['main']['App']['RenameTable'](arg1);
 }
 
 export function RunQuery(arg1) {

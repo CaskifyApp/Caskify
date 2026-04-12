@@ -88,6 +88,52 @@ export interface CreateDatabaseParams {
   name: string;
 }
 
+export interface DropDatabaseParams {
+  profileId: string;
+  name: string;
+}
+
+export interface CreateSchemaParams {
+  profileId: string;
+  database: string;
+  name: string;
+}
+
+export interface DropSchemaParams {
+  profileId: string;
+  database: string;
+  name: string;
+}
+
+export interface CreateTableColumnInput {
+  name: string;
+  type: string;
+  nullable: boolean;
+}
+
+export interface CreateTableParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  name: string;
+  columns: CreateTableColumnInput[];
+}
+
+export interface RenameTableParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  oldName: string;
+  newName: string;
+}
+
+export interface DropTableParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  name: string;
+}
+
 export interface SavedQuery {
   id: string;
   name: string;

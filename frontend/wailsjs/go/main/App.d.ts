@@ -16,6 +16,10 @@ export function ConnectProfile(arg1:string):Promise<void>;
 
 export function CreateEmptyDatabase(arg1:db.CreateDatabaseParams):Promise<void>;
 
+export function CreateSchema(arg1:db.CreateSchemaParams):Promise<void>;
+
+export function CreateTable(arg1:db.CreateTableParams):Promise<void>;
+
 export function DeletePassword(arg1:string):Promise<void>;
 
 export function DeleteProfile(arg1:string):Promise<void>;
@@ -27,6 +31,12 @@ export function DeleteSavedQuery(arg1:string):Promise<void>;
 export function DeleteTableRow(arg1:db.DeleteRowParams):Promise<void>;
 
 export function DisconnectProfile(arg1:string):Promise<void>;
+
+export function DropDatabase(arg1:db.DropDatabaseParams):Promise<void>;
+
+export function DropSchema(arg1:db.DropSchemaParams):Promise<void>;
+
+export function DropTable(arg1:db.DropTableParams):Promise<void>;
 
 export function ExportDatabaseSQL(arg1:db.DatabaseBackupParams):Promise<db.DatabaseOperationResult>;
 
@@ -65,6 +75,8 @@ export function ImportDatabaseSQL(arg1:db.DatabaseRestoreParams):Promise<db.Data
 export function InsertTableRow(arg1:db.InsertRowParams):Promise<void>;
 
 export function IsProfileConnected(arg1:string):Promise<boolean>;
+
+export function RenameTable(arg1:db.RenameTableParams):Promise<void>;
 
 export function RunQuery(arg1:db.QueryExecutionParams):Promise<db.QueryResult>;
 

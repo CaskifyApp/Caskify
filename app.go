@@ -436,6 +436,30 @@ func (a *App) CreateEmptyDatabase(params db.CreateDatabaseParams) error {
 	return db.CreateDatabase(a.ctx, pool, params.Name)
 }
 
+func (a *App) DropDatabase(params db.DropDatabaseParams) error {
+	return fmt.Errorf("drop database is not implemented yet")
+}
+
+func (a *App) CreateSchema(params db.CreateSchemaParams) error {
+	return fmt.Errorf("create schema is not implemented yet")
+}
+
+func (a *App) DropSchema(params db.DropSchemaParams) error {
+	return fmt.Errorf("drop schema is not implemented yet")
+}
+
+func (a *App) CreateTable(params db.CreateTableParams) error {
+	return fmt.Errorf("create table is not implemented yet")
+}
+
+func (a *App) RenameTable(params db.RenameTableParams) error {
+	return fmt.Errorf("rename table is not implemented yet")
+}
+
+func (a *App) DropTable(params db.DropTableParams) error {
+	return fmt.Errorf("drop table is not implemented yet")
+}
+
 func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {
 	if _, err := exec.LookPath("psql"); err != nil {
 		return nil, fmt.Errorf("psql is not available on this system")

@@ -35,6 +35,52 @@ type CreateDatabaseParams struct {
 	Name      string `json:"name"`
 }
 
+type DropDatabaseParams struct {
+	ProfileID string `json:"profileId"`
+	Name      string `json:"name"`
+}
+
+type CreateSchemaParams struct {
+	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
+	Name      string `json:"name"`
+}
+
+type DropSchemaParams struct {
+	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
+	Name      string `json:"name"`
+}
+
+type CreateTableColumnInput struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Nullable bool   `json:"nullable"`
+}
+
+type CreateTableParams struct {
+	ProfileID string                   `json:"profileId"`
+	Database  string                   `json:"database"`
+	Schema    string                   `json:"schema"`
+	Name      string                   `json:"name"`
+	Columns   []CreateTableColumnInput `json:"columns"`
+}
+
+type RenameTableParams struct {
+	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
+	Schema    string `json:"schema"`
+	OldName   string `json:"oldName"`
+	NewName   string `json:"newName"`
+}
+
+type DropTableParams struct {
+	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
+	Schema    string `json:"schema"`
+	Name      string `json:"name"`
+}
+
 type QueryResult struct {
 	Columns         []string         `json:"columns"`
 	Rows            []map[string]any `json:"rows"`

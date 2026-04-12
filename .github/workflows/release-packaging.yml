@@ -52,8 +52,55 @@ jobs:
       - name: Run Go tests
         run: go test ./...
 
-  package-linux:
+  build-binary:
     needs: verify
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libsecret-1-dev upx
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Wails CLI
+        run: |
+          go install github.com/wailsapp/wails/v2/cmd/wails@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Build Linux binary
+        run: wails build -upx
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: caskpg-binary
+          path: build/bin/caskpg
+
+  package-linux:
+    needs:
+      - verify
+      - build-binary
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.target != 'arch'
     runs-on: ubuntu-22.04
     strategy:
@@ -79,6 +126,12 @@ jobs:
         with:
           version: 10
 
+      - name: Download binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: caskpg-binary
+          path: build/bin
+
       - name: Install frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
@@ -90,12 +143,6 @@ jobs:
 
       - name: Install packaging tools
         run: |
-          if [[ "${{ matrix.target }}" == "appimage" ]]; then
-            wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
-            chmod +x appimagetool
-            sudo mv appimagetool /usr/local/bin/appimagetool
-          fi
-          go install github.com/wailsapp/wails/v2/cmd/wails@latest
           go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
@@ -105,6 +152,7 @@ jobs:
       - name: Build package
         env:
           VERSION: ${{ github.ref_name }}
+          APPIMAGE_EXTRACT_AND_RUN: 1
         run: |
           VERSION_VALUE="${VERSION#v}"
           VERSION="$VERSION_VALUE" bash build/packaging/release.sh "${{ matrix.target }}"
@@ -116,7 +164,9 @@ jobs:
           path: dist/*
 
   package-arch:
-    needs: verify
+    needs:
+      - verify
+      - build-binary
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.target == 'arch' || github.event.inputs.target == 'all'
     runs-on: ubuntu-latest
     container:
@@ -125,15 +175,22 @@ jobs:
       - name: Install CI dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm base-devel git go nodejs pnpm gtk3 webkit2gtk-4.1 libsecret upx
+          pacman -S --noconfirm base-devel git go nodejs pnpm
 
-      - name: Install Wails CLI
+      - name: Setup builder user
         run: |
-          go install github.com/wailsapp/wails/v2/cmd/wails@latest
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          chown -R builder:builder .
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Download binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: caskpg-binary
+          path: build/bin
 
       - name: Make release scripts executable
         run: chmod +x build/packaging/release.sh build/linux/AppRun
@@ -143,7 +200,7 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: |
           VERSION_VALUE="${VERSION#v}"
-          VERSION="$VERSION_VALUE" bash build/packaging/release.sh arch
+          su builder -c "VERSION=\"$VERSION_VALUE\" bash build/packaging/release.sh arch"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

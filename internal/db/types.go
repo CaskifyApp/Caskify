@@ -53,9 +53,11 @@ type DropSchemaParams struct {
 }
 
 type CreateTableColumnInput struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Nullable bool   `json:"nullable"`
+	Name         string  `json:"name"`
+	Type         string  `json:"type"`
+	Nullable     bool    `json:"nullable"`
+	DefaultValue *string `json:"defaultValue,omitempty"`
+	IsPrimaryKey bool    `json:"isPrimaryKey"`
 }
 
 type CreateTableParams struct {

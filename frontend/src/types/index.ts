@@ -109,6 +109,8 @@ export interface CreateTableColumnInput {
   name: string;
   type: string;
   nullable: boolean;
+  defaultValue?: string;
+  isPrimaryKey: boolean;
 }
 
 export interface CreateTableParams {

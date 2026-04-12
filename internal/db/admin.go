@@ -119,6 +119,7 @@ func CreateTable(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName 
 	}
 
 	definitions := make([]string, 0, len(columns))
+	primaryKeys := make([]string, 0)
 	for _, column := range columns {
 		if column.Name == "" || column.Type == "" {
 			return fmt.Errorf("column name and type are required")
@@ -131,7 +132,17 @@ func CreateTable(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName 
 		if !column.Nullable {
 			definition += " NOT NULL"
 		}
+		if column.DefaultValue != nil && *column.DefaultValue != "" {
+			definition += fmt.Sprintf(" DEFAULT %s", *column.DefaultValue)
+		}
 		definitions = append(definitions, definition)
+		if column.IsPrimaryKey {
+			primaryKeys = append(primaryKeys, pgx.Identifier{column.Name}.Sanitize())
+		}
+	}
+
+	if len(primaryKeys) > 0 {
+		definitions = append(definitions, fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(primaryKeys, ", ")))
 	}
 
 	query := fmt.Sprintf(

@@ -83,6 +83,8 @@ export namespace db {
 	    name: string;
 	    type: string;
 	    nullable: boolean;
+	    defaultValue?: string;
+	    isPrimaryKey: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new CreateTableColumnInput(source);
@@ -93,6 +95,8 @@ export namespace db {
 	        this.name = source["name"];
 	        this.type = source["type"];
 	        this.nullable = source["nullable"];
+	        this.defaultValue = source["defaultValue"];
+	        this.isPrimaryKey = source["isPrimaryKey"];
 	    }
 	}
 	export class CreateTableParams {

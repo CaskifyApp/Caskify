@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useSettingsStore } from '@/store/settingsStore';
-import type { DatabaseInfo } from '@/types';
+import type { DatabaseInfo, DatabaseRestorePreflightResult } from '@/types';
 
 interface SettingsViewProps {
   open: boolean;
@@ -26,6 +26,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   const [databaseActionError, setDatabaseActionError] = useState<string | null>(null);
   const [databaseActionMessage, setDatabaseActionMessage] = useState<string | null>(null);
   const [databaseActionLoading, setDatabaseActionLoading] = useState(false);
+  const [restorePreflight, setRestorePreflight] = useState<DatabaseRestorePreflightResult | null>(null);
 
   const availableProfiles = useMemo(
     () => profiles.filter((profile) => connectionStatuses.get(profile.id)?.connected || profile.host === 'localhost'),
@@ -77,6 +78,29 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
       cancelled = true;
     };
   }, [databaseName, open, profileId, profiles]);
+
+  useEffect(() => {
+    if (!open || !profileId || !databaseName) {
+      setRestorePreflight(null);
+      return;
+    }
+
+    let cancelled = false;
+    void wails.CheckDatabaseRestoreTarget({ profileId, database: databaseName }).then((result) => {
+      if (!cancelled) {
+        setRestorePreflight(result);
+      }
+    }).catch((error) => {
+      if (!cancelled) {
+        setRestorePreflight(null);
+        setDatabaseActionError(String(error));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [databaseName, open, profileId]);
 
   const runDatabaseAction = async (action: 'export' | 'import') => {
     if (!profileId) {
@@ -191,6 +215,20 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
               <div>psql: {toolStatus.psql ? 'available' : 'missing'}</div>
             </div>
 
+            {restorePreflight && !restorePreflight.isEmpty ? (
+              <div className="rounded-3xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                <div className="font-medium">Restore target is not empty.</div>
+                <div className="mt-1">Schemas already present: {restorePreflight.schemas.join(', ')}</div>
+                <div className="mt-1 text-xs">Full SQL dumps should be restored into an empty database.</div>
+              </div>
+            ) : null}
+
+            {restorePreflight?.isEmpty ? (
+              <div className="rounded-3xl border border-primary/30 bg-primary/10 p-3 text-sm text-primary">
+                Restore target looks empty and ready for a full SQL dump.
+              </div>
+            ) : null}
+
             {databaseActionError ? <div className="text-sm text-destructive">{databaseActionError}</div> : null}
             {databaseActionMessage ? <div className="text-sm text-primary">{databaseActionMessage}</div> : null}
 
@@ -198,7 +236,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
               <Button variant="outline" onClick={() => void runDatabaseAction('export')} disabled={databaseActionLoading || !toolStatus.pg_dump || !databaseName}>
                 Export SQL
               </Button>
-              <Button variant="outline" onClick={() => void runDatabaseAction('import')} disabled={databaseActionLoading || !toolStatus.psql || !databaseName}>
+              <Button variant="outline" onClick={() => void runDatabaseAction('import')} disabled={databaseActionLoading || !toolStatus.psql || !databaseName || !restorePreflight?.isEmpty}>
                 Import SQL
               </Button>
             </div>

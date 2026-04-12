@@ -74,6 +74,13 @@ export interface DatabaseOperationResult {
   message: string;
 }
 
+export interface DatabaseRestorePreflightResult {
+  databaseName: string;
+  isEmpty: boolean;
+  schemaCount: number;
+  schemas: string[];
+}
+
 export interface SavedQuery {
   id: string;
   name: string;

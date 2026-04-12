@@ -30,7 +30,7 @@ export function DisconnectProfile(arg1:string):Promise<void>;
 
 export function ExportDatabaseSQL(arg1:db.DatabaseBackupParams):Promise<db.DatabaseOperationResult>;
 
-export function ExportQueryResults(arg1:string,arg2:db.QueryResult):Promise<void>;
+export function ExportQueryResults(arg1:string,arg2:db.QueryResult):Promise<db.DatabaseOperationResult>;
 
 export function GetDatabases(arg1:string):Promise<Array<db.DatabaseInfo>>;
 

@@ -280,9 +280,9 @@ func (a *App) SaveSettings(settings config.Settings) error {
 	return config.SaveSettings(settings)
 }
 
-func (a *App) ExportQueryResults(format string, result db.QueryResult) error {
+func (a *App) ExportQueryResults(format string, result db.QueryResult) (*db.DatabaseOperationResult, error) {
 	if len(result.Rows) == 0 && len(result.Columns) == 0 {
-		return fmt.Errorf("there is no query result to export")
+		return nil, fmt.Errorf("there is no query result to export")
 	}
 
 	defaultExtension := ".csv"
@@ -290,39 +290,42 @@ func (a *App) ExportQueryResults(format string, result db.QueryResult) error {
 		defaultExtension = ".json"
 	}
 
-	defaultFilename := filepath.Join(config.GetDataDir(), "query-results"+defaultExtension)
+	defaultFilename := filepath.Join(config.GetDownloadsDir(), "query-results"+defaultExtension)
 	selectedPath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
 		DefaultFilename: defaultFilename,
 		Title:           "Export Query Results",
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if selectedPath == "" {
-		return nil
+		return nil, nil
 	}
 
 	if err := os.MkdirAll(filepath.Dir(selectedPath), 0o755); err != nil {
-		return err
+		return nil, err
 	}
 
 	if format == "json" {
 		data, err := json.MarshalIndent(result.Rows, "", "  ")
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return os.WriteFile(selectedPath, data, 0o644)
+		if err := os.WriteFile(selectedPath, data, 0o644); err != nil {
+			return nil, err
+		}
+		return &db.DatabaseOperationResult{Path: selectedPath, Message: "Query results exported successfully.", Status: "success"}, nil
 	}
 
 	file, err := os.Create(selectedPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
 	if err := writer.Write(result.Columns); err != nil {
-		return err
+		return nil, err
 	}
 	for _, row := range result.Rows {
 		record := make([]string, len(result.Columns))
@@ -330,11 +333,15 @@ func (a *App) ExportQueryResults(format string, result db.QueryResult) error {
 			record[index] = fmt.Sprint(row[column])
 		}
 		if err := writer.Write(record); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	writer.Flush()
-	return writer.Error()
+	if err := writer.Error(); err != nil {
+		return nil, err
+	}
+
+	return &db.DatabaseOperationResult{Path: selectedPath, Message: "Query results exported successfully.", Status: "success"}, nil
 }
 
 func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOperationResult, error) {
@@ -358,7 +365,7 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 	}
 
 	selectedPath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
-		DefaultFilename: filepath.Join(config.GetDataDir(), databaseName+".sql"),
+		DefaultFilename: filepath.Join(config.GetDownloadsDir(), databaseName+".sql"),
 		Title:           "Export Database SQL",
 		Filters: []wailsruntime.FileFilter{{
 			DisplayName: "SQL File",

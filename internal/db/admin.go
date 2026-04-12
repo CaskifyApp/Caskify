@@ -11,6 +11,7 @@ import (
 )
 
 var identifierPattern = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+var databaseObjectPattern = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_-]*$`)
 
 func validateIdentifier(value, label string) error {
 	if value == "" {
@@ -22,11 +23,21 @@ func validateIdentifier(value, label string) error {
 	return nil
 }
 
+func validateDatabaseObjectName(value, label string) error {
+	if value == "" {
+		return fmt.Errorf("%s is required", label)
+	}
+	if !databaseObjectPattern.MatchString(value) {
+		return fmt.Errorf("invalid %s", label)
+	}
+	return nil
+}
+
 func CreateDatabase(ctx context.Context, pool *pgxpool.Pool, databaseName string) error {
 	if databaseName == "" {
 		return fmt.Errorf("database name is required")
 	}
-	if err := validateIdentifier(databaseName, "database name"); err != nil {
+	if err := validateDatabaseObjectName(databaseName, "database name"); err != nil {
 		return err
 	}
 
@@ -43,7 +54,7 @@ func DropDatabase(ctx context.Context, pool *pgxpool.Pool, databaseName string) 
 	if databaseName == "" {
 		return fmt.Errorf("database name is required")
 	}
-	if err := validateIdentifier(databaseName, "database name"); err != nil {
+	if err := validateDatabaseObjectName(databaseName, "database name"); err != nil {
 		return err
 	}
 
@@ -60,7 +71,7 @@ func CreateSchema(ctx context.Context, pool *pgxpool.Pool, schemaName string) er
 	if schemaName == "" {
 		return fmt.Errorf("schema name is required")
 	}
-	if err := validateIdentifier(schemaName, "schema name"); err != nil {
+	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
 		return err
 	}
 
@@ -77,7 +88,7 @@ func DropSchema(ctx context.Context, pool *pgxpool.Pool, schemaName string) erro
 	if schemaName == "" {
 		return fmt.Errorf("schema name is required")
 	}
-	if err := validateIdentifier(schemaName, "schema name"); err != nil {
+	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
 		return err
 	}
 
@@ -97,10 +108,10 @@ func CreateTable(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName 
 	if tableName == "" {
 		return fmt.Errorf("table name is required")
 	}
-	if err := validateIdentifier(schemaName, "schema name"); err != nil {
+	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
 		return err
 	}
-	if err := validateIdentifier(tableName, "table name"); err != nil {
+	if err := validateDatabaseObjectName(tableName, "table name"); err != nil {
 		return err
 	}
 	if len(columns) == 0 {
@@ -140,13 +151,13 @@ func RenameTable(ctx context.Context, pool *pgxpool.Pool, schemaName, oldName, n
 	if schemaName == "" || oldName == "" || newName == "" {
 		return fmt.Errorf("schema name, current table name, and new table name are required")
 	}
-	if err := validateIdentifier(schemaName, "schema name"); err != nil {
+	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
 		return err
 	}
-	if err := validateIdentifier(oldName, "current table name"); err != nil {
+	if err := validateDatabaseObjectName(oldName, "current table name"); err != nil {
 		return err
 	}
-	if err := validateIdentifier(newName, "new table name"); err != nil {
+	if err := validateDatabaseObjectName(newName, "new table name"); err != nil {
 		return err
 	}
 
@@ -167,10 +178,10 @@ func DropTable(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName st
 	if schemaName == "" || tableName == "" {
 		return fmt.Errorf("schema name and table name are required")
 	}
-	if err := validateIdentifier(schemaName, "schema name"); err != nil {
+	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
 		return err
 	}
-	if err := validateIdentifier(tableName, "table name"); err != nil {
+	if err := validateDatabaseObjectName(tableName, "table name"); err != nil {
 		return err
 	}
 

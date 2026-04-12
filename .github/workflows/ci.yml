@@ -35,10 +35,12 @@ jobs:
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libsecret-1-dev
 
       - name: Install frontend dependencies
-        run: pnpm --dir frontend install --frozen-lockfile
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        working-directory: frontend
+        run: pnpm build
 
       - name: Run Go tests
         run: go test ./...
-
-      - name: Build frontend
-        run: pnpm --dir frontend build

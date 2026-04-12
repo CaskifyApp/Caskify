@@ -28,6 +28,9 @@ export function useQueryExecution(tab: Tab) {
     setQueryLoading(tab.id, true);
     setQueryError(tab.id, null);
 
+    const queryId = crypto.randomUUID();
+    queryIdRef.current = queryId;
+
     try {
       const payload: QueryExecutionParams = {
         profileId: tab.connectionId,
@@ -35,11 +38,15 @@ export function useQueryExecution(tab: Tab) {
         sql: tab.queryText,
       };
 
-      const queryResult = await wails.RunQueryWithCancellation(payload, '');
+      const queryResult = await wails.RunQueryWithCancellation(payload, queryId);
       setQueryResult(tab.id, queryResult);
     } catch (error) {
       setQueryLoading(tab.id, false);
       setQueryError(tab.id, String(error));
+    } finally {
+      if (queryIdRef.current === queryId) {
+        queryIdRef.current = '';
+      }
     }
   }, [tab, setQueryLoading, setQueryError, setQueryResult]);
 

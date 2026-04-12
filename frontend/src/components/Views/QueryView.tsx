@@ -1,7 +1,7 @@
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import * as wails from '../../wailsjs/go/main/App';
+import * as wails from '../../../wailsjs/go/main/App';
 import { DangerousQueryDialog } from '@/components/Modals/DangerousQueryDialog';
 import { SaveQueryModal } from '@/components/Modals/SaveQueryModal';
 import { QueryEditor } from '@/components/QueryEditor/QueryEditor';

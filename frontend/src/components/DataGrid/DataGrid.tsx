@@ -70,7 +70,7 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
     );
   }
 
-  const virtualRows = rowVirtualizer.getVirtualItems();
+  const virtualRows = rowVirtualizer.getVirtualItems() as { index: number; key: string; size: number; start: number; end: number; lane: number }[];
 
   return (
     <>

@@ -166,12 +166,13 @@ export function TableView({ tab }: TableViewProps) {
 
       {tab.subView === 'data' ? (
         <>
-          <DataGridToolbar
-            page={tab.pagination?.page ?? 1}
-            limit={tab.pagination?.limit ?? 50}
-            totalRows={tableData?.totalRows ?? 0}
-            loading={tableLoading}
-            onPageChange={(page) => {
+            <DataGridToolbar
+              page={tab.pagination?.page ?? 1}
+              limit={tab.pagination?.limit ?? 50}
+              totalRows={tableData?.totalRows ?? 0}
+              estimated={tableData?.isEstimated ?? false}
+              loading={tableLoading}
+              onPageChange={(page) => {
               setSelectedRow(null);
               setSelectedRowIndex(null);
               setTablePagination(tab.id, page, tab.pagination?.limit ?? 50);

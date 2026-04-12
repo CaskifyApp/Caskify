@@ -399,6 +399,8 @@ export namespace db {
 	    rowsAffected: number;
 	    executionTimeMs: number;
 	    statementType: string;
+	    truncated?: boolean;
+	    previewRowLimit?: number;
 	    error?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -412,6 +414,8 @@ export namespace db {
 	        this.rowsAffected = source["rowsAffected"];
 	        this.executionTimeMs = source["executionTimeMs"];
 	        this.statementType = source["statementType"];
+	        this.truncated = source["truncated"];
+	        this.previewRowLimit = source["previewRowLimit"];
 	        this.error = source["error"];
 	    }
 	}
@@ -543,6 +547,7 @@ export namespace db {
 	    columns: string[];
 	    rows: any[];
 	    totalRows: number;
+	    isEstimated?: boolean;
 	    page: number;
 	    limit: number;
 	    sortColumn?: string;
@@ -560,6 +565,7 @@ export namespace db {
 	        this.columns = source["columns"];
 	        this.rows = source["rows"];
 	        this.totalRows = source["totalRows"];
+	        this.isEstimated = source["isEstimated"];
 	        this.page = source["page"];
 	        this.limit = source["limit"];
 	        this.sortColumn = source["sortColumn"];
@@ -718,4 +724,3 @@ export namespace queries {
 	}
 
 }
-

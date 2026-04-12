@@ -71,6 +71,7 @@ export function useTableData(tab: Tab | null) {
 
         const normalizedTableData: TablePageResult = {
           ...tableData,
+          isEstimated: Boolean(tableData.isEstimated),
           sortDir: tableData.sortDir === 'desc' ? 'desc' : tableData.sortDir === 'asc' ? 'asc' : undefined,
         };
 

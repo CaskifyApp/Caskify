@@ -51,6 +51,8 @@ export interface QueryResult {
   rowsAffected: number;
   executionTimeMs: number;
   statementType: string;
+  truncated?: boolean;
+  previewRowLimit?: number;
   error?: string;
 }
 
@@ -212,6 +214,7 @@ export interface TablePageResult {
   columns: string[];
   rows: Record<string, unknown>[];
   totalRows: number;
+  isEstimated?: boolean;
   page: number;
   limit: number;
   sortColumn?: string;

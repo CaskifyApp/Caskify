@@ -6,6 +6,7 @@ interface DataGridToolbarProps {
   page: number;
   limit: number;
   totalRows: number;
+  estimated?: boolean;
   loading: boolean;
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
@@ -18,6 +19,7 @@ export function DataGridToolbar({
   page,
   limit,
   totalRows,
+  estimated = false,
   loading,
   onPageChange,
   onLimitChange,
@@ -28,7 +30,7 @@ export function DataGridToolbar({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-4xl border bg-card px-4 py-3 shadow-sm">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>{totalRows} rows</span>
+        <span>{estimated ? `~${totalRows} rows` : `${totalRows} rows`}</span>
         <span className="text-border">•</span>
         <span>Page {page} of {totalPages}</span>
       </div>

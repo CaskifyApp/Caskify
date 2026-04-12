@@ -117,6 +117,8 @@ type QueryResult struct {
 	RowsAffected    int64            `json:"rowsAffected"`
 	ExecutionTimeMs int64            `json:"executionTimeMs"`
 	StatementType   string           `json:"statementType"`
+	Truncated       bool             `json:"truncated,omitempty"`
+	PreviewRowLimit int64            `json:"previewRowLimit,omitempty"`
 	Error           string           `json:"error,omitempty"`
 }
 
@@ -132,16 +134,17 @@ type TablePageParams struct {
 }
 
 type TablePageResult struct {
-	Columns    []string         `json:"columns"`
-	Rows       []map[string]any `json:"rows"`
-	TotalRows  int64            `json:"totalRows"`
-	Page       int              `json:"page"`
-	Limit      int              `json:"limit"`
-	SortColumn string           `json:"sortColumn,omitempty"`
-	SortDir    string           `json:"sortDir,omitempty"`
-	Table      string           `json:"table"`
-	Schema     string           `json:"schema"`
-	Database   string           `json:"database"`
+	Columns     []string         `json:"columns"`
+	Rows        []map[string]any `json:"rows"`
+	TotalRows   int64            `json:"totalRows"`
+	IsEstimated bool             `json:"isEstimated,omitempty"`
+	Page        int              `json:"page"`
+	Limit       int              `json:"limit"`
+	SortColumn  string           `json:"sortColumn,omitempty"`
+	SortDir     string           `json:"sortDir,omitempty"`
+	Table       string           `json:"table"`
+	Schema      string           `json:"schema"`
+	Database    string           `json:"database"`
 }
 
 type InsertRowParams struct {

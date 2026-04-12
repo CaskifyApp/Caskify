@@ -28,7 +28,7 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
     <div className="grid gap-3">
       <div className="flex items-center justify-between gap-3 rounded-4xl border bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm">
         <div className="flex items-center gap-2">
-          <span>{result.rowsAffected} rows</span>
+          <span>{result.truncated ? `${result.rowsAffected}+ preview rows` : `${result.rowsAffected} rows`}</span>
           <span>•</span>
           <span>{result.executionTimeMs} ms</span>
           <span>•</span>
@@ -67,6 +67,12 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
       {exportMessage ? (
         <div className="rounded-3xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
           {exportMessage}
+        </div>
+      ) : null}
+
+      {result.truncated ? (
+        <div className="rounded-3xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-200">
+          Query preview was capped at {result.previewRowLimit ?? result.rows.length} rows to keep the app responsive.
         </div>
       ) : null}
 

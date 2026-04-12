@@ -10,6 +10,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const queryPreviewRowLimit = 1000
+
 var dangerousCommands = []string{
 	"DROP DATABASE",
 	"DROP TABLE",
@@ -74,10 +76,16 @@ func FetchTablePage(ctx context.Context, pool *pgxpool.Pool, params TablePagePar
 	tableRef := pgx.Identifier{params.Schema, params.Table}.Sanitize()
 	offset := (page - 1) * limit
 
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", tableRef)
+	estimateQuery := `
+		SELECT GREATEST(COALESCE(c.reltuples, 0), 0)::bigint
+		FROM pg_class c
+		JOIN pg_namespace n ON n.oid = c.relnamespace
+		WHERE n.nspname = $1 AND c.relname = $2
+	`
 	var totalRows int64
-	if err := pool.QueryRow(ctx, countQuery).Scan(&totalRows); err != nil {
-		return nil, fmt.Errorf("count query error: %w", err)
+	isEstimated := false
+	if err := pool.QueryRow(ctx, estimateQuery, params.Schema, params.Table).Scan(&totalRows); err == nil {
+		isEstimated = true
 	}
 
 	dataQuery := fmt.Sprintf("SELECT * FROM %s", tableRef)
@@ -111,16 +119,17 @@ func FetchTablePage(ctx context.Context, pool *pgxpool.Pool, params TablePagePar
 	}
 
 	return &TablePageResult{
-		Columns:    columnNames,
-		Rows:       resultRows,
-		TotalRows:  totalRows,
-		Page:       page,
-		Limit:      limit,
-		SortColumn: sortColumn,
-		SortDir:    sortDir,
-		Table:      params.Table,
-		Schema:     params.Schema,
-		Database:   params.Database,
+		Columns:     columnNames,
+		Rows:        resultRows,
+		TotalRows:   max(totalRows, int64(offset+len(resultRows))),
+		IsEstimated: isEstimated,
+		Page:        page,
+		Limit:       limit,
+		SortColumn:  sortColumn,
+		SortDir:     sortDir,
+		Table:       params.Table,
+		Schema:      params.Schema,
+		Database:    params.Database,
 	}, nil
 }
 
@@ -169,7 +178,13 @@ func ExecuteQuery(ctx context.Context, pool *pgxpool.Pool, sql string) (*QueryRe
 	}
 
 	resultRows := make([]map[string]any, 0)
+	truncated := false
 	for rows.Next() {
+		if len(resultRows) >= queryPreviewRowLimit {
+			truncated = true
+			break
+		}
+
 		values, err := rows.Values()
 		if err != nil {
 			return nil, fmt.Errorf("row scan error: %w", err)
@@ -193,5 +208,7 @@ func ExecuteQuery(ctx context.Context, pool *pgxpool.Pool, sql string) (*QueryRe
 		RowsAffected:    int64(len(resultRows)),
 		ExecutionTimeMs: execTime.Milliseconds(),
 		StatementType:   "query",
+		Truncated:       truncated,
+		PreviewRowLimit: queryPreviewRowLimit,
 	}, nil
 }

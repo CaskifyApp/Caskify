@@ -430,14 +430,14 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 		Type:          wailsruntime.QuestionDialog,
 		Title:         "Confirm Database Restore",
 		Message:       fmt.Sprintf("This will restore SQL into database '%s'. Continue?", databaseName),
-		Buttons:       []string{"Cancel", "Restore"},
-		DefaultButton: "Cancel",
-		CancelButton:  "Cancel",
+		Buttons:       []string{"No", "Yes"},
+		DefaultButton: "No",
+		CancelButton:  "No",
 	})
 	if err != nil {
 		return nil, err
 	}
-	if choice != "Restore" {
+	if choice == "" || strings.EqualFold(choice, "no") || strings.EqualFold(choice, "cancel") {
 		return nil, nil
 	}
 

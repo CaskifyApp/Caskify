@@ -82,6 +82,14 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   }, [databaseName, open, profileId, profiles]);
 
   useEffect(() => {
+    if (!restorePreflight || restorePreflight.isEmpty || newDatabaseName) {
+      return;
+    }
+
+    setNewDatabaseName(`${restorePreflight.databaseName}_restore`);
+  }, [newDatabaseName, restorePreflight]);
+
+  useEffect(() => {
     if (!open || !profileId || !databaseName) {
       setRestorePreflight(null);
       return;
@@ -255,6 +263,9 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                 <Button variant="outline" onClick={() => void handleCreateDatabase()} disabled={databaseActionLoading || !profileId || !newDatabaseName.trim()}>
                   Create
                 </Button>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Create a fresh target database here first if you want to restore a full SQL dump.
               </div>
             </div>
 

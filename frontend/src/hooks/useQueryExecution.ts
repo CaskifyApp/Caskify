@@ -1,3 +1,4 @@
+import { useRef, useCallback } from 'react';
 import * as wails from '../../wailsjs/go/main/App';
 import { useTabStore } from '@/store/tabStore';
 import type { QueryExecutionParams, Tab } from '@/types';
@@ -6,8 +7,9 @@ export function useQueryExecution(tab: Tab) {
   const setQueryLoading = useTabStore((state) => state.setQueryLoading);
   const setQueryError = useTabStore((state) => state.setQueryError);
   const setQueryResult = useTabStore((state) => state.setQueryResult);
+  const queryIdRef = useRef<string>('');
 
-  const runQuery = async () => {
+  const runQuery = useCallback(async () => {
     if (!tab.connectionId) {
       setQueryError(tab.id, 'Choose a connection before running a query.');
       return;
@@ -33,13 +35,19 @@ export function useQueryExecution(tab: Tab) {
         sql: tab.queryText,
       };
 
-      const queryResult = await wails.RunQuery(payload);
+      const queryResult = await wails.RunQueryWithCancellation(payload, '');
       setQueryResult(tab.id, queryResult);
     } catch (error) {
       setQueryLoading(tab.id, false);
       setQueryError(tab.id, String(error));
     }
-  };
+  }, [tab, setQueryLoading, setQueryError, setQueryResult]);
 
-  return { runQuery };
+  const cancelQuery = useCallback(async () => {
+    if (queryIdRef.current) {
+      await wails.CancelQuery(queryIdRef.current);
+    }
+  }, []);
+
+  return { runQuery, cancelQuery };
 }

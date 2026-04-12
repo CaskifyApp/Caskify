@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
-import { History, Play, Save, WandSparkles } from 'lucide-react';
+import { History, Play, Save, Square, WandSparkles } from 'lucide-react';
 import { format as formatSQL } from 'sql-formatter';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,12 +16,13 @@ interface QueryToolbarProps {
   onDatabaseChange: (databaseName: string) => void;
   onQueryTextChange: (queryText: string) => void;
   onRun: () => void;
+  onCancel: () => void;
   onSave: () => void;
   onShowSavedQueries: () => void;
   onShowHistory: () => void;
 }
 
-export function QueryToolbar({ profileId, databaseName, queryText, running, onProfileChange, onDatabaseChange, onQueryTextChange, onRun, onSave, onShowSavedQueries, onShowHistory }: QueryToolbarProps) {
+export function QueryToolbar({ profileId, databaseName, queryText, running, onProfileChange, onDatabaseChange, onQueryTextChange, onRun, onCancel, onSave, onShowSavedQueries, onShowHistory }: QueryToolbarProps) {
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
   const [databases, setDatabases] = useState<DatabaseInfo[]>([]);
@@ -87,10 +88,17 @@ export function QueryToolbar({ profileId, databaseName, queryText, running, onPr
         </SelectContent>
       </Select>
 
-      <Button variant="outline" size="sm" onClick={onRun} disabled={!profileId || !databaseName || running}>
-        <Play data-icon="inline-start" />
-        {running ? 'Running...' : 'Run Query'}
-      </Button>
+      {running ? (
+        <Button variant="destructive" size="sm" onClick={onCancel}>
+          <Square data-icon="inline-start" />
+          Cancel
+        </Button>
+      ) : (
+        <Button variant="outline" size="sm" onClick={onRun} disabled={!profileId || !databaseName}>
+          <Play data-icon="inline-start" />
+          Run Query
+        </Button>
+      )}
 
       <Button variant="outline" size="sm" onClick={onSave} disabled={!queryText.trim()}>
         <Save data-icon="inline-start" />

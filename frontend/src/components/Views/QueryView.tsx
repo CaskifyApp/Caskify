@@ -19,7 +19,7 @@ export function QueryView({ tab }: QueryViewProps) {
   const setQueryText = useTabStore((state) => state.setQueryText);
   const setQueryProfile = useTabStore((state) => state.setQueryProfile);
   const setQueryDatabase = useTabStore((state) => state.setQueryDatabase);
-  const { runQuery } = useQueryExecution(tab);
+  const { runQuery, cancelQuery } = useQueryExecution(tab);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [savedQueriesOpen, setSavedQueriesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -59,6 +59,7 @@ export function QueryView({ tab }: QueryViewProps) {
         onDatabaseChange={(databaseName) => setQueryDatabase(tab.id, databaseName)}
         onQueryTextChange={(queryText) => setQueryText(tab.id, queryText)}
         onRun={() => void runQuery()}
+        onCancel={() => void cancelQuery()}
         onSave={() => setSaveModalOpen(true)}
         onShowSavedQueries={() => setSavedQueriesOpen(true)}
         onShowHistory={() => setHistoryOpen(true)}

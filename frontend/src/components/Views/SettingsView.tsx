@@ -268,7 +268,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             <h3 className="font-medium text-foreground">About</h3>
             <div className="grid gap-1 text-sm text-muted-foreground">
               <div>App: CaskPG</div>
-              <div>Version: v0.1.0</div>
+              <div>Version: v1.0.0-beta1</div>
               <div>Platform: Linux native desktop via Wails</div>
               <div>License: MIT</div>
             </div>

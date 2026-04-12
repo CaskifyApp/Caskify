@@ -10,5 +10,9 @@
   "author": {
     "name": "Drenzzz",
     "email": "realdrenzzz@gmail.com"
+  },
+  "linux": {
+    "outputType": "desktop",
+    "wayland": true
   }
 }

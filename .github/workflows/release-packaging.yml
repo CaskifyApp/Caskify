@@ -86,7 +86,7 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libsecret-1-dev rpm
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libsecret-1-dev rpm upx
 
       - name: Install packaging tools
         run: |
@@ -95,6 +95,7 @@ jobs:
             chmod +x appimagetool
             sudo mv appimagetool /usr/local/bin/appimagetool
           fi
+          go install github.com/wailsapp/wails/v2/cmd/wails@latest
           go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
@@ -124,7 +125,12 @@ jobs:
       - name: Install CI dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm base-devel git go nodejs pnpm gtk3 webkit2gtk-4.1 libsecret
+          pacman -S --noconfirm base-devel git go nodejs pnpm gtk3 webkit2gtk-4.1 libsecret upx
+
+      - name: Install Wails CLI
+        run: |
+          go install github.com/wailsapp/wails/v2/cmd/wails@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Checkout
         uses: actions/checkout@v4

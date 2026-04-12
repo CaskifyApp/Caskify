@@ -11,9 +11,10 @@ interface DatabaseTreeProps {
   connectionId: string;
   connected: boolean;
   onTableSelect?: (node: TreeNode) => void;
+  onRequestDropDatabase?: (databaseName: string) => void;
 }
 
-export function DatabaseTree({ connectionId, connected, onTableSelect }: DatabaseTreeProps) {
+export function DatabaseTree({ connectionId, connected, onTableSelect, onRequestDropDatabase }: DatabaseTreeProps) {
   const tree = useSidebarStore((state) => state.treeByConnection[connectionId]);
   const loading = useSidebarStore((state) => state.loadingNodeIds[`${connectionId}:databases`] ?? false);
   const error = useSidebarStore((state) => state.errorByNodeId[`${connectionId}:databases`] ?? null);
@@ -57,7 +58,7 @@ export function DatabaseTree({ connectionId, connected, onTableSelect }: Databas
   return (
     <ul className="mt-2 flex flex-col gap-1">
       {nodes.map((node) => (
-        <TableTreeItem key={node.id} node={node} onTableSelect={onTableSelect} />
+        <TableTreeItem key={node.id} node={node} onTableSelect={onTableSelect} onRequestDropDatabase={onRequestDropDatabase} />
       ))}
     </ul>
   );

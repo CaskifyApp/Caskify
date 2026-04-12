@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { Plus, Trash2, Edit2, Plug, PlugZap } from 'lucide-react';
+import { Database, Edit2, Plus, Plug, PlugZap, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { CreateDatabaseDialog, DropDatabaseDialog } from '@/components/Modals/DatabaseAdminDialogs';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useDeleteProfile, useConnectProfile, useDisconnectProfile } from '@/hooks/useConnection';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
@@ -21,11 +22,14 @@ export function ConnectionList() {
   const { disconnect, disconnecting } = useDisconnectProfile();
   const openTableTab = useTabStore((state) => state.openTableTab);
   const resetConnectionTree = useSidebarStore((state) => state.resetConnectionTree);
+  const loadDatabases = useSidebarStore((state) => state.loadDatabases);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [initialProfile, setInitialProfile] = useState<Partial<Profile> | null>(null);
   const [profilePendingDelete, setProfilePendingDelete] = useState<Profile | null>(null);
+  const [profileForCreateDatabase, setProfileForCreateDatabase] = useState<Profile | null>(null);
+  const [databaseForDrop, setDatabaseForDrop] = useState<{ profile: Profile; databaseName: string } | null>(null);
 
   useEffect(() => {
     loadProfiles();
@@ -140,6 +144,14 @@ export function ConnectionList() {
                       <Button
                         variant="ghost"
                         size="icon-xs"
+                        onClick={() => setProfileForCreateDatabase(profile)}
+                        title="Create Database"
+                      >
+                        <Database className="size-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => handleEdit(profile)}
                         title="Edit"
                       >
@@ -161,6 +173,7 @@ export function ConnectionList() {
                     connectionId={profile.id}
                     connected={isConnected}
                     onTableSelect={openTableTab}
+                    onRequestDropDatabase={(databaseName) => setDatabaseForDrop({ profile, databaseName })}
                   />
 
                   {status?.error ? (
@@ -180,6 +193,35 @@ export function ConnectionList() {
         onOpenChange={setModalOpen}
         editingProfile={editingProfile}
         initialProfile={initialProfile}
+      />
+
+      <CreateDatabaseDialog
+        open={profileForCreateDatabase !== null}
+        onOpenChange={(open) => {
+          if (!open) setProfileForCreateDatabase(null)
+        }}
+        profileId={profileForCreateDatabase?.id ?? ''}
+        onSuccess={() => {
+          if (profileForCreateDatabase) {
+            void loadDatabases(profileForCreateDatabase.id, true)
+          }
+          setProfileForCreateDatabase(null)
+        }}
+      />
+
+      <DropDatabaseDialog
+        open={databaseForDrop !== null}
+        onOpenChange={(open) => {
+          if (!open) setDatabaseForDrop(null)
+        }}
+        profileId={databaseForDrop?.profile.id ?? ''}
+        databaseName={databaseForDrop?.databaseName ?? ''}
+        onSuccess={() => {
+          if (databaseForDrop) {
+            void loadDatabases(databaseForDrop.profile.id, true)
+          }
+          setDatabaseForDrop(null)
+        }}
       />
 
       <Dialog

@@ -57,16 +57,20 @@ func GetAll() ([]HistoryEntry, error) {
 
 func Clear() error {
 	path := config.GetConfigDir()
-	os.MkdirAll(path, 0755)
-	return os.WriteFile(filepath.Join(path, "history.json"), []byte("[]"), 0644)
+	if err := os.MkdirAll(path, 0o700); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(path, "history.json"), []byte("[]"), 0o600)
 }
 
 func writeAll(entries []HistoryEntry) error {
 	path := config.GetConfigDir()
-	os.MkdirAll(path, 0755)
+	if err := os.MkdirAll(path, 0o700); err != nil {
+		return err
+	}
 	data, err := json.MarshalIndent(entries, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(path, "history.json"), data, 0644)
+	return os.WriteFile(filepath.Join(path, "history.json"), data, 0o600)
 }

@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"caskpg/internal/config"
@@ -22,18 +23,8 @@ func initFallback() error {
 		return nil
 	}
 
-	keyPath := filepath.Join(config.GetConfigDir(), ".key")
-	if _, err := os.Stat(keyPath); os.IsNotExist(err) {
-		key := make([]byte, 32)
-		if _, err := io.ReadFull(rand.Reader, key); err != nil {
-			return fmt.Errorf("failed to generate encryption key: %w", err)
-		}
-		if err := os.MkdirAll(config.GetConfigDir(), 0o700); err != nil {
-			return err
-		}
-		if err := os.WriteFile(keyPath, key, 0o600); err != nil {
-			return err
-		}
+	if err := os.MkdirAll(config.GetConfigDir(), 0o700); err != nil {
+		return err
 	}
 
 	useFallback = true
@@ -41,16 +32,36 @@ func initFallback() error {
 }
 
 func getMachineKey() ([]byte, error) {
-	keyPath := filepath.Join(config.GetConfigDir(), ".key")
-	data, err := os.ReadFile(keyPath)
-	if err != nil {
-		return nil, err
+	var parts []string
+	for _, path := range []string{"/etc/machine-id", "/var/lib/dbus/machine-id"} {
+		data, err := os.ReadFile(path)
+		if err == nil {
+			trimmed := strings.TrimSpace(string(data))
+			if trimmed != "" {
+				parts = append(parts, trimmed)
+				break
+			}
+		}
 	}
-	if len(data) != 32 {
-		hash := sha256.Sum256(data)
-		return hash[:], nil
+
+	if len(parts) == 0 {
+		hostname, err := os.Hostname()
+		if err == nil && hostname != "" {
+			parts = append(parts, hostname)
+		}
 	}
-	return data, nil
+
+	if homeDir, err := os.UserHomeDir(); err == nil && homeDir != "" {
+		parts = append(parts, homeDir)
+	}
+
+	parts = append(parts, runtime.GOOS)
+	if len(parts) == 0 {
+		return nil, fmt.Errorf("failed to derive fallback encryption key")
+	}
+
+	hash := sha256.Sum256([]byte(strings.Join(parts, "|")))
+	return hash[:], nil
 }
 
 func encrypt(plaintext string) (string, error) {

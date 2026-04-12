@@ -56,7 +56,10 @@ export function ConnectionModal({ open, onOpenChange, editingProfile, initialPro
 
   const buildConnString = () => {
     const databaseName = defaultDatabase || 'postgres';
-    return `postgres://${username}:${password}@${host}:${port}/${databaseName}?sslmode=${sslMode}`;
+    const encodedUsername = encodeURIComponent(username);
+    const encodedPassword = encodeURIComponent(password);
+    const encodedDatabase = encodeURIComponent(databaseName);
+    return `postgres://${encodedUsername}:${encodedPassword}@${host}:${port}/${encodedDatabase}?sslmode=${sslMode}`;
   };
 
   const handleTest = async () => {

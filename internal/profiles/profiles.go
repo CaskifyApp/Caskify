@@ -3,8 +3,10 @@ package profiles
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"caskpg/internal/config"
 	"github.com/google/uuid"
@@ -130,15 +132,18 @@ func (p *Profile) BuildConnectionStringForDatabase(password, databaseName string
 	if databaseName == "" {
 		databaseName = p.ActiveDatabase()
 	}
-	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		p.Username,
-		password,
-		p.Host,
-		p.Port,
-		databaseName,
-		sslMode,
-	)
+
+	connURL := &url.URL{
+		Scheme: "postgres",
+		User:   url.UserPassword(p.Username, password),
+		Host:   fmt.Sprintf("%s:%d", p.Host, p.Port),
+		Path:   "/" + url.PathEscape(databaseName),
+	}
+	query := connURL.Query()
+	query.Set("sslmode", sslMode)
+	query.Set("connect_timeout", strconv.Itoa(10))
+	connURL.RawQuery = query.Encode()
+	return connURL.String()
 }
 
 func (p *Profile) Validate() error {
@@ -159,7 +164,9 @@ func (p *Profile) Validate() error {
 
 func writeAll(profiles []Profile) error {
 	path := config.GetConfigDir()
-	os.MkdirAll(path, 0755)
+	if err := os.MkdirAll(path, 0o700); err != nil {
+		return err
+	}
 	if profiles == nil {
 		profiles = []Profile{}
 	}
@@ -167,5 +174,5 @@ func writeAll(profiles []Profile) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(path, "profiles.json"), data, 0644)
+	return os.WriteFile(filepath.Join(path, "profiles.json"), data, 0o600)
 }

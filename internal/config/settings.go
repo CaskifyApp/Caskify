@@ -52,7 +52,7 @@ func GetSettings() (Settings, error) {
 }
 
 func SaveSettings(settings Settings) error {
-	if err := os.MkdirAll(GetConfigDir(), 0o755); err != nil {
+	if err := os.MkdirAll(GetConfigDir(), 0o700); err != nil {
 		return err
 	}
 
@@ -61,5 +61,5 @@ func SaveSettings(settings Settings) error {
 		return err
 	}
 
-	return os.WriteFile(settingsPath(), data, 0o644)
+	return os.WriteFile(settingsPath(), data, 0o600)
 }

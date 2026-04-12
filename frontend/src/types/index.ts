@@ -193,6 +193,8 @@ export interface QueryHistoryEntry {
 export interface AppSettings {
   theme: 'light' | 'dark';
   defaultRowsPerPage: number;
+  editorFontSize: number;
+  historyLimit: number;
 }
 
 export interface TablePageParams {

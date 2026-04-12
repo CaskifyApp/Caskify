@@ -9,6 +9,8 @@ import (
 type Settings struct {
 	Theme              string `json:"theme"`
 	DefaultRowsPerPage int    `json:"defaultRowsPerPage"`
+	EditorFontSize     int    `json:"editorFontSize"`
+	HistoryLimit       int    `json:"historyLimit"`
 }
 
 func settingsPath() string {
@@ -19,6 +21,8 @@ func GetSettings() (Settings, error) {
 	defaults := Settings{
 		Theme:              "dark",
 		DefaultRowsPerPage: 50,
+		EditorFontSize:     14,
+		HistoryLimit:       100,
 	}
 
 	data, err := os.ReadFile(settingsPath())
@@ -36,6 +40,12 @@ func GetSettings() (Settings, error) {
 	}
 	if settings.DefaultRowsPerPage == 0 {
 		settings.DefaultRowsPerPage = defaults.DefaultRowsPerPage
+	}
+	if settings.EditorFontSize == 0 {
+		settings.EditorFontSize = defaults.EditorFontSize
+	}
+	if settings.HistoryLimit == 0 {
+		settings.HistoryLimit = defaults.HistoryLimit
 	}
 
 	return settings, nil

@@ -207,13 +207,57 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
           </section>
 
           <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
-            <h3 className="font-medium text-foreground">Shortcuts</h3>
-            <div className="grid gap-1 text-sm text-muted-foreground">
-              <div>Ctrl+T — New query tab</div>
-              <div>Ctrl+W — Close active tab</div>
-              <div>Ctrl+Enter — Run query</div>
-              <div>Ctrl+S — Save query</div>
-              <div>Ctrl+R / F5 — Refresh current workspace</div>
+            <h3 className="font-medium text-foreground">Query Editor</h3>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Editor Font Size (px)</label>
+              <Input
+                type="number"
+                min={10}
+                max={24}
+                value={String(settings.editorFontSize)}
+                onChange={(event) => void updateSettings({ editorFontSize: Number(event.target.value) || 14 })}
+              />
+            </div>
+          </section>
+
+          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
+            <h3 className="font-medium text-foreground">Query History</h3>
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">History Limit (entries)</label>
+              <Input
+                type="number"
+                min={10}
+                max={1000}
+                value={String(settings.historyLimit)}
+                onChange={(event) => void updateSettings({ historyLimit: Number(event.target.value) || 100 })}
+              />
+              <p className="text-xs text-muted-foreground">Maximum number of queries to keep in history.</p>
+            </div>
+          </section>
+
+          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
+            <h3 className="font-medium text-foreground">Keyboard Shortcuts</h3>
+            <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
+                <span>New query tab</span>
+                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+T</kbd>
+              </div>
+              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
+                <span>Close active tab</span>
+                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+W</kbd>
+              </div>
+              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
+                <span>Run query</span>
+                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+Enter</kbd>
+              </div>
+              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
+                <span>Save query</span>
+                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+S</kbd>
+              </div>
+              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
+                <span>Refresh workspace</span>
+                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+R / F5</kbd>
+              </div>
             </div>
           </section>
 

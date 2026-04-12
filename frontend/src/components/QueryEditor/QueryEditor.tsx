@@ -12,12 +12,15 @@ interface QueryEditorProps {
 
 export function QueryEditor({ value, onChange, onRun }: QueryEditorProps) {
   const theme = useSettingsStore((state) => state.settings.theme);
+  const editorFontSize = useSettingsStore((state) => state.settings.editorFontSize);
   const editorTheme = useMemo(() => {
+    const fontSize = editorFontSize || 14;
     if (theme === 'dark') {
       return EditorView.theme({
         '&': {
           backgroundColor: 'oklch(0.218 0.008 223.9)',
           color: 'oklch(0.987 0.002 197.1)',
+          fontSize: `${fontSize}px`,
         },
         '.cm-content': {
           caretColor: 'oklch(0.987 0.002 197.1)',
@@ -43,6 +46,7 @@ export function QueryEditor({ value, onChange, onRun }: QueryEditorProps) {
       '&': {
         backgroundColor: 'oklch(1 0 0)',
         color: 'oklch(0.148 0.004 228.8)',
+        fontSize: `${fontSize}px`,
       },
       '.cm-gutters': {
         backgroundColor: 'oklch(1 0 0)',
@@ -59,7 +63,7 @@ export function QueryEditor({ value, onChange, onRun }: QueryEditorProps) {
         backgroundColor: 'oklch(0.52 0.105 223.128 / 0.18)',
       },
     });
-  }, [theme]);
+  }, [theme, editorFontSize]);
 
   return (
     <div className="query-editor overflow-hidden rounded-4xl border bg-card shadow-sm">

@@ -3,6 +3,8 @@ export namespace config {
 	export class Settings {
 	    theme: string;
 	    defaultRowsPerPage: number;
+	    editorFontSize: number;
+	    historyLimit: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -12,6 +14,8 @@ export namespace config {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.theme = source["theme"];
 	        this.defaultRowsPerPage = source["defaultRowsPerPage"];
+	        this.editorFontSize = source["editorFontSize"];
+	        this.historyLimit = source["historyLimit"];
 	    }
 	}
 

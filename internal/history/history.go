@@ -30,9 +30,16 @@ func Add(entry HistoryEntry) error {
 	if err != nil {
 		return err
 	}
+
+	settings, _ := config.GetSettings()
+	limit := settings.HistoryLimit
+	if limit == 0 {
+		limit = 100
+	}
+
 	entries = append([]HistoryEntry{entry}, entries...)
-	if len(entries) > 100 {
-		entries = entries[:100]
+	if len(entries) > limit {
+		entries = entries[:limit]
 	}
 	return writeAll(entries)
 }

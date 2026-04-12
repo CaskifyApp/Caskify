@@ -290,10 +290,12 @@ func (a *App) ExportQueryResults(format string, result db.QueryResult) (*db.Data
 		defaultExtension = ".json"
 	}
 
-	defaultFilename := filepath.Join(config.GetDownloadsDir(), "query-results"+defaultExtension)
+	defaultDirectory := config.GetDownloadsDir()
+	defaultFilename := "query-results" + defaultExtension
 	selectedPath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
-		DefaultFilename: defaultFilename,
-		Title:           "Export Query Results",
+		DefaultDirectory: defaultDirectory,
+		DefaultFilename:  defaultFilename,
+		Title:            "Export Query Results",
 	})
 	if err != nil {
 		return nil, err
@@ -365,8 +367,9 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 	}
 
 	selectedPath, err := wailsruntime.SaveFileDialog(a.ctx, wailsruntime.SaveDialogOptions{
-		DefaultFilename: filepath.Join(config.GetDownloadsDir(), databaseName+".sql"),
-		Title:           "Export Database SQL",
+		DefaultDirectory: config.GetDownloadsDir(),
+		DefaultFilename:  databaseName + ".sql",
+		Title:            "Export Database SQL",
 		Filters: []wailsruntime.FileFilter{{
 			DisplayName: "SQL File",
 			Pattern:     "*.sql",

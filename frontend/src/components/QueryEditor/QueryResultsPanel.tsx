@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
+import { CellRenderer } from '@/components/DataGrid/CellRenderer';
+import { JSONViewerModal } from '@/components/Modals/JSONViewerModal';
 import { Button } from '@/components/ui/button';
 import type { DatabaseOperationResult, QueryResult } from '@/types';
 
@@ -11,6 +13,8 @@ interface QueryResultsPanelProps {
 
 export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelProps) {
   const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
+  const [jsonViewerValue, setJsonViewerValue] = useState<unknown>(null);
 
   if (loading) {
     return <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">Running query and waiting for PostgreSQL response...</div>;
@@ -95,7 +99,15 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
                 {result.rows.map((row, index) => (
                   <tr key={index} className="border-b last:border-b-0">
                     {result.columns.map((column) => (
-                      <td key={`${index}-${column}`} className="px-4 py-3 text-muted-foreground">{String(row[column] ?? 'NULL')}</td>
+                      <td key={`${index}-${column}`} className="px-4 py-3 text-muted-foreground">
+                        <CellRenderer
+                          value={row[column]}
+                          onOpenJson={(value) => {
+                            setJsonViewerValue(value);
+                            setJsonViewerOpen(true);
+                          }}
+                        />
+                      </td>
                     ))}
                   </tr>
                 ))}
@@ -104,6 +116,13 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
           </div>
         </div>
       )}
+
+      <JSONViewerModal
+        open={jsonViewerOpen}
+        onOpenChange={setJsonViewerOpen}
+        value={jsonViewerValue}
+        title="Query Result JSON"
+      />
     </div>
   );
 }

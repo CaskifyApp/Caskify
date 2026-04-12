@@ -6,6 +6,41 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ColumnDef, InsertRowParams, UpdateRowParams } from '@/types';
 
+function isNumericColumn(column: ColumnDef) {
+  return column.type.includes('int') || column.type === 'numeric' || column.type === 'real' || column.type === 'double precision';
+}
+
+function isJsonColumn(column: ColumnDef) {
+  return column.type === 'json' || column.type === 'jsonb';
+}
+
+function isTimestampColumn(column: ColumnDef) {
+  return column.type.includes('timestamp') || column.type.includes('date');
+}
+
+function isLongTextColumn(column: ColumnDef) {
+  return column.type === 'text';
+}
+
+function formatDraftValue(column: ColumnDef, value: unknown) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  if (isJsonColumn(column) && typeof value === 'object') {
+    return JSON.stringify(value, null, 2);
+  }
+
+  if (isTimestampColumn(column)) {
+    const parsed = new Date(String(value));
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString().slice(0, 16);
+    }
+  }
+
+  return String(value);
+}
+
 interface RowEditorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -40,8 +75,16 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
       return value === 'true';
     }
 
-    if (column.type.includes('int') || column.type === 'numeric' || column.type === 'real' || column.type === 'double precision') {
+    if (isNumericColumn(column)) {
       return Number(value);
+    }
+
+    if (isJsonColumn(column)) {
+      try {
+        return JSON.parse(value);
+      } catch {
+        throw new Error(`Invalid JSON value for ${column.name}`);
+      }
     }
 
     return value;
@@ -76,7 +119,7 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
     const nextDraft: Record<string, string> = {};
     for (const column of columns) {
       const value = row?.[column.name];
-      nextDraft[column.name] = value === null || value === undefined ? '' : String(value);
+      nextDraft[column.name] = formatDraftValue(column, value);
     }
     setDraft(nextDraft);
   }, [columns, open, row]);
@@ -141,9 +184,24 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
                     <SelectItem value="false">false</SelectItem>
                   </SelectContent>
                 </Select>
+              ) : isJsonColumn(column) || isLongTextColumn(column) ? (
+                <textarea
+                  value={draft[column.name] ?? ''}
+                  onChange={(event) => setDraftValue(column.name, event.target.value)}
+                  disabled={isReadonlyColumn(column)}
+                  rows={isJsonColumn(column) ? 8 : 4}
+                  className="min-h-24 rounded-3xl border border-input bg-background px-3 py-2 text-sm"
+                />
+              ) : isTimestampColumn(column) ? (
+                <Input
+                  type="datetime-local"
+                  value={draft[column.name] ?? ''}
+                  onChange={(event) => setDraftValue(column.name, event.target.value)}
+                  disabled={isReadonlyColumn(column)}
+                />
               ) : (
                 <Input
-                  type={column.type.includes('int') || column.type === 'numeric' || column.type === 'real' || column.type === 'double precision' ? 'number' : 'text'}
+                  type={isNumericColumn(column) ? 'number' : 'text'}
                   value={draft[column.name] ?? ''}
                   onChange={(event) => setDraftValue(column.name, event.target.value)}
                   disabled={isReadonlyColumn(column)}

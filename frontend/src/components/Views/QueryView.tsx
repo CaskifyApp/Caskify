@@ -1,6 +1,5 @@
 import { Group, Panel, Separator } from 'react-resizable-panels';
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { DangerousQueryDialog } from '@/components/Modals/DangerousQueryDialog';
 import { SaveQueryModal } from '@/components/Modals/SaveQueryModal';
@@ -27,6 +26,7 @@ export function QueryView({ tab }: QueryViewProps) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [dangerousDialogOpen, setDangerousDialogOpen] = useState(false);
   const [dangerousCommand, setDangerousCommand] = useState('');
+  const [completionItems, setCompletionItems] = useState<string[]>([]);
 
   const handleRunQuery = async () => {
     if (!tab.queryText?.trim()) return;
@@ -40,6 +40,54 @@ export function QueryView({ tab }: QueryViewProps) {
 
     void runQuery();
   };
+
+  useEffect(() => {
+    if (!tab.connectionId || !tab.databaseName) {
+      setCompletionItems([]);
+      return;
+    }
+
+    const connectionId = tab.connectionId;
+    const databaseName = tab.databaseName;
+
+    let cancelled = false;
+
+    const loadCompletions = async () => {
+      try {
+        const schemas = await wails.GetSchemas(connectionId, databaseName);
+        const words = new Set<string>(['select', 'from', 'where', 'insert', 'update', 'delete', 'join']);
+
+        await Promise.all((schemas ?? []).map(async (schema) => {
+          words.add(schema.name);
+          const tables = await wails.GetTables(connectionId, databaseName, schema.name);
+
+          await Promise.all((tables ?? []).map(async (table) => {
+            words.add(table.name);
+            words.add(`${schema.name}.${table.name}`);
+
+            const columns = await wails.GetTableColumns(connectionId, databaseName, schema.name, table.name);
+            for (const column of columns ?? []) {
+              words.add(column.name);
+            }
+          }));
+        }));
+
+        if (!cancelled) {
+          setCompletionItems(Array.from(words).sort((left, right) => left.localeCompare(right)));
+        }
+      } catch {
+        if (!cancelled) {
+          setCompletionItems([]);
+        }
+      }
+    };
+
+    void loadCompletions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tab.connectionId, tab.databaseName]);
 
   useEffect(() => {
     const handleRun = (event: Event) => {
@@ -89,6 +137,7 @@ export function QueryView({ tab }: QueryViewProps) {
             value={tab.queryText ?? ''}
             onChange={(queryText) => setQueryText(tab.id, queryText)}
             onRun={() => void handleRunQuery()}
+            completionItems={completionItems}
           />
         </Panel>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -15,6 +15,13 @@ export function CreateDatabaseDialog({ open, onOpenChange, profileId, onSuccess 
   const [databaseName, setDatabaseName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setDatabaseName('');
+      setError(null);
+    }
+  }, [open]);
 
   const handleCreate = async () => {
     if (!databaseName.trim()) {
@@ -73,6 +80,12 @@ export function DropDatabaseDialog({ open, onOpenChange, profileId, databaseName
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (open) {
+      setError(null);
+    }
+  }, [open]);
+
   const handleDrop = async () => {
     setLoading(true);
     setError(null);
@@ -93,7 +106,7 @@ export function DropDatabaseDialog({ open, onOpenChange, profileId, databaseName
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Drop Database</DialogTitle>
-          <DialogDescription>This will permanently remove database "{databaseName}".</DialogDescription>
+          <DialogDescription>This will permanently remove database "{databaseName}" and all objects inside it.</DialogDescription>
         </DialogHeader>
 
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
@@ -119,6 +132,13 @@ export function CreateSchemaDialog({ open, onOpenChange, profileId, databaseName
   const [schemaName, setSchemaName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setSchemaName('');
+      setError(null);
+    }
+  }, [open]);
 
   const handleCreate = async () => {
     if (!schemaName.trim()) {
@@ -177,6 +197,12 @@ interface DropSchemaDialogProps {
 export function DropSchemaDialog({ open, onOpenChange, profileId, databaseName, schemaName, onSuccess }: DropSchemaDialogProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setError(null);
+    }
+  }, [open]);
 
   const handleDrop = async () => {
     setLoading(true);

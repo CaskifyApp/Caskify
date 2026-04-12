@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { DataGrid } from '@/components/DataGrid/DataGrid';
 import { DataGridToolbar } from '@/components/DataGrid/DataGridToolbar';
+import { CreateTableDialog, DropTableDialog, RenameTableDialog } from '@/components/Modals/TableAdminDialogs';
 import { useTableData } from '@/hooks/useTableData';
 import { useTableStructure } from '@/hooks/useTableStructure';
 import { RowEditorModal } from '@/components/Modals/RowEditorModal';
@@ -32,6 +33,9 @@ export function TableView({ tab }: TableViewProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [createTableOpen, setCreateTableOpen] = useState(false);
+  const [renameTableOpen, setRenameTableOpen] = useState(false);
+  const [dropTableOpen, setDropTableOpen] = useState(false);
 
   useEffect(() => {
     if (!rowEditorOpen) {
@@ -192,12 +196,19 @@ export function TableView({ tab }: TableViewProps) {
       ) : null}
 
       {tab.subView === 'structure' ? (
-        <TableStructureView
-          columns={tableColumns}
-          foreignKeys={tableForeignKeys}
-          loading={structureLoading}
-          error={structureError}
-        />
+        <>
+          <div className="flex items-center gap-2 rounded-4xl border bg-card px-4 py-3 shadow-sm">
+            <Button variant="outline" size="sm" onClick={() => setCreateTableOpen(true)}>Create Table</Button>
+            <Button variant="outline" size="sm" onClick={() => setRenameTableOpen(true)}>Rename Table</Button>
+            <Button variant="outline" size="sm" onClick={() => setDropTableOpen(true)}>Drop Table</Button>
+          </div>
+          <TableStructureView
+            columns={tableColumns}
+            foreignKeys={tableForeignKeys}
+            loading={structureLoading}
+            error={structureError}
+          />
+        </>
       ) : null}
 
       {tab.subView === 'indexes' ? (
@@ -246,6 +257,35 @@ export function TableView({ tab }: TableViewProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CreateTableDialog
+        open={createTableOpen}
+        onOpenChange={setCreateTableOpen}
+        profileId={tab.connectionId}
+        databaseName={tab.databaseName ?? ''}
+        schemaName={tab.schemaName ?? ''}
+        onSuccess={() => refreshTableData(tab.id)}
+      />
+
+      <RenameTableDialog
+        open={renameTableOpen}
+        onOpenChange={setRenameTableOpen}
+        profileId={tab.connectionId}
+        databaseName={tab.databaseName ?? ''}
+        schemaName={tab.schemaName ?? ''}
+        tableName={tab.tableName ?? ''}
+        onSuccess={() => refreshTableData(tab.id)}
+      />
+
+      <DropTableDialog
+        open={dropTableOpen}
+        onOpenChange={setDropTableOpen}
+        profileId={tab.connectionId}
+        databaseName={tab.databaseName ?? ''}
+        schemaName={tab.schemaName ?? ''}
+        tableName={tab.tableName ?? ''}
+        onSuccess={() => refreshTableData(tab.id)}
+      />
     </div>
   );
 }

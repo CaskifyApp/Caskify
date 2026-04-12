@@ -397,7 +397,7 @@ func (a *App) ExportQueryResults(format string, result db.QueryResult) (*db.Data
 	for _, row := range result.Rows {
 		record := make([]string, len(result.Columns))
 		for index, column := range result.Columns {
-			record[index] = fmt.Sprint(row[column])
+			record[index] = formatCellForCSV(row[column])
 		}
 		if err := writer.Write(record); err != nil {
 			return nil, err
@@ -642,6 +642,13 @@ func (a *App) CheckDatabaseTools() (map[string]bool, error) {
 func commandExists(name string) bool {
 	_, err := exec.LookPath(name)
 	return err == nil
+}
+
+func formatCellForCSV(value any) string {
+	if value == nil {
+		return ""
+	}
+	return fmt.Sprint(value)
 }
 
 func (a *App) Greet(name string) string {

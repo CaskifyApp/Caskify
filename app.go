@@ -469,15 +469,21 @@ func (a *App) DropSchema(params db.DropSchemaParams) error {
 }
 
 func (a *App) CreateTable(params db.CreateTableParams) error {
-	return fmt.Errorf("create table is not implemented yet")
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.CreateTable(a.ctx, pool, params.Schema, params.Name, params.Columns)
+	})
 }
 
 func (a *App) RenameTable(params db.RenameTableParams) error {
-	return fmt.Errorf("rename table is not implemented yet")
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.RenameTable(a.ctx, pool, params.Schema, params.OldName, params.NewName)
+	})
 }
 
 func (a *App) DropTable(params db.DropTableParams) error {
-	return fmt.Errorf("drop table is not implemented yet")
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.DropTable(a.ctx, pool, params.Schema, params.Name)
+	})
 }
 
 func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {

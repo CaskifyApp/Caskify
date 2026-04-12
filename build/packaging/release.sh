@@ -187,6 +187,7 @@ build_rpm() {
 
 build_arch() {
   local workdir="$DIST_DIR/PKGBUILD/caskpg"
+  local arch_version="${VERSION//-/_}"
 
   require_command makepkg
   run rm -rf "$workdir"
@@ -196,9 +197,9 @@ build_arch() {
   run cp "$ROOT_DIR/build/appicon.png" "$workdir/caskpg.png"
 
   if $DRY_RUN; then
-    echo "[dry-run] sed 's/@VERSION@/$VERSION/g' '$ROOT_DIR/build/linux/PKGBUILD' > '$workdir/PKGBUILD'"
+    echo "[dry-run] sed 's/@VERSION@/$arch_version/g' '$ROOT_DIR/build/linux/PKGBUILD' > '$workdir/PKGBUILD'"
   else
-    sed "s/@VERSION@/$VERSION/g" "$ROOT_DIR/build/linux/PKGBUILD" > "$workdir/PKGBUILD"
+    sed "s/@VERSION@/$arch_version/g" "$ROOT_DIR/build/linux/PKGBUILD" > "$workdir/PKGBUILD"
   fi
 
   run bash -lc "cd '$workdir' && makepkg --force --nodeps"

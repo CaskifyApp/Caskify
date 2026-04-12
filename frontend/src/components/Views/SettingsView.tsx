@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useSettingsStore } from '@/store/settingsStore';
-import type { DatabaseInfo, DatabaseRestorePreflightResult } from '@/types';
+import type { DatabaseInfo, DatabaseOperationResult, DatabaseRestorePreflightResult } from '@/types';
 
 interface SettingsViewProps {
   open: boolean;
@@ -25,6 +25,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   const [toolStatus, setToolStatus] = useState<Record<string, boolean>>({ pg_dump: false, psql: false });
   const [databaseActionError, setDatabaseActionError] = useState<string | null>(null);
   const [databaseActionMessage, setDatabaseActionMessage] = useState<string | null>(null);
+  const [databaseActionWarnings, setDatabaseActionWarnings] = useState<string[]>([]);
   const [databaseActionLoading, setDatabaseActionLoading] = useState(false);
   const [restorePreflight, setRestorePreflight] = useState<DatabaseRestorePreflightResult | null>(null);
 
@@ -115,6 +116,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
     setDatabaseActionLoading(true);
     setDatabaseActionError(null);
     setDatabaseActionMessage(null);
+    setDatabaseActionWarnings([]);
 
     try {
       const result = action === 'export'
@@ -122,7 +124,9 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
         : await wails.ImportDatabaseSQL({ profileId, database: databaseName });
 
       if (result) {
-        setDatabaseActionMessage(result.message);
+        const normalizedResult = result as DatabaseOperationResult;
+        setDatabaseActionMessage(normalizedResult.message);
+        setDatabaseActionWarnings(normalizedResult.warnings ?? []);
       }
     } catch (error) {
       setDatabaseActionError(String(error));
@@ -231,6 +235,13 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
             {databaseActionError ? <div className="text-sm text-destructive">{databaseActionError}</div> : null}
             {databaseActionMessage ? <div className="text-sm text-primary">{databaseActionMessage}</div> : null}
+            {databaseActionWarnings.length > 0 ? (
+              <div className="rounded-3xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-600 dark:text-yellow-300">
+                {databaseActionWarnings.map((warning) => (
+                  <div key={warning}>{warning}</div>
+                ))}
+              </div>
+            ) : null}
 
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => void runDatabaseAction('export')} disabled={databaseActionLoading || !toolStatus.pg_dump || !databaseName}>

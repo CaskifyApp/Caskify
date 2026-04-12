@@ -72,6 +72,8 @@ export interface DatabaseRestoreParams {
 export interface DatabaseOperationResult {
   path: string;
   message: string;
+  status?: string;
+  warnings?: string[];
 }
 
 export interface DatabaseRestorePreflightResult {

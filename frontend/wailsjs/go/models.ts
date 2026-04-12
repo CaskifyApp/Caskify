@@ -80,6 +80,8 @@ export namespace db {
 	export class DatabaseOperationResult {
 	    path: string;
 	    message: string;
+	    status?: string;
+	    warnings?: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new DatabaseOperationResult(source);
@@ -89,6 +91,8 @@ export namespace db {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.path = source["path"];
 	        this.message = source["message"];
+	        this.status = source["status"];
+	        this.warnings = source["warnings"];
 	    }
 	}
 	export class DatabaseRestoreParams {

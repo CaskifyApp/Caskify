@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	"caskpg/internal/profiles"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -46,7 +47,7 @@ func CheckRestoreTarget(ctx context.Context, pool *pgxpool.Pool, databaseName st
 	}, nil
 }
 
-func ImportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, databaseName, inputPath string) error {
+func ImportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, databaseName, inputPath string) (*DatabaseOperationResult, error) {
 	command := exec.CommandContext(
 		ctx,
 		"psql",
@@ -66,8 +67,35 @@ func ImportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, 
 
 	output, err := command.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("psql failed: %w: %s", err, string(output))
+		return nil, fmt.Errorf("psql failed: %w: %s", err, string(output))
 	}
 
-	return nil
+	warnings := extractPSQLWarnings(string(output))
+	message := "Database restore completed successfully."
+	status := "success"
+	if len(warnings) > 0 {
+		message = fmt.Sprintf("Database restore completed with %d warning(s).", len(warnings))
+		status = "warning"
+	}
+
+	return &DatabaseOperationResult{
+		Path:     inputPath,
+		Message:  message,
+		Status:   status,
+		Warnings: warnings,
+	}, nil
+}
+
+func extractPSQLWarnings(output string) []string {
+	lines := strings.Split(output, "\n")
+	warnings := make([]string, 0)
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.Contains(trimmed, "WARNING:") || strings.HasPrefix(trimmed, "HINT:") {
+			warnings = append(warnings, trimmed)
+		}
+	}
+
+	return warnings
 }

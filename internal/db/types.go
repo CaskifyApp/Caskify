@@ -17,8 +17,10 @@ type DatabaseRestoreParams struct {
 }
 
 type DatabaseOperationResult struct {
-	Path    string `json:"path"`
-	Message string `json:"message"`
+	Path     string   `json:"path"`
+	Message  string   `json:"message"`
+	Status   string   `json:"status,omitempty"`
+	Warnings []string `json:"warnings,omitempty"`
 }
 
 type DatabaseRestorePreflightResult struct {

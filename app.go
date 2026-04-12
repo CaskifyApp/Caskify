@@ -461,14 +461,12 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 		return nil, nil
 	}
 
-	if err := db.ImportDatabaseSQL(a.ctx, *profile, password, databaseName, selectedPath); err != nil {
+	result, err := db.ImportDatabaseSQL(a.ctx, *profile, password, databaseName, selectedPath)
+	if err != nil {
 		return nil, err
 	}
 
-	return &db.DatabaseOperationResult{
-		Path:    selectedPath,
-		Message: "Database restore completed successfully.",
-	}, nil
+	return result, nil
 }
 
 func (a *App) CheckDatabaseTools() (map[string]bool, error) {

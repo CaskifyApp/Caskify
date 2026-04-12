@@ -134,7 +134,10 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
       if (result) {
         const normalizedResult = result as DatabaseOperationResult;
-        setDatabaseActionMessage(normalizedResult.message);
+        const nextMessage = normalizedResult.path
+          ? `${normalizedResult.message} Saved to ${normalizedResult.path}`
+          : normalizedResult.message;
+        setDatabaseActionMessage(nextMessage);
         setDatabaseActionWarnings(normalizedResult.warnings ?? []);
       }
     } catch (error) {
@@ -290,6 +293,11 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
             {databaseActionError ? <div className="text-sm text-destructive">{databaseActionError}</div> : null}
             {databaseActionMessage ? <div className="text-sm text-primary">{databaseActionMessage}</div> : null}
+            {databaseActionMessage && databaseActionMessage.toLowerCase().includes('successfully') ? (
+              <div className="text-xs text-muted-foreground">
+                {databaseName ? `Target database: ${databaseName}` : ''}
+              </div>
+            ) : null}
             {databaseActionWarnings.length > 0 ? (
               <div className="rounded-3xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-600 dark:text-yellow-300">
                 {databaseActionWarnings.map((warning) => (

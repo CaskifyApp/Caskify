@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
-import type { QueryResult } from '@/types';
+import type { DatabaseOperationResult, QueryResult } from '@/types';
 
 interface QueryResultsPanelProps {
   result: QueryResult | null;
@@ -9,6 +10,8 @@ interface QueryResultsPanelProps {
 }
 
 export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelProps) {
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
+
   if (loading) {
     return <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">Running query and waiting for PostgreSQL response...</div>;
   }
@@ -33,14 +36,39 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => void wails.ExportQueryResults('csv', result)} disabled={result.columns.length === 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const exportResult = await wails.ExportQueryResults('csv', result) as DatabaseOperationResult | null;
+              if (exportResult) {
+                setExportMessage(`CSV exported to ${exportResult.path}`);
+              }
+            }}
+            disabled={result.columns.length === 0}
+          >
             Export CSV
           </Button>
-          <Button variant="outline" size="sm" onClick={() => void wails.ExportQueryResults('json', result)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              const exportResult = await wails.ExportQueryResults('json', result) as DatabaseOperationResult | null;
+              if (exportResult) {
+                setExportMessage(`JSON exported to ${exportResult.path}`);
+              }
+            }}
+          >
             Export JSON
           </Button>
         </div>
       </div>
+
+      {exportMessage ? (
+        <div className="rounded-3xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">
+          {exportMessage}
+        </div>
+      ) : null}
 
       {result.columns.length === 0 ? (
         <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">

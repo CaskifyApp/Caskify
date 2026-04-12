@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -138,10 +138,25 @@ interface DropColumnDialogProps extends BaseColumnDialogProps {
 }
 
 export function DropColumnDialog({ open, onOpenChange, profileId, databaseName, schemaName, tableName, columnName, onSuccess }: DropColumnDialogProps) {
+  const [confirmName, setConfirmName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (open) {
+      setConfirmName('');
+      setError(null);
+    }
+  }, [open]);
+
+  const isConfirmed = confirmName === columnName;
+
   const handleSubmit = async () => {
+    if (!isConfirmed) {
+      setError('You must type the column name to confirm.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
@@ -160,12 +175,23 @@ export function DropColumnDialog({ open, onOpenChange, profileId, databaseName, 
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Drop Column</DialogTitle>
-          <DialogDescription>This will permanently remove column {columnName} from {schemaName}.{tableName}.</DialogDescription>
+          <DialogDescription>This will permanently remove column "{columnName}" from {schemaName}.{tableName}. This action cannot be undone.</DialogDescription>
         </DialogHeader>
+
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Type <span className="font-mono text-destructive">{columnName}</span> to confirm:</label>
+          <Input
+            value={confirmName}
+            onChange={(event) => setConfirmName(event.target.value)}
+            placeholder={columnName}
+            autoComplete="off"
+          />
+        </div>
+
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button variant="destructive" onClick={() => void handleSubmit()} disabled={loading}>{loading ? 'Dropping...' : 'Drop Column'}</Button>
+          <Button variant="destructive" onClick={() => void handleSubmit()} disabled={loading || !isConfirmed}>{loading ? 'Dropping...' : 'Drop Column'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -200,10 +200,25 @@ interface DropTableDialogProps {
 }
 
 export function DropTableDialog({ open, onOpenChange, profileId, databaseName, schemaName, tableName, onSuccess }: DropTableDialogProps) {
+  const [confirmName, setConfirmName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (open) {
+      setConfirmName('');
+      setError(null);
+    }
+  }, [open]);
+
+  const isConfirmed = confirmName === tableName;
+
   const handleDrop = async () => {
+    if (!isConfirmed) {
+      setError('You must type the table name to confirm.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -223,14 +238,24 @@ export function DropTableDialog({ open, onOpenChange, profileId, databaseName, s
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Drop Table</DialogTitle>
-          <DialogDescription>This will permanently remove table "{schemaName}.{tableName}".</DialogDescription>
+          <DialogDescription>This will permanently remove table "{schemaName}.{tableName}" and all data inside it. This action cannot be undone.</DialogDescription>
         </DialogHeader>
+
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Type <span className="font-mono text-destructive">{tableName}</span> to confirm:</label>
+          <Input
+            value={confirmName}
+            onChange={(event) => setConfirmName(event.target.value)}
+            placeholder={tableName}
+            autoComplete="off"
+          />
+        </div>
 
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button variant="destructive" onClick={() => void handleDrop()} disabled={loading}>{loading ? 'Dropping...' : 'Drop Table'}</Button>
+          <Button variant="destructive" onClick={() => void handleDrop()} disabled={loading || !isConfirmed}>{loading ? 'Dropping...' : 'Drop Table'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

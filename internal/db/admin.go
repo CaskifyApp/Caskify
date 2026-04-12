@@ -13,6 +13,40 @@ import (
 var identifierPattern = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
 var databaseObjectPattern = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_-]*$`)
 
+var protectedDatabases = map[string]bool{
+	"postgres":  true,
+	"template0": true,
+	"template1": true,
+}
+
+var protectedSchemas = map[string]bool{
+	"pg_catalog":         true,
+	"information_schema": true,
+}
+
+var protectedSchemaPrefixes = []string{
+	"pg_toast",
+	"pg_temp_",
+	"pg_toast_temp_",
+}
+
+func isProtectedDatabase(name string) bool {
+	return protectedDatabases[strings.ToLower(name)]
+}
+
+func isProtectedSchema(name string) bool {
+	lower := strings.ToLower(name)
+	if protectedSchemas[lower] {
+		return true
+	}
+	for _, prefix := range protectedSchemaPrefixes {
+		if strings.HasPrefix(lower, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func validateIdentifier(value, label string) error {
 	if value == "" {
 		return fmt.Errorf("%s is required", label)
@@ -57,6 +91,9 @@ func DropDatabase(ctx context.Context, pool *pgxpool.Pool, databaseName string) 
 	if err := validateDatabaseObjectName(databaseName, "database name"); err != nil {
 		return err
 	}
+	if isProtectedDatabase(databaseName) {
+		return fmt.Errorf("cannot drop protected system database %q", databaseName)
+	}
 
 	query := fmt.Sprintf("DROP DATABASE %s", pgx.Identifier{databaseName}.Sanitize())
 	_, err := pool.Exec(ctx, query)
@@ -90,6 +127,9 @@ func DropSchema(ctx context.Context, pool *pgxpool.Pool, schemaName string) erro
 	}
 	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
 		return err
+	}
+	if isProtectedSchema(schemaName) {
+		return fmt.Errorf("cannot drop protected system schema %q", schemaName)
 	}
 
 	query := fmt.Sprintf("DROP SCHEMA %s CASCADE", pgx.Identifier{schemaName}.Sanitize())
@@ -194,6 +234,9 @@ func DropTable(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName st
 	}
 	if err := validateDatabaseObjectName(tableName, "table name"); err != nil {
 		return err
+	}
+	if isProtectedSchema(schemaName) {
+		return fmt.Errorf("cannot drop tables in protected system schema %q", schemaName)
 	}
 
 	query := fmt.Sprintf("DROP TABLE %s", pgx.Identifier{schemaName, tableName}.Sanitize())

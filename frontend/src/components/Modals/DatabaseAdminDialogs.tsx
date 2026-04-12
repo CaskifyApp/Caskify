@@ -77,16 +77,25 @@ interface DropDatabaseDialogProps {
 }
 
 export function DropDatabaseDialog({ open, onOpenChange, profileId, databaseName, onSuccess }: DropDatabaseDialogProps) {
+  const [confirmName, setConfirmName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
+      setConfirmName('');
       setError(null);
     }
   }, [open]);
 
+  const isConfirmed = confirmName === databaseName;
+
   const handleDrop = async () => {
+    if (!isConfirmed) {
+      setError('You must type the database name to confirm.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -106,14 +115,24 @@ export function DropDatabaseDialog({ open, onOpenChange, profileId, databaseName
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Drop Database</DialogTitle>
-          <DialogDescription>This will permanently remove database "{databaseName}" and all objects inside it.</DialogDescription>
+          <DialogDescription>This will permanently remove database "{databaseName}" and all objects inside it. This action cannot be undone.</DialogDescription>
         </DialogHeader>
+
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Type <span className="font-mono text-destructive">{databaseName}</span> to confirm:</label>
+          <Input
+            value={confirmName}
+            onChange={(event) => setConfirmName(event.target.value)}
+            placeholder={databaseName}
+            autoComplete="off"
+          />
+        </div>
 
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button variant="destructive" onClick={() => void handleDrop()} disabled={loading}>{loading ? 'Dropping...' : 'Drop Database'}</Button>
+          <Button variant="destructive" onClick={() => void handleDrop()} disabled={loading || !isConfirmed}>{loading ? 'Dropping...' : 'Drop Database'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -195,16 +214,25 @@ interface DropSchemaDialogProps {
 }
 
 export function DropSchemaDialog({ open, onOpenChange, profileId, databaseName, schemaName, onSuccess }: DropSchemaDialogProps) {
+  const [confirmName, setConfirmName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
+      setConfirmName('');
       setError(null);
     }
   }, [open]);
 
+  const isConfirmed = confirmName === schemaName;
+
   const handleDrop = async () => {
+    if (!isConfirmed) {
+      setError('You must type the schema name to confirm.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -224,14 +252,24 @@ export function DropSchemaDialog({ open, onOpenChange, profileId, databaseName, 
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Drop Schema</DialogTitle>
-          <DialogDescription>This will permanently remove schema "{schemaName}" from "{databaseName}".</DialogDescription>
+          <DialogDescription>This will permanently remove schema "{schemaName}" from "{databaseName}" and all objects inside it. This action cannot be undone.</DialogDescription>
         </DialogHeader>
+
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Type <span className="font-mono text-destructive">{schemaName}</span> to confirm:</label>
+          <Input
+            value={confirmName}
+            onChange={(event) => setConfirmName(event.target.value)}
+            placeholder={schemaName}
+            autoComplete="off"
+          />
+        </div>
 
         {error ? <div className="text-sm text-destructive">{error}</div> : null}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button variant="destructive" onClick={() => void handleDrop()} disabled={loading}>{loading ? 'Dropping...' : 'Drop Schema'}</Button>
+          <Button variant="destructive" onClick={() => void handleDrop()} disabled={loading || !isConfirmed}>{loading ? 'Dropping...' : 'Drop Schema'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

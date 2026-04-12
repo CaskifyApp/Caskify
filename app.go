@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"caskpg/internal/config"
 	"caskpg/internal/db"
@@ -16,16 +17,21 @@ import (
 	"caskpg/internal/keyring"
 	"caskpg/internal/profiles"
 	"caskpg/internal/queries"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type App struct {
-	ctx context.Context
+	ctx              context.Context
+	runningQueries   map[string]context.CancelFunc
+	runningQueriesMu sync.RWMutex
 }
 
 func NewApp() *App {
-	return &App{}
+	return &App{
+		runningQueries: make(map[string]context.CancelFunc),
+	}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -242,6 +248,65 @@ func (a *App) RunQuery(params db.QueryExecutionParams) (*db.QueryResult, error) 
 	}
 
 	return queryResult, nil
+}
+
+func (a *App) RunQueryWithCancellation(params db.QueryExecutionParams, queryID string) (*db.QueryResult, error) {
+	if queryID == "" {
+		queryID = uuid.New().String()
+	}
+
+	ctx, cancel := context.WithCancel(a.ctx)
+	a.runningQueriesMu.Lock()
+	a.runningQueries[queryID] = cancel
+	a.runningQueriesMu.Unlock()
+
+	defer func() {
+		a.runningQueriesMu.Lock()
+		delete(a.runningQueries, queryID)
+		a.runningQueriesMu.Unlock()
+	}()
+
+	var queryResult *db.QueryResult
+	err := a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		var nextErr error
+		queryResult, nextErr = db.ExecuteQuery(ctx, pool, params.SQL)
+		return nextErr
+	})
+
+	if err != nil {
+		if ctx.Err() == context.Canceled {
+			return nil, fmt.Errorf("query was cancelled")
+		}
+		return nil, err
+	}
+
+	databaseName := params.Database
+	if databaseName == "" {
+		if profile, profileErr := profiles.GetByID(params.ProfileID); profileErr == nil {
+			databaseName = profile.ActiveDatabase()
+		}
+	}
+	if databaseName != "" {
+		_ = history.Add(history.HistoryEntry{
+			Query:    params.SQL,
+			Database: databaseName,
+			ExecTime: queryResult.ExecutionTimeMs,
+		})
+	}
+
+	return queryResult, nil
+}
+
+func (a *App) CancelQuery(queryID string) bool {
+	a.runningQueriesMu.RLock()
+	cancel, exists := a.runningQueries[queryID]
+	a.runningQueriesMu.RUnlock()
+
+	if exists {
+		cancel()
+		return true
+	}
+	return false
 }
 
 func (a *App) GetSavedQueries() (*queries.SavedQueries, error) {

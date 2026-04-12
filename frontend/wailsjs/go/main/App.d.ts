@@ -8,6 +8,8 @@ import {config} from '../models';
 
 export function AddColumn(arg1:db.AddColumnParams):Promise<void>;
 
+export function CancelQuery(arg1:string):Promise<boolean>;
+
 export function CheckDatabaseRestoreTarget(arg1:db.DatabaseRestoreParams):Promise<db.DatabaseRestorePreflightResult>;
 
 export function CheckDatabaseTools():Promise<Record<string, boolean>>;
@@ -85,6 +87,8 @@ export function RenameColumn(arg1:db.RenameColumnParams):Promise<void>;
 export function RenameTable(arg1:db.RenameTableParams):Promise<void>;
 
 export function RunQuery(arg1:db.QueryExecutionParams):Promise<db.QueryResult>;
+
+export function RunQueryWithCancellation(arg1:db.QueryExecutionParams,arg2:string):Promise<db.QueryResult>;
 
 export function SavePassword(arg1:string,arg2:string):Promise<void>;
 

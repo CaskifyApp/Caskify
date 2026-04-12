@@ -6,6 +6,10 @@ export function AddColumn(arg1) {
   return window['go']['main']['App']['AddColumn'](arg1);
 }
 
+export function CancelQuery(arg1) {
+  return window['go']['main']['App']['CancelQuery'](arg1);
+}
+
 export function CheckDatabaseRestoreTarget(arg1) {
   return window['go']['main']['App']['CheckDatabaseRestoreTarget'](arg1);
 }
@@ -160,6 +164,10 @@ export function RenameTable(arg1) {
 
 export function RunQuery(arg1) {
   return window['go']['main']['App']['RunQuery'](arg1);
+}
+
+export function RunQueryWithCancellation(arg1, arg2) {
+  return window['go']['main']['App']['RunQueryWithCancellation'](arg1, arg2);
 }
 
 export function SavePassword(arg1, arg2) {

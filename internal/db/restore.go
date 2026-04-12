@@ -39,11 +39,19 @@ func CheckRestoreTarget(ctx context.Context, pool *pgxpool.Pool, databaseName st
 		return nil, err
 	}
 
+	nonDefaultSchemas := make([]string, 0, len(schemas))
+	for _, schema := range schemas {
+		if schema == "public" {
+			continue
+		}
+		nonDefaultSchemas = append(nonDefaultSchemas, schema)
+	}
+
 	return &DatabaseRestorePreflightResult{
 		DatabaseName: databaseName,
-		IsEmpty:      len(schemas) == 0,
-		SchemaCount:  len(schemas),
-		Schemas:      schemas,
+		IsEmpty:      len(nonDefaultSchemas) == 0,
+		SchemaCount:  len(nonDefaultSchemas),
+		Schemas:      nonDefaultSchemas,
 	}, nil
 }
 

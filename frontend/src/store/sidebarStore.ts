@@ -56,15 +56,21 @@ function mapSchemaNode(schema: SchemaInfo): TreeNode {
   };
 }
 
-function mapTableNode(table: TableInfo): TreeNode {
+function mapTableNode(table: Omit<TableInfo, 'kind'> & { kind?: string }): TreeNode {
+  const relationKind = table.kind === 'view' ? 'view' : 'table';
+  const normalizedTable: TableInfo = {
+    ...table,
+    kind: relationKind,
+  };
+
   return {
-    id: `${table.connectionId}:table:${table.database}:${table.schema}:${table.name}`,
+    id: `${table.connectionId}:${relationKind}:${table.database}:${table.schema}:${table.name}`,
     label: table.name,
-    type: 'table',
+    type: relationKind,
     connectionId: table.connectionId,
     database: table.database,
     schema: table.schema,
-    metadata: table,
+    metadata: normalizedTable,
     expanded: false,
     loading: false,
     error: null,

@@ -34,7 +34,7 @@ function updateTab(tabs: Tab[], tabId: string, updater: (tab: Tab) => Tab) {
 }
 
 function buildTableTabId(node: TreeNode) {
-  return `${node.connectionId}:${node.database}:${node.schema}:${node.label}`;
+  return `${node.connectionId}:${node.type}:${node.database}:${node.schema}:${node.label}`;
 }
 
 export const useTabStore = create<TabState>((set) => ({
@@ -42,7 +42,7 @@ export const useTabStore = create<TabState>((set) => ({
   activeTabId: null,
 
   openTableTab: (node) => {
-    if (node.type !== 'table' || !node.database || !node.schema) {
+    if ((node.type !== 'table' && node.type !== 'view') || !node.database || !node.schema) {
       return;
     }
 

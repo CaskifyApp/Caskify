@@ -504,6 +504,7 @@ export namespace db {
 	    database: string;
 	    schema: string;
 	    name: string;
+	    kind: string;
 	    rowCount: number;
 	
 	    static createFrom(source: any = {}) {
@@ -516,6 +517,7 @@ export namespace db {
 	        this.database = source["database"];
 	        this.schema = source["schema"];
 	        this.name = source["name"];
+	        this.kind = source["kind"];
 	        this.rowCount = source["rowCount"];
 	    }
 	}

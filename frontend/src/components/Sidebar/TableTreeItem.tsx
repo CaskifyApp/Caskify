@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, Database, FolderPlus, FolderTree, Pencil, Table2, TableProperties, Trash2 } from 'lucide-react';
+import { ChevronRight, Database, Eye, FolderPlus, FolderTree, Pencil, Table2, TableProperties, Trash2 } from 'lucide-react';
 import { CreateSchemaDialog, DropSchemaDialog } from '@/components/Modals/DatabaseAdminDialogs';
 import { CreateTableDialog, DropTableDialog, RenameTableDialog } from '@/components/Modals/TableAdminDialogs';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,8 @@ function getNodeIcon(node: TreeNode) {
       return FolderTree;
     case 'table':
       return Table2;
+    case 'view':
+      return Eye;
     default:
       return ChevronRight;
   }
@@ -33,7 +35,7 @@ export function TableTreeItem({ node, depth = 0, onTableSelect, onRequestDropDat
   const loadSchemas = useSidebarStore((state) => state.loadSchemas);
   const loadTables = useSidebarStore((state) => state.loadTables);
   const Icon = getNodeIcon(node);
-  const hasChildren = node.type !== 'table';
+  const hasChildren = node.type !== 'table' && node.type !== 'view';
   const isSystemDatabase = node.type === 'database' && (node.database === 'postgres');
   const isSystemSchema = node.type === 'schema' && (!!node.schema && (node.schema === 'information_schema' || node.schema.startsWith('pg_')));
   const [createSchemaOpen, setCreateSchemaOpen] = useState(false);
@@ -43,7 +45,7 @@ export function TableTreeItem({ node, depth = 0, onTableSelect, onRequestDropDat
   const [dropTableOpen, setDropTableOpen] = useState(false);
 
   const handleClick = async () => {
-    if (node.type === 'table') {
+    if (node.type === 'table' || node.type === 'view') {
       onTableSelect?.(node);
       return;
     }

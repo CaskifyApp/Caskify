@@ -209,6 +209,7 @@ type TableInfo struct {
 	Database     string `json:"database"`
 	Schema       string `json:"schema"`
 	Name         string `json:"name"`
+	Kind         string `json:"kind"`
 	RowCount     int64  `json:"rowCount"`
 }
 

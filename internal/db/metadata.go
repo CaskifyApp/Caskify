@@ -73,6 +73,10 @@ func FetchTables(ctx context.Context, pool *pgxpool.Pool, profileID, databaseNam
 	rows, err := pool.Query(ctx, `
 		SELECT
 			t.table_name,
+			CASE
+				WHEN t.table_type = 'VIEW' THEN 'view'
+				ELSE 'table'
+			END AS relation_kind,
 			COALESCE(c.reltuples::bigint, 0) AS row_count
 		FROM information_schema.tables AS t
 		LEFT JOIN pg_namespace AS n
@@ -81,7 +85,7 @@ func FetchTables(ctx context.Context, pool *pgxpool.Pool, profileID, databaseNam
 			ON c.relnamespace = n.oid
 			AND c.relname = t.table_name
 		WHERE t.table_schema = $1
-			AND t.table_type = 'BASE TABLE'
+			AND t.table_type IN ('BASE TABLE', 'VIEW')
 		ORDER BY t.table_name
 	`, schemaName)
 	if err != nil {
@@ -94,7 +98,7 @@ func FetchTables(ctx context.Context, pool *pgxpool.Pool, profileID, databaseNam
 		t.ConnectionID = profileID
 		t.Database = databaseName
 		t.Schema = schemaName
-		if err := rows.Scan(&t.Name, &t.RowCount); err != nil {
+		if err := rows.Scan(&t.Name, &t.Kind, &t.RowCount); err != nil {
 			return nil, err
 		}
 		tables = append(tables, t)

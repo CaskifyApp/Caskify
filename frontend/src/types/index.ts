@@ -286,6 +286,7 @@ export interface TableInfo {
   database: string;
   schema: string;
   name: string;
+  kind: 'table' | 'view';
   rowCount: number;
 }
 
@@ -303,7 +304,7 @@ export interface DatabaseInfo {
 export interface TreeNode {
   id: string;
   label: string;
-  type: 'connection' | 'database' | 'schema' | 'table';
+  type: 'connection' | 'database' | 'schema' | 'table' | 'view';
   connectionId: string;
   database?: string;
   schema?: string;

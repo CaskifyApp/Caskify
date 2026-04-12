@@ -105,6 +105,24 @@ export namespace db {
 	        this.database = source["database"];
 	    }
 	}
+	export class DatabaseRestorePreflightResult {
+	    databaseName: string;
+	    isEmpty: boolean;
+	    schemaCount: number;
+	    schemas: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new DatabaseRestorePreflightResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.databaseName = source["databaseName"];
+	        this.isEmpty = source["isEmpty"];
+	        this.schemaCount = source["schemaCount"];
+	        this.schemas = source["schemas"];
+	    }
+	}
 	export class DeleteRowParams {
 	    profileId: string;
 	    database: string;

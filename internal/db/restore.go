@@ -8,7 +8,43 @@ import (
 	"strconv"
 
 	"caskpg/internal/profiles"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+func CheckRestoreTarget(ctx context.Context, pool *pgxpool.Pool, databaseName string) (*DatabaseRestorePreflightResult, error) {
+	rows, err := pool.Query(ctx, `
+		SELECT schema_name
+		FROM information_schema.schemata
+		WHERE schema_name NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
+		  AND schema_name NOT LIKE 'pg_temp_%'
+		  AND schema_name NOT LIKE 'pg_toast_temp_%'
+		ORDER BY schema_name
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	schemas := make([]string, 0)
+	for rows.Next() {
+		var schemaName string
+		if err := rows.Scan(&schemaName); err != nil {
+			return nil, err
+		}
+		schemas = append(schemas, schemaName)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &DatabaseRestorePreflightResult{
+		DatabaseName: databaseName,
+		IsEmpty:      len(schemas) == 0,
+		SchemaCount:  len(schemas),
+		Schemas:      schemas,
+	}, nil
+}
 
 func ImportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, databaseName, inputPath string) error {
 	command := exec.CommandContext(

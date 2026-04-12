@@ -6,6 +6,8 @@ import {history} from '../models';
 import {queries} from '../models';
 import {config} from '../models';
 
+export function CheckDatabaseRestoreTarget(arg1:db.DatabaseRestoreParams):Promise<db.DatabaseRestorePreflightResult>;
+
 export function CheckDatabaseTools():Promise<Record<string, boolean>>;
 
 export function ClearQueryHistory():Promise<void>;

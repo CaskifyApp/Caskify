@@ -21,6 +21,13 @@ type DatabaseOperationResult struct {
 	Message string `json:"message"`
 }
 
+type DatabaseRestorePreflightResult struct {
+	DatabaseName string   `json:"databaseName"`
+	IsEmpty      bool     `json:"isEmpty"`
+	SchemaCount  int      `json:"schemaCount"`
+	Schemas      []string `json:"schemas"`
+}
+
 type QueryResult struct {
 	Columns         []string         `json:"columns"`
 	Rows            []map[string]any `json:"rows"`

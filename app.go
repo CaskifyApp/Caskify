@@ -386,6 +386,26 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 	}, nil
 }
 
+func (a *App) CheckDatabaseRestoreTarget(params db.DatabaseRestoreParams) (*db.DatabaseRestorePreflightResult, error) {
+	profile, err := profiles.GetByID(params.ProfileID)
+	if err != nil {
+		return nil, err
+	}
+
+	databaseName := params.Database
+	if databaseName == "" {
+		databaseName = profile.ActiveDatabase()
+	}
+
+	var result *db.DatabaseRestorePreflightResult
+	err = a.withProfileDatabasePool(params.ProfileID, databaseName, func(pool *pgxpool.Pool) error {
+		var nextErr error
+		result, nextErr = db.CheckRestoreTarget(a.ctx, pool, databaseName)
+		return nextErr
+	})
+	return result, err
+}
+
 func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {
 	if _, err := exec.LookPath("psql"); err != nil {
 		return nil, fmt.Errorf("psql is not available on this system")

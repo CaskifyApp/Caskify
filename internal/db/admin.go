@@ -21,3 +21,17 @@ func CreateDatabase(ctx context.Context, pool *pgxpool.Pool, databaseName string
 
 	return nil
 }
+
+func DropDatabase(ctx context.Context, pool *pgxpool.Pool, databaseName string) error {
+	if databaseName == "" {
+		return fmt.Errorf("database name is required")
+	}
+
+	query := fmt.Sprintf("DROP DATABASE %s", pgx.Identifier{databaseName}.Sanitize())
+	_, err := pool.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("drop database error: %w", err)
+	}
+
+	return nil
+}

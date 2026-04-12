@@ -437,7 +437,23 @@ func (a *App) CreateEmptyDatabase(params db.CreateDatabaseParams) error {
 }
 
 func (a *App) DropDatabase(params db.DropDatabaseParams) error {
-	return fmt.Errorf("drop database is not implemented yet")
+	profile, err := profiles.GetByID(params.ProfileID)
+	if err != nil {
+		return err
+	}
+
+	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	if err != nil {
+		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+	}
+
+	pool, err := db.OpenPool(profile.BuildConnectionStringForDatabase(password, "postgres"))
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	return db.DropDatabase(a.ctx, pool, params.Name)
 }
 
 func (a *App) CreateSchema(params db.CreateSchemaParams) error {

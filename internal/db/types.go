@@ -83,6 +83,34 @@ type DropTableParams struct {
 	Name      string `json:"name"`
 }
 
+type AddColumnParams struct {
+	ProfileID string  `json:"profileId"`
+	Database  string  `json:"database"`
+	Schema    string  `json:"schema"`
+	Table     string  `json:"table"`
+	Name      string  `json:"name"`
+	Type      string  `json:"type"`
+	Nullable  bool    `json:"nullable"`
+	Default   *string `json:"default,omitempty"`
+}
+
+type RenameColumnParams struct {
+	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
+	Schema    string `json:"schema"`
+	Table     string `json:"table"`
+	OldName   string `json:"oldName"`
+	NewName   string `json:"newName"`
+}
+
+type DropColumnParams struct {
+	ProfileID string `json:"profileId"`
+	Database  string `json:"database"`
+	Schema    string `json:"schema"`
+	Table     string `json:"table"`
+	Name      string `json:"name"`
+}
+
 type QueryResult struct {
 	Columns         []string         `json:"columns"`
 	Rows            []map[string]any `json:"rows"`

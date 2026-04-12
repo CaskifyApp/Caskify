@@ -6,6 +6,8 @@ import {history} from '../models';
 import {queries} from '../models';
 import {config} from '../models';
 
+export function AddColumn(arg1:db.AddColumnParams):Promise<void>;
+
 export function CheckDatabaseRestoreTarget(arg1:db.DatabaseRestoreParams):Promise<db.DatabaseRestorePreflightResult>;
 
 export function CheckDatabaseTools():Promise<Record<string, boolean>>;
@@ -31,6 +33,8 @@ export function DeleteSavedQuery(arg1:string):Promise<void>;
 export function DeleteTableRow(arg1:db.DeleteRowParams):Promise<void>;
 
 export function DisconnectProfile(arg1:string):Promise<void>;
+
+export function DropColumn(arg1:db.DropColumnParams):Promise<void>;
 
 export function DropDatabase(arg1:db.DropDatabaseParams):Promise<void>;
 
@@ -75,6 +79,8 @@ export function ImportDatabaseSQL(arg1:db.DatabaseRestoreParams):Promise<db.Data
 export function InsertTableRow(arg1:db.InsertRowParams):Promise<void>;
 
 export function IsProfileConnected(arg1:string):Promise<boolean>;
+
+export function RenameColumn(arg1:db.RenameColumnParams):Promise<void>;
 
 export function RenameTable(arg1:db.RenameTableParams):Promise<void>;
 

@@ -486,6 +486,24 @@ func (a *App) DropTable(params db.DropTableParams) error {
 	})
 }
 
+func (a *App) AddColumn(params db.AddColumnParams) error {
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.AddColumn(a.ctx, pool, params.Schema, params.Table, params)
+	})
+}
+
+func (a *App) RenameColumn(params db.RenameColumnParams) error {
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.RenameColumn(a.ctx, pool, params.Schema, params.Table, params.OldName, params.NewName)
+	})
+}
+
+func (a *App) DropColumn(params db.DropColumnParams) error {
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.DropColumn(a.ctx, pool, params.Schema, params.Table, params.Name)
+	})
+}
+
 func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {
 	if _, err := exec.LookPath("psql"); err != nil {
 		return nil, fmt.Errorf("psql is not available on this system")

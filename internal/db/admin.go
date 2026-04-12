@@ -204,3 +204,67 @@ func DropTable(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName st
 
 	return nil
 }
+
+func AddColumn(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName string, params AddColumnParams) error {
+	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
+		return err
+	}
+	if err := validateDatabaseObjectName(tableName, "table name"); err != nil {
+		return err
+	}
+	if err := validateIdentifier(params.Name, "column name"); err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", pgx.Identifier{schemaName, tableName}.Sanitize(), pgx.Identifier{params.Name}.Sanitize(), params.Type)
+	if !params.Nullable {
+		query += " NOT NULL"
+	}
+	if params.Default != nil && *params.Default != "" {
+		query += fmt.Sprintf(" DEFAULT %s", *params.Default)
+	}
+	_, err := pool.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("add column error: %w", err)
+	}
+	return nil
+}
+
+func RenameColumn(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName, oldName, newName string) error {
+	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
+		return err
+	}
+	if err := validateDatabaseObjectName(tableName, "table name"); err != nil {
+		return err
+	}
+	if err := validateIdentifier(oldName, "current column name"); err != nil {
+		return err
+	}
+	if err := validateIdentifier(newName, "new column name"); err != nil {
+		return err
+	}
+	query := fmt.Sprintf("ALTER TABLE %s RENAME COLUMN %s TO %s", pgx.Identifier{schemaName, tableName}.Sanitize(), pgx.Identifier{oldName}.Sanitize(), pgx.Identifier{newName}.Sanitize())
+	_, err := pool.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("rename column error: %w", err)
+	}
+	return nil
+}
+
+func DropColumn(ctx context.Context, pool *pgxpool.Pool, schemaName, tableName, columnName string) error {
+	if err := validateDatabaseObjectName(schemaName, "schema name"); err != nil {
+		return err
+	}
+	if err := validateDatabaseObjectName(tableName, "table name"); err != nil {
+		return err
+	}
+	if err := validateIdentifier(columnName, "column name"); err != nil {
+		return err
+	}
+	query := fmt.Sprintf("ALTER TABLE %s DROP COLUMN %s", pgx.Identifier{schemaName, tableName}.Sanitize(), pgx.Identifier{columnName}.Sanitize())
+	_, err := pool.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("drop column error: %w", err)
+	}
+	return nil
+}

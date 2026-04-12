@@ -136,6 +136,34 @@ export interface DropTableParams {
   name: string;
 }
 
+export interface AddColumnParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  table: string;
+  name: string;
+  type: string;
+  nullable: boolean;
+  default?: string;
+}
+
+export interface RenameColumnParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  table: string;
+  oldName: string;
+  newName: string;
+}
+
+export interface DropColumnParams {
+  profileId: string;
+  database: string;
+  schema: string;
+  table: string;
+  name: string;
+}
+
 export interface SavedQuery {
   id: string;
   name: string;

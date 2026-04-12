@@ -19,6 +19,32 @@ export namespace config {
 
 export namespace db {
 	
+	export class AddColumnParams {
+	    profileId: string;
+	    database: string;
+	    schema: string;
+	    table: string;
+	    name: string;
+	    type: string;
+	    nullable: boolean;
+	    default?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AddColumnParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	        this.database = source["database"];
+	        this.schema = source["schema"];
+	        this.table = source["table"];
+	        this.name = source["name"];
+	        this.type = source["type"];
+	        this.nullable = source["nullable"];
+	        this.default = source["default"];
+	    }
+	}
 	export class ColumnDef {
 	    ordinalPosition: number;
 	    name: string;
@@ -235,6 +261,26 @@ export namespace db {
 	        this.originalValues = source["originalValues"];
 	    }
 	}
+	export class DropColumnParams {
+	    profileId: string;
+	    database: string;
+	    schema: string;
+	    table: string;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DropColumnParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	        this.database = source["database"];
+	        this.schema = source["schema"];
+	        this.table = source["table"];
+	        this.name = source["name"];
+	    }
+	}
 	export class DropDatabaseParams {
 	    profileId: string;
 	    name: string;
@@ -363,6 +409,28 @@ export namespace db {
 	        this.executionTimeMs = source["executionTimeMs"];
 	        this.statementType = source["statementType"];
 	        this.error = source["error"];
+	    }
+	}
+	export class RenameColumnParams {
+	    profileId: string;
+	    database: string;
+	    schema: string;
+	    table: string;
+	    oldName: string;
+	    newName: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RenameColumnParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	        this.database = source["database"];
+	        this.schema = source["schema"];
+	        this.table = source["table"];
+	        this.oldName = source["oldName"];
+	        this.newName = source["newName"];
 	    }
 	}
 	export class RenameTableParams {

@@ -530,6 +530,8 @@ export namespace db {
 	    limit: number;
 	    sortColumn?: string;
 	    sortDir?: string;
+	    filterColumn?: string;
+	    filterValue?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new TablePageParams(source);
@@ -545,6 +547,8 @@ export namespace db {
 	        this.limit = source["limit"];
 	        this.sortColumn = source["sortColumn"];
 	        this.sortDir = source["sortDir"];
+	        this.filterColumn = source["filterColumn"];
+	        this.filterValue = source["filterValue"];
 	    }
 	}
 	export class TablePageResult {
@@ -556,6 +560,8 @@ export namespace db {
 	    limit: number;
 	    sortColumn?: string;
 	    sortDir?: string;
+	    filterColumn?: string;
+	    filterValue?: string;
 	    table: string;
 	    schema: string;
 	    database: string;
@@ -574,6 +580,8 @@ export namespace db {
 	        this.limit = source["limit"];
 	        this.sortColumn = source["sortColumn"];
 	        this.sortDir = source["sortDir"];
+	        this.filterColumn = source["filterColumn"];
+	        this.filterValue = source["filterValue"];
 	        this.table = source["table"];
 	        this.schema = source["schema"];
 	        this.database = source["database"];

@@ -75,6 +75,16 @@ func FetchTablePage(ctx context.Context, pool *pgxpool.Pool, params TablePagePar
 
 	tableRef := pgx.Identifier{params.Schema, params.Table}.Sanitize()
 	offset := (page - 1) * limit
+	filterColumn := ""
+	filterValue := strings.TrimSpace(params.FilterValue)
+	queryArgs := []any{}
+
+	if filterValue != "" {
+		if _, ok := availableColumns[params.FilterColumn]; !ok {
+			return nil, fmt.Errorf("invalid filter column")
+		}
+		filterColumn = params.FilterColumn
+	}
 
 	estimateQuery := `
 		SELECT GREATEST(COALESCE(c.reltuples, 0), 0)::bigint
@@ -89,12 +99,17 @@ func FetchTablePage(ctx context.Context, pool *pgxpool.Pool, params TablePagePar
 	}
 
 	dataQuery := fmt.Sprintf("SELECT * FROM %s", tableRef)
+	if filterColumn != "" {
+		queryArgs = append(queryArgs, "%"+filterValue+"%")
+		dataQuery += fmt.Sprintf(" WHERE %s::text ILIKE $%d", pgx.Identifier{filterColumn}.Sanitize(), len(queryArgs))
+	}
 	if sortColumn != "" {
 		dataQuery += fmt.Sprintf(" ORDER BY %s %s", pgx.Identifier{sortColumn}.Sanitize(), strings.ToUpper(sortDir))
 	}
-	dataQuery += " LIMIT $1 OFFSET $2"
+	queryArgs = append(queryArgs, limit, offset)
+	dataQuery += fmt.Sprintf(" LIMIT $%d OFFSET $%d", len(queryArgs)-1, len(queryArgs))
 
-	rows, err := pool.Query(ctx, dataQuery, limit, offset)
+	rows, err := pool.Query(ctx, dataQuery, queryArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("table data query error: %w", err)
 	}
@@ -119,17 +134,19 @@ func FetchTablePage(ctx context.Context, pool *pgxpool.Pool, params TablePagePar
 	}
 
 	return &TablePageResult{
-		Columns:     columnNames,
-		Rows:        resultRows,
-		TotalRows:   max(totalRows, int64(offset+len(resultRows))),
-		IsEstimated: isEstimated,
-		Page:        page,
-		Limit:       limit,
-		SortColumn:  sortColumn,
-		SortDir:     sortDir,
-		Table:       params.Table,
-		Schema:      params.Schema,
-		Database:    params.Database,
+		Columns:      columnNames,
+		Rows:         resultRows,
+		TotalRows:    max(totalRows, int64(offset+len(resultRows))),
+		IsEstimated:  isEstimated,
+		Page:         page,
+		Limit:        limit,
+		SortColumn:   sortColumn,
+		SortDir:      sortDir,
+		FilterColumn: filterColumn,
+		FilterValue:  filterValue,
+		Table:        params.Table,
+		Schema:       params.Schema,
+		Database:     params.Database,
 	}, nil
 }
 

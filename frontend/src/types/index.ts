@@ -27,6 +27,8 @@ export interface Tab {
   pagination?: { page: number; limit: number };
   sortColumn?: string;
   sortDir?: 'asc' | 'desc';
+  filterColumn?: string;
+  filterValue?: string;
   queryText?: string;
   queryResult?: QueryResult | null;
   queryLoading?: boolean;
@@ -209,6 +211,8 @@ export interface TablePageParams {
   limit: number;
   sortColumn?: string;
   sortDir?: 'asc' | 'desc';
+  filterColumn?: string;
+  filterValue?: string;
 }
 
 export interface TablePageResult {
@@ -220,6 +224,8 @@ export interface TablePageResult {
   limit: number;
   sortColumn?: string;
   sortDir?: 'asc' | 'desc';
+  filterColumn?: string;
+  filterValue?: string;
   table: string;
   schema: string;
   database: string;

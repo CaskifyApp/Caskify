@@ -15,6 +15,7 @@ interface TabState {
   setTableData: (tabId: string, tableData: TablePageResult, tableColumns: ColumnDef[]) => void;
   setTablePagination: (tabId: string, page: number, limit: number) => void;
   setTableSorting: (tabId: string, sortColumn?: string, sortDir?: 'asc' | 'desc') => void;
+  setTableFilter: (tabId: string, filterColumn?: string, filterValue?: string) => void;
   refreshTableData: (tabId: string) => void;
   refreshStructureData: (tabId: string) => void;
   setTableSubView: (tabId: string, subView: 'data' | 'structure' | 'indexes') => void;
@@ -70,6 +71,8 @@ export const useTabStore = create<TabState>((set) => ({
           page: 1,
           limit: useSettingsStore.getState().settings.defaultRowsPerPage,
         },
+        filterColumn: '',
+        filterValue: '',
         tableData: null,
         tableColumns: [],
         tableIndexes: [],
@@ -177,6 +180,20 @@ export const useTabStore = create<TabState>((set) => ({
         ...tab,
         sortColumn,
         sortDir,
+        pagination: {
+          page: 1,
+          limit: tab.pagination?.limit ?? 50,
+        },
+      })),
+    }));
+  },
+
+  setTableFilter: (tabId, filterColumn, filterValue) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        filterColumn,
+        filterValue,
         pagination: {
           page: 1,
           limit: tab.pagination?.limit ?? 50,

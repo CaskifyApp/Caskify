@@ -17,6 +17,8 @@ function buildTablePageParams(tab: Tab): TablePageParams | null {
     limit: tab.pagination?.limit ?? 50,
     sortColumn: tab.sortColumn,
     sortDir: tab.sortDir,
+    filterColumn: tab.filterColumn,
+    filterValue: tab.filterValue,
   };
 }
 
@@ -45,6 +47,8 @@ export function useTableData(tab: Tab | null) {
     tab?.pagination?.limit,
     tab?.sortColumn,
     tab?.sortDir,
+    tab?.filterColumn,
+    tab?.filterValue,
     tab?.tableRefreshKey,
   ]);
 
@@ -71,6 +75,8 @@ export function useTableData(tab: Tab | null) {
 
         const normalizedTableData: TablePageResult = {
           ...tableData,
+          filterColumn: tableData.filterColumn,
+          filterValue: tableData.filterValue,
           isEstimated: Boolean(tableData.isEstimated),
           sortDir: tableData.sortDir === 'desc' ? 'desc' : tableData.sortDir === 'asc' ? 'asc' : undefined,
         };

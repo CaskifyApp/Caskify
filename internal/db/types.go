@@ -124,28 +124,32 @@ type QueryResult struct {
 }
 
 type TablePageParams struct {
-	ProfileID  string `json:"profileId"`
-	Database   string `json:"database"`
-	Schema     string `json:"schema"`
-	Table      string `json:"table"`
-	Page       int    `json:"page"`
-	Limit      int    `json:"limit"`
-	SortColumn string `json:"sortColumn,omitempty"`
-	SortDir    string `json:"sortDir,omitempty"`
+	ProfileID    string `json:"profileId"`
+	Database     string `json:"database"`
+	Schema       string `json:"schema"`
+	Table        string `json:"table"`
+	Page         int    `json:"page"`
+	Limit        int    `json:"limit"`
+	SortColumn   string `json:"sortColumn,omitempty"`
+	SortDir      string `json:"sortDir,omitempty"`
+	FilterColumn string `json:"filterColumn,omitempty"`
+	FilterValue  string `json:"filterValue,omitempty"`
 }
 
 type TablePageResult struct {
-	Columns     []string         `json:"columns"`
-	Rows        []map[string]any `json:"rows"`
-	TotalRows   int64            `json:"totalRows"`
-	IsEstimated bool             `json:"isEstimated,omitempty"`
-	Page        int              `json:"page"`
-	Limit       int              `json:"limit"`
-	SortColumn  string           `json:"sortColumn,omitempty"`
-	SortDir     string           `json:"sortDir,omitempty"`
-	Table       string           `json:"table"`
-	Schema      string           `json:"schema"`
-	Database    string           `json:"database"`
+	Columns      []string         `json:"columns"`
+	Rows         []map[string]any `json:"rows"`
+	TotalRows    int64            `json:"totalRows"`
+	IsEstimated  bool             `json:"isEstimated,omitempty"`
+	Page         int              `json:"page"`
+	Limit        int              `json:"limit"`
+	SortColumn   string           `json:"sortColumn,omitempty"`
+	SortDir      string           `json:"sortDir,omitempty"`
+	FilterColumn string           `json:"filterColumn,omitempty"`
+	FilterValue  string           `json:"filterValue,omitempty"`
+	Table        string           `json:"table"`
+	Schema       string           `json:"schema"`
+	Database     string           `json:"database"`
 }
 
 type InsertRowParams struct {

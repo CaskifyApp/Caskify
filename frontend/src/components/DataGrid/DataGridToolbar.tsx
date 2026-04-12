@@ -1,5 +1,6 @@
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface DataGridToolbarProps {
@@ -7,9 +8,14 @@ interface DataGridToolbarProps {
   limit: number;
   totalRows: number;
   estimated?: boolean;
+  columns: string[];
+  filterColumn?: string;
+  filterValue?: string;
   loading: boolean;
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
+  onFilterColumnChange: (column: string) => void;
+  onFilterValueChange: (value: string) => void;
   onRefresh: () => void;
 }
 
@@ -20,9 +26,14 @@ export function DataGridToolbar({
   limit,
   totalRows,
   estimated = false,
+  columns,
+  filterColumn,
+  filterValue,
   loading,
   onPageChange,
   onLimitChange,
+  onFilterColumnChange,
+  onFilterValueChange,
   onRefresh,
 }: DataGridToolbarProps) {
   const totalPages = Math.max(1, Math.ceil(totalRows / limit));
@@ -35,7 +46,28 @@ export function DataGridToolbar({
         <span>Page {page} of {totalPages}</span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Select value={filterColumn || undefined} onValueChange={(value) => onFilterColumnChange(value ?? '')}>
+          <SelectTrigger size="sm" className="w-40">
+            <SelectValue placeholder="Filter column" />
+          </SelectTrigger>
+          <SelectContent>
+            {columns.map((column) => (
+              <SelectItem key={column} value={column}>
+                {column}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Input
+          value={filterValue ?? ''}
+          onChange={(event) => onFilterValueChange(event.target.value)}
+          placeholder={filterColumn ? 'Search current column' : 'Choose a column first'}
+          className="h-8 w-52"
+          disabled={!filterColumn}
+        />
+
         <Select value={String(limit)} onValueChange={(value) => onLimitChange(Number(value))}>
           <SelectTrigger size="sm" className="w-28">
             <SelectValue placeholder="Rows" />

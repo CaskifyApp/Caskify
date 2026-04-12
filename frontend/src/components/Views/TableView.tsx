@@ -25,6 +25,7 @@ export function TableView({ tab }: TableViewProps) {
   const { structureLoading, structureError, tableColumns, tableIndexes, tableForeignKeys } = useTableStructure(tab);
   const setTablePagination = useTabStore((state) => state.setTablePagination);
   const setTableSorting = useTabStore((state) => state.setTableSorting);
+  const setTableFilter = useTabStore((state) => state.setTableFilter);
   const setTableSubView = useTabStore((state) => state.setTableSubView);
   const refreshTableData = useTabStore((state) => state.refreshTableData);
   const refreshStructureData = useTabStore((state) => state.refreshStructureData);
@@ -171,19 +172,32 @@ export function TableView({ tab }: TableViewProps) {
               limit={tab.pagination?.limit ?? 50}
               totalRows={tableData?.totalRows ?? 0}
               estimated={tableData?.isEstimated ?? false}
+              columns={tableData?.columns ?? []}
+              filterColumn={tab.filterColumn}
+              filterValue={tab.filterValue}
               loading={tableLoading}
               onPageChange={(page) => {
-              setSelectedRow(null);
+                setSelectedRow(null);
               setSelectedRowIndex(null);
               setTablePagination(tab.id, page, tab.pagination?.limit ?? 50);
             }}
-            onLimitChange={(limit) => {
-              setSelectedRow(null);
-              setSelectedRowIndex(null);
-              setTablePagination(tab.id, 1, limit);
-            }}
-            onRefresh={handleRefresh}
-          />
+              onLimitChange={(limit) => {
+                setSelectedRow(null);
+                setSelectedRowIndex(null);
+                setTablePagination(tab.id, 1, limit);
+              }}
+              onFilterColumnChange={(column) => {
+                setSelectedRow(null);
+                setSelectedRowIndex(null);
+                setTableFilter(tab.id, column, '');
+              }}
+              onFilterValueChange={(value) => {
+                setSelectedRow(null);
+                setSelectedRowIndex(null);
+                setTableFilter(tab.id, tab.filterColumn ?? '', value);
+              }}
+              onRefresh={handleRefresh}
+            />
 
           <DataGrid
             data={tableData}

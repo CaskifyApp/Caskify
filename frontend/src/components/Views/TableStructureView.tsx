@@ -22,6 +22,21 @@ export function TableStructureView({ columns, foreignKeys, loading, error, onAdd
 
   return (
     <div className="grid gap-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-4xl border bg-card px-4 py-3 shadow-sm">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">Columns</div>
+          <div className="mt-1 text-2xl font-semibold text-foreground">{columns.length}</div>
+        </div>
+        <div className="rounded-4xl border bg-card px-4 py-3 shadow-sm">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">Foreign Keys</div>
+          <div className="mt-1 text-2xl font-semibold text-foreground">{foreignKeys.length}</div>
+        </div>
+        <div className="rounded-4xl border bg-card px-4 py-3 shadow-sm">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">Primary Keys</div>
+          <div className="mt-1 text-2xl font-semibold text-foreground">{columns.filter((column) => column.isPrimaryKey).length}</div>
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-4xl border bg-card shadow-sm">
         <div className="flex items-center justify-between border-b px-4 py-3 text-sm font-medium">
           <span>Columns</span>

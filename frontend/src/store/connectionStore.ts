@@ -15,7 +15,6 @@ interface ConnectionState {
   connectProfile: (id: string) => Promise<void>;
   disconnectProfile: (id: string) => Promise<void>;
   savePassword: (profileId: string, password: string) => Promise<void>;
-  getPassword: (profileId: string) => Promise<string>;
   testConnection: (connString: string) => Promise<boolean>;
   setError: (error: string | null) => void;
 }
@@ -120,15 +119,6 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   savePassword: async (profileId: string, password: string) => {
     try {
       await wails.SavePassword(profileId, password);
-    } catch (err) {
-      set({ error: String(err) });
-      throw err;
-    }
-  },
-
-  getPassword: async (profileId: string) => {
-    try {
-      return await wails.GetPassword(profileId);
     } catch (err) {
       set({ error: String(err) });
       throw err;

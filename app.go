@@ -126,10 +126,6 @@ func (a *App) SavePassword(profileID, password string) error {
 	return keyring.SavePassword("caskpg", profileID, password)
 }
 
-func (a *App) GetPassword(profileID string) (string, error) {
-	return keyring.GetPassword("caskpg", profileID)
-}
-
 func (a *App) DeletePassword(profileID string) error {
 	return keyring.DeletePassword("caskpg", profileID)
 }

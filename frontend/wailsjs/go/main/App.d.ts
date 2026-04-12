@@ -52,8 +52,6 @@ export function ExportQueryResults(arg1:string,arg2:db.QueryResult):Promise<db.D
 
 export function GetDatabases(arg1:string):Promise<Array<db.DatabaseInfo>>;
 
-export function GetPassword(arg1:string):Promise<string>;
-
 export function GetProfile(arg1:string):Promise<profiles.Profile>;
 
 export function GetProfiles():Promise<Array<profiles.Profile>>;

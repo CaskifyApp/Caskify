@@ -94,10 +94,6 @@ export function GetDatabases(arg1) {
   return window['go']['main']['App']['GetDatabases'](arg1);
 }
 
-export function GetPassword(arg1) {
-  return window['go']['main']['App']['GetPassword'](arg1);
-}
-
 export function GetProfile(arg1) {
   return window['go']['main']['App']['GetProfile'](arg1);
 }

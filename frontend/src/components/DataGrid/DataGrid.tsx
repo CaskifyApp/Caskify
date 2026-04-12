@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { CellRenderer } from '@/components/DataGrid/CellRenderer';
 import { JSONViewerModal } from '@/components/Modals/JSONViewerModal';
 import type { TablePageResult } from '@/types';
@@ -14,9 +15,20 @@ interface DataGridProps {
   onRowSelect?: (rowIndex: number, row: Record<string, unknown>) => void;
 }
 
+const ROW_HEIGHT = 40;
+const OVERSCAN = 5;
+
 export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, selectedRowIndex, onRowSelect }: DataGridProps) {
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [jsonViewerValue, setJsonViewerValue] = useState<unknown>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: data?.rows.length ?? 0,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: OVERSCAN,
+  });
 
   if (loading) {
     return (
@@ -58,12 +70,14 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
     );
   }
 
+  const virtualRows = rowVirtualizer.getVirtualItems();
+
   return (
     <>
       <div className="overflow-hidden rounded-4xl border bg-card shadow-sm [contain:layout_paint]">
-        <div className="perf-scroll overflow-auto">
+        <div ref={parentRef} className="perf-scroll overflow-auto" style={{ maxHeight: '600px' }}>
           <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-muted/40">
+            <thead className="sticky top-0 z-10 bg-muted/40">
               <tr>
                 {data.columns.map((column) => (
                   <th key={column} className="border-b px-4 py-3 text-left font-medium text-foreground">
@@ -79,26 +93,38 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {data.rows.map((row, index) => (
-                <tr
-                  key={`${data.table}-${index}`}
-                  className={`border-b last:border-b-0 ${selectedRowIndex === index ? 'bg-primary/5' : ''}`}
-                  onClick={() => onRowSelect?.(index, row)}
-                >
-                  {data.columns.map((column) => (
-                    <td key={`${index}-${column}`} className="px-4 py-3 align-top text-muted-foreground">
-                      <CellRenderer
-                        value={row[column]}
-                        onOpenJson={(value) => {
-                          setJsonViewerValue(value);
-                          setJsonViewerOpen(true);
-                        }}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
+            <tbody style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+              {virtualRows.map((virtualRow) => {
+                const index = virtualRow.index;
+                const row = data.rows[index];
+                return (
+                  <tr
+                    key={`${data.table}-${index}`}
+                    className={`border-b ${selectedRowIndex === index ? 'bg-primary/5' : ''}`}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                    onClick={() => onRowSelect?.(index, row)}
+                  >
+                    {data.columns.map((column) => (
+                      <td key={`${index}-${column}`} className="px-4 py-3 align-top text-muted-foreground">
+                        <CellRenderer
+                          value={row[column]}
+                          onOpenJson={(value) => {
+                            setJsonViewerValue(value);
+                            setJsonViewerOpen(true);
+                          }}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

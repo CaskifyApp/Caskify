@@ -10,6 +10,8 @@ export function AddColumn(arg1:db.AddColumnParams):Promise<void>;
 
 export function CancelQuery(arg1:string):Promise<boolean>;
 
+export function CheckDangerousQuery(arg1:string):Promise<Record<string, any>>;
+
 export function CheckDatabaseRestoreTarget(arg1:db.DatabaseRestoreParams):Promise<db.DatabaseRestorePreflightResult>;
 
 export function CheckDatabaseTools():Promise<Record<string, boolean>>;

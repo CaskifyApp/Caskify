@@ -10,6 +10,10 @@ export function CancelQuery(arg1) {
   return window['go']['main']['App']['CancelQuery'](arg1);
 }
 
+export function CheckDangerousQuery(arg1) {
+  return window['go']['main']['App']['CheckDangerousQuery'](arg1);
+}
+
 export function CheckDatabaseRestoreTarget(arg1) {
   return window['go']['main']['App']['CheckDatabaseRestoreTarget'](arg1);
 }

@@ -10,6 +10,25 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+var dangerousCommands = []string{
+	"DROP DATABASE",
+	"DROP TABLE",
+	"TRUNCATE TABLE",
+	"TRUNCATE",
+	"DELETE FROM",
+	"UPDATE",
+}
+
+func IsDangerousQuery(sql string) (bool, string) {
+	normalized := strings.ToUpper(strings.TrimSpace(sql))
+	for _, cmd := range dangerousCommands {
+		if strings.Contains(normalized, cmd) {
+			return true, cmd
+		}
+	}
+	return false, ""
+}
+
 func FetchTablePage(ctx context.Context, pool *pgxpool.Pool, params TablePageParams) (*TablePageResult, error) {
 	page := params.Page
 	if page < 1 {

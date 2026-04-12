@@ -309,6 +309,14 @@ func (a *App) CancelQuery(queryID string) bool {
 	return false
 }
 
+func (a *App) CheckDangerousQuery(sql string) map[string]interface{} {
+	isDangerous, command := db.IsDangerousQuery(sql)
+	return map[string]interface{}{
+		"isDangerous": isDangerous,
+		"command":     command,
+	}
+}
+
 func (a *App) GetSavedQueries() (*queries.SavedQueries, error) {
 	return queries.GetAll()
 }

@@ -1,6 +1,8 @@
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import { useState } from 'react';
 import { useEffect } from 'react';
+import * as wails from '../../wailsjs/go/main/App';
+import { DangerousQueryDialog } from '@/components/Modals/DangerousQueryDialog';
 import { SaveQueryModal } from '@/components/Modals/SaveQueryModal';
 import { QueryEditor } from '@/components/QueryEditor/QueryEditor';
 import { QueryResultsPanel } from '@/components/QueryEditor/QueryResultsPanel';
@@ -23,12 +25,27 @@ export function QueryView({ tab }: QueryViewProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [savedQueriesOpen, setSavedQueriesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [dangerousDialogOpen, setDangerousDialogOpen] = useState(false);
+  const [dangerousCommand, setDangerousCommand] = useState('');
+
+  const handleRunQuery = async () => {
+    if (!tab.queryText?.trim()) return;
+
+    const checkResult = await wails.CheckDangerousQuery(tab.queryText) as { isDangerous: boolean; command: string };
+    if (checkResult.isDangerous) {
+      setDangerousCommand(checkResult.command);
+      setDangerousDialogOpen(true);
+      return;
+    }
+
+    void runQuery();
+  };
 
   useEffect(() => {
     const handleRun = (event: Event) => {
       const customEvent = event as CustomEvent<{ tabId: string }>;
       if (customEvent.detail?.tabId === tab.id) {
-        void runQuery();
+        void handleRunQuery();
       }
     };
 
@@ -46,7 +63,7 @@ export function QueryView({ tab }: QueryViewProps) {
       window.removeEventListener('caskpg:run-query', handleRun);
       window.removeEventListener('caskpg:save-query', handleSave);
     };
-  }, [runQuery, tab.id]);
+  }, [runQuery, tab.id, tab.queryText]);
 
   return (
     <div className="flex h-full flex-col gap-4 p-6">
@@ -58,7 +75,7 @@ export function QueryView({ tab }: QueryViewProps) {
         onProfileChange={(profileId) => setQueryProfile(tab.id, profileId)}
         onDatabaseChange={(databaseName) => setQueryDatabase(tab.id, databaseName)}
         onQueryTextChange={(queryText) => setQueryText(tab.id, queryText)}
-        onRun={() => void runQuery()}
+        onRun={() => void handleRunQuery()}
         onCancel={() => void cancelQuery()}
         onSave={() => setSaveModalOpen(true)}
         onShowSavedQueries={() => setSavedQueriesOpen(true)}
@@ -70,7 +87,7 @@ export function QueryView({ tab }: QueryViewProps) {
           <QueryEditor
             value={tab.queryText ?? ''}
             onChange={(queryText) => setQueryText(tab.id, queryText)}
-            onRun={() => void runQuery()}
+            onRun={() => void handleRunQuery()}
           />
         </Panel>
 
@@ -106,6 +123,16 @@ export function QueryView({ tab }: QueryViewProps) {
         onSelectQuery={(query) => {
           setQueryText(tab.id, query);
           setHistoryOpen(false);
+        }}
+      />
+
+      <DangerousQueryDialog
+        open={dangerousDialogOpen}
+        onOpenChange={setDangerousDialogOpen}
+        command={dangerousCommand}
+        onConfirm={() => {
+          setDangerousDialogOpen(false);
+          void runQuery();
         }}
       />
     </div>

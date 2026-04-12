@@ -324,6 +324,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             {restorePreflight && !restorePreflight.isEmpty ? (
               <div className="rounded-3xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                 <div className="font-medium">Restore target is not empty.</div>
+                <div className="mt-1">Detected {restorePreflight.objectCount} user objects across {restorePreflight.schemaCount} schema(s).</div>
                 <div className="mt-1">Schemas already present: {restorePreflight.schemas.join(', ')}</div>
                 <div className="mt-1 text-xs">Full SQL dumps should be restored into an empty database.</div>
               </div>

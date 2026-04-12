@@ -84,6 +84,7 @@ export interface DatabaseRestorePreflightResult {
   isEmpty: boolean;
   schemaCount: number;
   schemas: string[];
+  objectCount: number;
 }
 
 export interface CreateDatabaseParams {

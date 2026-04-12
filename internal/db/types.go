@@ -28,6 +28,7 @@ type DatabaseRestorePreflightResult struct {
 	IsEmpty      bool     `json:"isEmpty"`
 	SchemaCount  int      `json:"schemaCount"`
 	Schemas      []string `json:"schemas"`
+	ObjectCount  int64    `json:"objectCount"`
 }
 
 type CreateDatabaseParams struct {

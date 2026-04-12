@@ -39,19 +39,27 @@ func CheckRestoreTarget(ctx context.Context, pool *pgxpool.Pool, databaseName st
 		return nil, err
 	}
 
-	nonDefaultSchemas := make([]string, 0, len(schemas))
-	for _, schema := range schemas {
-		if schema == "public" {
-			continue
-		}
-		nonDefaultSchemas = append(nonDefaultSchemas, schema)
+	objectCountQuery := `
+		SELECT COUNT(*)
+		FROM pg_class c
+		JOIN pg_namespace n ON n.oid = c.relnamespace
+		WHERE n.nspname NOT IN ('pg_catalog', 'information_schema', 'pg_toast')
+		  AND n.nspname NOT LIKE 'pg_temp_%'
+		  AND n.nspname NOT LIKE 'pg_toast_temp_%'
+		  AND c.relkind IN ('r', 'v', 'm', 'S', 'f', 'p')
+	`
+
+	var objectCount int64
+	if err := pool.QueryRow(ctx, objectCountQuery).Scan(&objectCount); err != nil {
+		return nil, err
 	}
 
 	return &DatabaseRestorePreflightResult{
 		DatabaseName: databaseName,
-		IsEmpty:      len(nonDefaultSchemas) == 0,
-		SchemaCount:  len(nonDefaultSchemas),
-		Schemas:      nonDefaultSchemas,
+		IsEmpty:      objectCount == 0,
+		SchemaCount:  len(schemas),
+		Schemas:      schemas,
+		ObjectCount:  objectCount,
 	}, nil
 }
 

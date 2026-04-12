@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 interface DangerousQueryDialogProps {
   open: boolean;
@@ -14,6 +15,12 @@ export function DangerousQueryDialog({ open, onOpenChange, command, onConfirm }:
   const [confirmText, setConfirmText] = useState('');
   const requiredConfirmation = 'EXECUTE';
   const isConfirmed = confirmText === requiredConfirmation;
+
+  useEffect(() => {
+    if (open) {
+      setConfirmText('');
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -33,12 +40,10 @@ export function DangerousQueryDialog({ open, onOpenChange, command, onConfirm }:
           <label className="text-sm font-medium">
             Type <span className="font-mono text-destructive">{requiredConfirmation}</span> to confirm:
           </label>
-          <input
-            type="text"
+          <Input
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder={requiredConfirmation}
-            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
             autoComplete="off"
           />
         </div>

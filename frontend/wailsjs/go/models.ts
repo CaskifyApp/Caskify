@@ -232,6 +232,7 @@ export namespace db {
 	    isEmpty: boolean;
 	    schemaCount: number;
 	    schemas: string[];
+	    objectCount: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new DatabaseRestorePreflightResult(source);
@@ -243,6 +244,7 @@ export namespace db {
 	        this.isEmpty = source["isEmpty"];
 	        this.schemaCount = source["schemaCount"];
 	        this.schemas = source["schemas"];
+	        this.objectCount = source["objectCount"];
 	    }
 	}
 	export class DeleteRowParams {

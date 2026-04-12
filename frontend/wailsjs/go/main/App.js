@@ -18,6 +18,10 @@ export function ConnectProfile(arg1) {
   return window['go']['main']['App']['ConnectProfile'](arg1);
 }
 
+export function CreateEmptyDatabase(arg1) {
+  return window['go']['main']['App']['CreateEmptyDatabase'](arg1);
+}
+
 export function DeletePassword(arg1) {
   return window['go']['main']['App']['DeletePassword'](arg1);
 }

@@ -30,6 +30,11 @@ type DatabaseRestorePreflightResult struct {
 	Schemas      []string `json:"schemas"`
 }
 
+type CreateDatabaseParams struct {
+	ProfileID string `json:"profileId"`
+	Name      string `json:"name"`
+}
+
 type QueryResult struct {
 	Columns         []string         `json:"columns"`
 	Rows            []map[string]any `json:"rows"`

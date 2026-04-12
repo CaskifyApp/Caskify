@@ -49,6 +49,20 @@ export namespace db {
 	        this.isUpdatable = source["isUpdatable"];
 	    }
 	}
+	export class CreateDatabaseParams {
+	    profileId: string;
+	    name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new CreateDatabaseParams(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.profileId = source["profileId"];
+	        this.name = source["name"];
+	    }
+	}
 	export class DatabaseBackupParams {
 	    profileId: string;
 	    database: string;

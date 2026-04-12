@@ -406,6 +406,26 @@ func (a *App) CheckDatabaseRestoreTarget(params db.DatabaseRestoreParams) (*db.D
 	return result, err
 }
 
+func (a *App) CreateEmptyDatabase(params db.CreateDatabaseParams) error {
+	profile, err := profiles.GetByID(params.ProfileID)
+	if err != nil {
+		return err
+	}
+
+	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	if err != nil {
+		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+	}
+
+	pool, err := db.OpenPool(profile.BuildConnectionStringForDatabase(password, "postgres"))
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	return db.CreateDatabase(a.ctx, pool, params.Name)
+}
+
 func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOperationResult, error) {
 	if _, err := exec.LookPath("psql"); err != nil {
 		return nil, fmt.Errorf("psql is not available on this system")

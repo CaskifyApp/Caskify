@@ -28,6 +28,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   const [databaseActionWarnings, setDatabaseActionWarnings] = useState<string[]>([]);
   const [databaseActionLoading, setDatabaseActionLoading] = useState(false);
   const [restorePreflight, setRestorePreflight] = useState<DatabaseRestorePreflightResult | null>(null);
+  const [newDatabaseName, setNewDatabaseName] = useState('');
 
   const availableProfiles = useMemo(
     () => profiles.filter((profile) => connectionStatuses.get(profile.id)?.connected || profile.host === 'localhost'),
@@ -135,6 +136,35 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
     }
   };
 
+  const handleCreateDatabase = async () => {
+    if (!profileId) {
+      setDatabaseActionError('Choose a server profile first.');
+      return;
+    }
+    if (!newDatabaseName.trim()) {
+      setDatabaseActionError('Enter a database name first.');
+      return;
+    }
+
+    setDatabaseActionLoading(true);
+    setDatabaseActionError(null);
+    setDatabaseActionMessage(null);
+    setDatabaseActionWarnings([]);
+
+    try {
+      await wails.CreateEmptyDatabase({ profileId, name: newDatabaseName.trim() });
+      const nextDatabases = (await wails.GetDatabases(profileId)) as DatabaseInfo[];
+      setDatabases(nextDatabases ?? []);
+      setDatabaseName(newDatabaseName.trim());
+      setNewDatabaseName('');
+      setDatabaseActionMessage('Empty database created successfully.');
+    } catch (error) {
+      setDatabaseActionError(String(error));
+    } finally {
+      setDatabaseActionLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -212,6 +242,20 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">Create Empty Database</label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newDatabaseName}
+                  onChange={(event) => setNewDatabaseName(event.target.value)}
+                  placeholder="wiradoor_restore"
+                />
+                <Button variant="outline" onClick={() => void handleCreateDatabase()} disabled={databaseActionLoading || !profileId || !newDatabaseName.trim()}>
+                  Create
+                </Button>
+              </div>
             </div>
 
             <div className="grid gap-1 text-sm text-muted-foreground">

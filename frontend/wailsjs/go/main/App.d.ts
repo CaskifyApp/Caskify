@@ -14,6 +14,8 @@ export function ClearQueryHistory():Promise<void>;
 
 export function ConnectProfile(arg1:string):Promise<void>;
 
+export function CreateEmptyDatabase(arg1:db.CreateDatabaseParams):Promise<void>;
+
 export function DeletePassword(arg1:string):Promise<void>;
 
 export function DeleteProfile(arg1:string):Promise<void>;

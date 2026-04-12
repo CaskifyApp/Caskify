@@ -83,6 +83,11 @@ export interface DatabaseRestorePreflightResult {
   schemas: string[];
 }
 
+export interface CreateDatabaseParams {
+  profileId: string;
+  name: string;
+}
+
 export interface SavedQuery {
   id: string;
   name: string;

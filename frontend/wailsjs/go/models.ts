@@ -736,3 +736,4 @@ export namespace queries {
 	}
 
 }
+

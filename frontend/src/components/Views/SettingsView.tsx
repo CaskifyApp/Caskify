@@ -178,12 +178,15 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[calc(100vw-3rem)] max-w-6xl overflow-hidden p-0 sm:max-w-6xl">
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <div className="border-b px-6 py-5">
+            <DialogTitle>Settings</DialogTitle>
+          </div>
         </DialogHeader>
 
-        <div className="grid gap-6">
+        <div className="max-h-[85vh] overflow-y-auto px-6 py-6">
+          <div className="grid gap-6 xl:grid-cols-2">
           <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
             <h3 className="font-medium text-foreground">Appearance</h3>
             <div className="flex items-center gap-2">
@@ -370,6 +373,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
               </Button>
             </div>
           </section>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

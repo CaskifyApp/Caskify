@@ -103,7 +103,7 @@ ensure_dist_dir() {
 
 ensure_binary() {
   if [[ ! -f "$BUILD_BIN" ]]; then
-    run wails build
+    run wails build -upx
   fi
 }
 

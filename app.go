@@ -457,11 +457,15 @@ func (a *App) DropDatabase(params db.DropDatabaseParams) error {
 }
 
 func (a *App) CreateSchema(params db.CreateSchemaParams) error {
-	return fmt.Errorf("create schema is not implemented yet")
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.CreateSchema(a.ctx, pool, params.Name)
+	})
 }
 
 func (a *App) DropSchema(params db.DropSchemaParams) error {
-	return fmt.Errorf("drop schema is not implemented yet")
+	return a.withProfileDatabasePool(params.ProfileID, params.Database, func(pool *pgxpool.Pool) error {
+		return db.DropSchema(a.ctx, pool, params.Name)
+	})
 }
 
 func (a *App) CreateTable(params db.CreateTableParams) error {

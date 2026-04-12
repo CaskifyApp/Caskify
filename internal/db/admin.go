@@ -35,3 +35,31 @@ func DropDatabase(ctx context.Context, pool *pgxpool.Pool, databaseName string) 
 
 	return nil
 }
+
+func CreateSchema(ctx context.Context, pool *pgxpool.Pool, schemaName string) error {
+	if schemaName == "" {
+		return fmt.Errorf("schema name is required")
+	}
+
+	query := fmt.Sprintf("CREATE SCHEMA %s", pgx.Identifier{schemaName}.Sanitize())
+	_, err := pool.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("create schema error: %w", err)
+	}
+
+	return nil
+}
+
+func DropSchema(ctx context.Context, pool *pgxpool.Pool, schemaName string) error {
+	if schemaName == "" {
+		return fmt.Errorf("schema name is required")
+	}
+
+	query := fmt.Sprintf("DROP SCHEMA %s CASCADE", pgx.Identifier{schemaName}.Sanitize())
+	_, err := pool.Exec(ctx, query)
+	if err != nil {
+		return fmt.Errorf("drop schema error: %w", err)
+	}
+
+	return nil
+}

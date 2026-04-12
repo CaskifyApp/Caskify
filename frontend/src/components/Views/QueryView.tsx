@@ -80,6 +80,7 @@ export function QueryView({ tab }: QueryViewProps) {
         onSave={() => setSaveModalOpen(true)}
         onShowSavedQueries={() => setSavedQueriesOpen(true)}
         onShowHistory={() => setHistoryOpen(true)}
+        onSelectTemplate={(template) => setQueryText(tab.id, template)}
       />
 
       <Group orientation="vertical" className="min-h-0 flex-1 gap-2">

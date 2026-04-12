@@ -4,6 +4,7 @@ import { History, Play, Save, Square, WandSparkles } from 'lucide-react';
 import { format as formatSQL } from 'sql-formatter';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { QueryTemplates } from '@/components/QueryEditor/QueryTemplates';
 import { useConnectionStore } from '@/store/connectionStore';
 import type { DatabaseInfo } from '@/types';
 
@@ -20,9 +21,10 @@ interface QueryToolbarProps {
   onSave: () => void;
   onShowSavedQueries: () => void;
   onShowHistory: () => void;
+  onSelectTemplate: (template: string) => void;
 }
 
-export function QueryToolbar({ profileId, databaseName, queryText, running, onProfileChange, onDatabaseChange, onQueryTextChange, onRun, onCancel, onSave, onShowSavedQueries, onShowHistory }: QueryToolbarProps) {
+export function QueryToolbar({ profileId, databaseName, queryText, running, onProfileChange, onDatabaseChange, onQueryTextChange, onRun, onCancel, onSave, onShowSavedQueries, onShowHistory, onSelectTemplate }: QueryToolbarProps) {
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
   const [databases, setDatabases] = useState<DatabaseInfo[]>([]);
@@ -108,6 +110,8 @@ export function QueryToolbar({ profileId, databaseName, queryText, running, onPr
       <Button variant="outline" size="sm" onClick={onShowSavedQueries}>
         Saved Queries
       </Button>
+
+      <QueryTemplates onSelectTemplate={onSelectTemplate} />
 
       <Button variant="outline" size="sm" onClick={onShowHistory}>
         <History data-icon="inline-start" />

@@ -40,6 +40,7 @@ export interface Tab {
   tableRefreshKey?: number;
   structureLoading?: boolean;
   structureError?: string | null;
+  structureRefreshKey?: number;
   isRunning?: boolean;
   execError?: string | null;
 }

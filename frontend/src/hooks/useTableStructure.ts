@@ -17,6 +17,7 @@ export function useTableStructure(tab: Tab | null) {
   const databaseName = tab?.databaseName ?? null;
   const schemaName = tab?.schemaName ?? null;
   const tableName = tab?.tableName ?? null;
+  const structureRefreshKey = tab?.structureRefreshKey ?? 0;
 
   useEffect(() => {
     if (!tabId || subView === 'data' || !connectionId || !databaseName || !schemaName || !tableName) {
@@ -56,7 +57,7 @@ export function useTableStructure(tab: Tab | null) {
     return () => {
       cancelled = true;
     };
-  }, [connectionId, databaseName, schemaName, setStructureData, setStructureError, setStructureLoading, subView, tabId, tableName]);
+  }, [connectionId, databaseName, schemaName, setStructureData, setStructureError, setStructureLoading, structureRefreshKey, subView, tabId, tableName]);
 
   return {
     structureLoading: tab?.structureLoading ?? false,

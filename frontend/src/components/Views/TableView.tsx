@@ -4,6 +4,7 @@ import * as wails from '../../../wailsjs/go/main/App';
 import { DataGrid } from '@/components/DataGrid/DataGrid';
 import { DataGridToolbar } from '@/components/DataGrid/DataGridToolbar';
 import { CreateTableDialog, DropTableDialog, RenameTableDialog } from '@/components/Modals/TableAdminDialogs';
+import { AddColumnDialog, DropColumnDialog, RenameColumnDialog } from '@/components/Modals/ColumnAdminDialogs';
 import { useTableData } from '@/hooks/useTableData';
 import { useTableStructure } from '@/hooks/useTableStructure';
 import { RowEditorModal } from '@/components/Modals/RowEditorModal';
@@ -26,6 +27,7 @@ export function TableView({ tab }: TableViewProps) {
   const setTableSorting = useTabStore((state) => state.setTableSorting);
   const setTableSubView = useTabStore((state) => state.setTableSubView);
   const refreshTableData = useTabStore((state) => state.refreshTableData);
+  const refreshStructureData = useTabStore((state) => state.refreshStructureData);
   const [rowEditorOpen, setRowEditorOpen] = useState(false);
   const [rowEditorMode, setRowEditorMode] = useState<'insert' | 'edit'>('edit');
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
@@ -36,6 +38,9 @@ export function TableView({ tab }: TableViewProps) {
   const [createTableOpen, setCreateTableOpen] = useState(false);
   const [renameTableOpen, setRenameTableOpen] = useState(false);
   const [dropTableOpen, setDropTableOpen] = useState(false);
+  const [addColumnOpen, setAddColumnOpen] = useState(false);
+  const [renameColumnTarget, setRenameColumnTarget] = useState<string | null>(null);
+  const [dropColumnTarget, setDropColumnTarget] = useState<string | null>(null);
 
   useEffect(() => {
     if (!rowEditorOpen) {
@@ -207,6 +212,9 @@ export function TableView({ tab }: TableViewProps) {
             foreignKeys={tableForeignKeys}
             loading={structureLoading}
             error={structureError}
+            onAddColumn={() => setAddColumnOpen(true)}
+            onRenameColumn={(columnName) => setRenameColumnTarget(columnName)}
+            onDropColumn={(columnName) => setDropColumnTarget(columnName)}
           />
         </>
       ) : null}
@@ -284,7 +292,53 @@ export function TableView({ tab }: TableViewProps) {
         databaseName={tab.databaseName ?? ''}
         schemaName={tab.schemaName ?? ''}
         tableName={tab.tableName ?? ''}
-        onSuccess={() => refreshTableData(tab.id)}
+        onSuccess={() => {
+          refreshTableData(tab.id)
+          refreshStructureData(tab.id)
+        }}
+      />
+
+      <AddColumnDialog
+        open={addColumnOpen}
+        onOpenChange={setAddColumnOpen}
+        profileId={tab.connectionId}
+        databaseName={tab.databaseName ?? ''}
+        schemaName={tab.schemaName ?? ''}
+        tableName={tab.tableName ?? ''}
+        onSuccess={() => {
+          refreshTableData(tab.id)
+          refreshStructureData(tab.id)
+        }}
+      />
+
+      <RenameColumnDialog
+        open={renameColumnTarget !== null}
+        onOpenChange={(open) => { if (!open) setRenameColumnTarget(null) }}
+        profileId={tab.connectionId}
+        databaseName={tab.databaseName ?? ''}
+        schemaName={tab.schemaName ?? ''}
+        tableName={tab.tableName ?? ''}
+        columnName={renameColumnTarget ?? ''}
+        onSuccess={() => {
+          setRenameColumnTarget(null)
+          refreshTableData(tab.id)
+          refreshStructureData(tab.id)
+        }}
+      />
+
+      <DropColumnDialog
+        open={dropColumnTarget !== null}
+        onOpenChange={(open) => { if (!open) setDropColumnTarget(null) }}
+        profileId={tab.connectionId}
+        databaseName={tab.databaseName ?? ''}
+        schemaName={tab.schemaName ?? ''}
+        tableName={tab.tableName ?? ''}
+        columnName={dropColumnTarget ?? ''}
+        onSuccess={() => {
+          setDropColumnTarget(null)
+          refreshTableData(tab.id)
+          refreshStructureData(tab.id)
+        }}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import type { ColumnDef, ForeignKeyInfo } from '@/types';
 
 interface TableStructureViewProps {
@@ -5,9 +6,12 @@ interface TableStructureViewProps {
   foreignKeys: ForeignKeyInfo[];
   loading: boolean;
   error: string | null;
+  onAddColumn: () => void;
+  onRenameColumn: (columnName: string) => void;
+  onDropColumn: (columnName: string) => void;
 }
 
-export function TableStructureView({ columns, foreignKeys, loading, error }: TableStructureViewProps) {
+export function TableStructureView({ columns, foreignKeys, loading, error, onAddColumn, onRenameColumn, onDropColumn }: TableStructureViewProps) {
   if (loading) {
     return <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">Loading table structure...</div>;
   }
@@ -19,7 +23,10 @@ export function TableStructureView({ columns, foreignKeys, loading, error }: Tab
   return (
     <div className="grid gap-4">
       <div className="overflow-hidden rounded-4xl border bg-card shadow-sm">
-        <div className="border-b px-4 py-3 text-sm font-medium">Columns</div>
+        <div className="flex items-center justify-between border-b px-4 py-3 text-sm font-medium">
+          <span>Columns</span>
+          <Button variant="outline" size="sm" onClick={onAddColumn}>Add Column</Button>
+        </div>
         {columns.length === 0 ? (
           <div className="px-4 py-5 text-sm text-muted-foreground">No column metadata found.</div>
         ) : (
@@ -33,6 +40,7 @@ export function TableStructureView({ columns, foreignKeys, loading, error }: Tab
                   <th className="border-b px-4 py-3 text-left font-medium">Nullable</th>
                   <th className="border-b px-4 py-3 text-left font-medium">Default</th>
                   <th className="border-b px-4 py-3 text-left font-medium">Primary Key</th>
+                  <th className="border-b px-4 py-3 text-left font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -44,6 +52,12 @@ export function TableStructureView({ columns, foreignKeys, loading, error }: Tab
                     <td className="px-4 py-3 text-muted-foreground">{column.isNullable ? 'YES' : 'NO'}</td>
                     <td className="px-4 py-3 text-muted-foreground">{column.defaultVal ?? 'NULL'}</td>
                     <td className="px-4 py-3 text-muted-foreground">{column.isPrimaryKey ? 'YES' : 'NO'}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => onRenameColumn(column.name)}>Rename</Button>
+                        <Button variant="outline" size="sm" onClick={() => onDropColumn(column.name)}>Drop</Button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

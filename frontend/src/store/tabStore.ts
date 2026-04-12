@@ -16,6 +16,7 @@ interface TabState {
   setTablePagination: (tabId: string, page: number, limit: number) => void;
   setTableSorting: (tabId: string, sortColumn?: string, sortDir?: 'asc' | 'desc') => void;
   refreshTableData: (tabId: string) => void;
+  refreshStructureData: (tabId: string) => void;
   setTableSubView: (tabId: string, subView: 'data' | 'structure' | 'indexes') => void;
   setStructureLoading: (tabId: string, loading: boolean) => void;
   setStructureError: (tabId: string, error: string | null) => void;
@@ -78,6 +79,7 @@ export const useTabStore = create<TabState>((set) => ({
         tableRefreshKey: 0,
         structureLoading: false,
         structureError: null,
+        structureRefreshKey: 0,
       };
 
       return {
@@ -193,6 +195,15 @@ export const useTabStore = create<TabState>((set) => ({
         },
         tableLoading: false,
         tableRefreshKey: (tab.tableRefreshKey ?? 0) + 1,
+      })),
+    }));
+  },
+
+  refreshStructureData: (tabId) => {
+    set((state) => ({
+      tabs: updateTab(state.tabs, tabId, (tab) => ({
+        ...tab,
+        structureRefreshKey: (tab.structureRefreshKey ?? 0) + 1,
       })),
     }));
   },

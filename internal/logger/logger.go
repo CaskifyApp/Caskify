@@ -2,11 +2,14 @@ package logger
 
 import (
 	"os"
+	"regexp"
 
 	"github.com/sirupsen/logrus"
 )
 
 var log *logrus.Logger
+
+var passwordRegex = regexp.MustCompile(`(password=)[^\s&]+`)
 
 func Init() {
 	log = logrus.New()
@@ -30,4 +33,8 @@ func SetLevel(level string) {
 		lvl = logrus.InfoLevel
 	}
 	log.SetLevel(lvl)
+}
+
+func RedactConnectionString(connStr string) string {
+	return passwordRegex.ReplaceAllString(connStr, "${1}***")
 }

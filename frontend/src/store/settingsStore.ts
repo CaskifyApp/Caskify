@@ -8,8 +8,16 @@ interface SettingsState {
   updateSettings: (partial: Partial<AppSettings>) => Promise<void>;
 }
 
+function getPreferredTheme(): 'light' | 'dark' {
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return 'dark';
+  }
+
+  return 'light';
+}
+
 const DEFAULT_SETTINGS: AppSettings = {
-  theme: 'dark',
+  theme: getPreferredTheme(),
   defaultRowsPerPage: 50,
   editorFontSize: 14,
   historyLimit: 100,

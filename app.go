@@ -56,7 +56,8 @@ func (a *App) withProfileDatabasePool(profileID, databaseName string, callback f
 	}
 
 	if activeDatabase == profile.ActiveDatabase() {
-		if pool := db.GetManager().GetPool(profileID); pool != nil {
+		if pool := db.GetManager().GetPool(profileID, activeDatabase); pool != nil {
+			db.GetManager().UpdateLastUsed(profileID, activeDatabase)
 			return callback(pool)
 		}
 	}
@@ -111,7 +112,7 @@ func (a *App) ConnectProfile(profileID string) error {
 		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
 	}
 	connString := profile.BuildConnectionString(password)
-	return db.GetManager().Connect(profileID, connString)
+	return db.GetManager().Connect(profileID, profile.ActiveDatabase(), connString)
 }
 
 func (a *App) DisconnectProfile(profileID string) {

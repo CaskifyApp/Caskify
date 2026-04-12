@@ -15,8 +15,10 @@ const (
 )
 
 type ConnectionPool struct {
-	pool     *pgxpool.Pool
-	lastUsed time.Time
+	profileID string
+	database  string
+	pool      *pgxpool.Pool
+	lastUsed  time.Time
 }
 
 type ConnectionManager struct {
@@ -56,9 +58,14 @@ func (m *ConnectionManager) cleanupIdleConnections() {
 	}
 }
 
-func (m *ConnectionManager) Connect(profileID string, connString string) error {
+func poolKey(profileID, databaseName string) string {
+	return fmt.Sprintf("%s:%s", profileID, databaseName)
+}
+
+func (m *ConnectionManager) Connect(profileID, databaseName, connString string) error {
+	key := poolKey(profileID, databaseName)
 	m.mu.RLock()
-	if _, exists := m.pools[profileID]; exists {
+	if _, exists := m.pools[key]; exists {
 		m.mu.RUnlock()
 		return nil
 	}
@@ -70,9 +77,11 @@ func (m *ConnectionManager) Connect(profileID string, connString string) error {
 	}
 
 	m.mu.Lock()
-	m.pools[profileID] = &ConnectionPool{
-		pool:     pool,
-		lastUsed: time.Now(),
+	m.pools[key] = &ConnectionPool{
+		profileID: profileID,
+		database:  databaseName,
+		pool:      pool,
+		lastUsed:  time.Now(),
 	}
 	m.mu.Unlock()
 	return nil
@@ -82,9 +91,12 @@ func (m *ConnectionManager) Disconnect(profileID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if cp, exists := m.pools[profileID]; exists {
+	for key, cp := range m.pools {
+		if cp.profileID != profileID {
+			continue
+		}
 		cp.pool.Close()
-		delete(m.pools, profileID)
+		delete(m.pools, key)
 	}
 }
 
@@ -98,11 +110,11 @@ func (m *ConnectionManager) DisconnectAll() {
 	}
 }
 
-func (m *ConnectionManager) GetPool(profileID string) *pgxpool.Pool {
+func (m *ConnectionManager) GetPool(profileID, databaseName string) *pgxpool.Pool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	cp, exists := m.pools[profileID]
+	cp, exists := m.pools[poolKey(profileID, databaseName)]
 	if !exists {
 		return nil
 	}
@@ -113,15 +125,19 @@ func (m *ConnectionManager) IsConnected(profileID string) bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	_, exists := m.pools[profileID]
-	return exists
+	for _, cp := range m.pools {
+		if cp.profileID == profileID {
+			return true
+		}
+	}
+	return false
 }
 
-func (m *ConnectionManager) UpdateLastUsed(profileID string) {
+func (m *ConnectionManager) UpdateLastUsed(profileID, databaseName string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if cp, exists := m.pools[profileID]; exists {
+	if cp, exists := m.pools[poolKey(profileID, databaseName)]; exists {
 		cp.lastUsed = time.Now()
 	}
 }

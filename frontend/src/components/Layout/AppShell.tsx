@@ -37,7 +37,7 @@ export function AppShell() {
       <aside className="flex w-72 flex-col border-r bg-card/60">
         <div className="flex items-start justify-between border-b px-4 py-3">
           <div>
-            <h1 className="font-semibold text-lg">CaskPG</h1>
+            <h1 className="font-semibold text-lg">Caskify</h1>
             <p className="text-xs text-muted-foreground">PostgreSQL Manager</p>
           </div>
 

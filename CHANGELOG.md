@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Renamed core product identity from CaskPG to Caskify in app metadata and docs
+
 ## [1.0.0-beta1] - 2026-04-12
 
 ### Added

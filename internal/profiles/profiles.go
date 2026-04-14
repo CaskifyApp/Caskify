@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"caskpg/internal/config"
+	"caskify/internal/config"
 	"github.com/google/uuid"
 )
 

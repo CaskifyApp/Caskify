@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	"caskpg/internal/profiles"
+	"caskify/internal/profiles"
 )
 
 func ExportDatabaseSQL(ctx context.Context, profile profiles.Profile, password, databaseName, outputPath string) error {

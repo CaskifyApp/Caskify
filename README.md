@@ -1,8 +1,8 @@
-# CaskPG
+# Caskify
 
 Native PostgreSQL manager for Linux.
 
-`CaskPG` is a Linux-first desktop client for PostgreSQL built with `Wails`, `Go`, `React`, and `TypeScript`. It focuses on fast startup, native desktop integration, secure local credential storage, and a practical workflow for developers who work with PostgreSQL every day.
+`Caskify` is a Linux-first desktop client for PostgreSQL built with `Wails`, `Go`, `React`, and `TypeScript`. It focuses on fast startup, native desktop integration, secure local credential storage, and a practical workflow for developers who work with PostgreSQL every day.
 
 ## Beta Status
 
@@ -23,7 +23,7 @@ This beta is intended for real-world testing before the stable `1.0.0` release. 
 - Database backup and restore helpers
 - AppImage, `.deb`, `.rpm`, and Arch packaging support
 
-## Why CaskPG
+## Why Caskify
 
 - Native Linux desktop app instead of a browser wrapper
 - Lightweight runtime compared to Electron or Java-based database clients
@@ -35,20 +35,20 @@ This beta is intended for real-world testing before the stable `1.0.0` release. 
 ### AppImage
 
 ```bash
-chmod +x caskpg_1.0.0-beta1_amd64.AppImage
-./caskpg_1.0.0-beta1_amd64.AppImage
+chmod +x caskify_1.0.0-beta1_amd64.AppImage
+./caskify_1.0.0-beta1_amd64.AppImage
 ```
 
 ### Debian / Ubuntu
 
 ```bash
-sudo dpkg -i caskpg_1.0.0-beta1_amd64.deb
+sudo dpkg -i caskify_1.0.0-beta1_amd64.deb
 ```
 
 ### Fedora / RHEL / openSUSE
 
 ```bash
-sudo rpm -i caskpg_1.0.0-beta1-1.x86_64.rpm
+sudo rpm -i caskify_1.0.0-beta1-1.x86_64.rpm
 ```
 
 ### Arch Linux
@@ -157,7 +157,7 @@ VERSION=1.0.0-beta1 bash build/packaging/release.sh arch
 If you find a bug during beta testing, include:
 
 - Linux distro and desktop environment
-- CaskPG version
+- Caskify version
 - PostgreSQL target type: local, VPS, Docker, Supabase, or other hosted service
 - Steps to reproduce
 - Error message or screenshot if available

@@ -1,4 +1,4 @@
-module caskpg
+module caskify
 
 go 1.25.0
 

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"caskpg/internal/config"
+	"caskify/internal/config"
 	"github.com/google/uuid"
 )
 

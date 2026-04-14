@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 ROOT_DIR="$(readlink -f "$SCRIPT_DIR/../..")"
 DIST_DIR="$ROOT_DIR/dist"
-BUILD_BIN="$ROOT_DIR/build/bin/caskpg"
+BUILD_BIN="$ROOT_DIR/build/bin/caskify"
 VERSION="${VERSION:-1.0.0-beta1}"
 DRY_RUN=false
 TOOLS_DIR="$ROOT_DIR/build/tools"
@@ -154,47 +154,47 @@ ensure_appimagetool() {
 
 build_appimage() {
   local appdir="$DIST_DIR/AppDir"
-  local output="$DIST_DIR/caskpg_${VERSION}_amd64.AppImage"
+  local output="$DIST_DIR/caskify_${VERSION}_amd64.AppImage"
   local appimagetool_bin
 
   appimagetool_bin="$(ensure_appimagetool)"
   run rm -rf "$appdir"
   run mkdir -p "$appdir/usr/bin" "$appdir/usr/share/applications" "$appdir/usr/share/icons/hicolor/512x512/apps"
-  run cp "$BUILD_BIN" "$appdir/usr/bin/caskpg"
-  run cp "$ROOT_DIR/build/linux/caskpg.desktop" "$appdir/usr/share/applications/caskpg.desktop"
-  run cp "$ROOT_DIR/build/linux/caskpg.desktop" "$appdir/caskpg.desktop"
-  run cp "$ROOT_DIR/build/appicon.png" "$appdir/usr/share/icons/hicolor/512x512/apps/caskpg.png"
-  run cp "$ROOT_DIR/build/appicon.png" "$appdir/caskpg.png"
+  run cp "$BUILD_BIN" "$appdir/usr/bin/caskify"
+  run cp "$ROOT_DIR/build/linux/caskify.desktop" "$appdir/usr/share/applications/caskify.desktop"
+  run cp "$ROOT_DIR/build/linux/caskify.desktop" "$appdir/caskify.desktop"
+  run cp "$ROOT_DIR/build/appicon.png" "$appdir/usr/share/icons/hicolor/512x512/apps/caskify.png"
+  run cp "$ROOT_DIR/build/appicon.png" "$appdir/caskify.png"
   run cp "$ROOT_DIR/build/appicon.png" "$appdir/.DirIcon"
   run cp "$ROOT_DIR/build/linux/AppRun" "$appdir/AppRun"
-  run chmod +x "$appdir/AppRun" "$appdir/usr/bin/caskpg"
+  run chmod +x "$appdir/AppRun" "$appdir/usr/bin/caskify"
   run "$appimagetool_bin" "$appdir" "$output"
 }
 
 build_deb() {
-  local output="$DIST_DIR/caskpg_${VERSION}_amd64.deb"
+  local output="$DIST_DIR/caskify_${VERSION}_amd64.deb"
 
   require_command nfpm
   run env VERSION="$VERSION" nfpm package --config "$ROOT_DIR/build/linux/nfpm.yaml" --packager deb --target "$output"
 }
 
 build_rpm() {
-  local output="$DIST_DIR/caskpg_${VERSION}-1.x86_64.rpm"
+  local output="$DIST_DIR/caskify_${VERSION}-1.x86_64.rpm"
 
   require_command nfpm
   run env VERSION="$VERSION" nfpm package --config "$ROOT_DIR/build/linux/nfpm.yaml" --packager rpm --target "$output"
 }
 
 build_arch() {
-  local workdir="$DIST_DIR/PKGBUILD/caskpg"
+  local workdir="$DIST_DIR/PKGBUILD/caskify"
   local arch_version="${VERSION//-/_}"
 
   require_command makepkg
   run rm -rf "$workdir"
   run mkdir -p "$workdir"
-  run cp "$BUILD_BIN" "$workdir/caskpg"
-  run cp "$ROOT_DIR/build/linux/caskpg.desktop" "$workdir/caskpg.desktop"
-  run cp "$ROOT_DIR/build/appicon.png" "$workdir/caskpg.png"
+  run cp "$BUILD_BIN" "$workdir/caskify"
+  run cp "$ROOT_DIR/build/linux/caskify.desktop" "$workdir/caskify.desktop"
+  run cp "$ROOT_DIR/build/appicon.png" "$workdir/caskify.png"
 
   if $DRY_RUN; then
     echo "[dry-run] sed 's/@VERSION@/$arch_version/g' '$ROOT_DIR/build/linux/PKGBUILD' > '$workdir/PKGBUILD'"

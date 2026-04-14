@@ -1,16 +1,16 @@
-pkgname=caskpg
+pkgname=caskify
 pkgver=@VERSION@
 pkgrel=1
 pkgdesc="PostgreSQL Manager for Linux"
 arch=('x86_64')
-url="https://github.com/drenzzz/CaskPG"
+url="https://github.com/drenzzz/Caskify"
 license=('MIT')
 depends=('gtk3' 'webkit2gtk-4.1' 'libsecret')
-source=('caskpg' 'caskpg.desktop' 'caskpg.png')
+source=('caskify' 'caskify.desktop' 'caskify.png')
 sha256sums=('SKIP' 'SKIP' 'SKIP')
 
 package() {
-  install -Dm755 "$srcdir/caskpg" "$pkgdir/usr/bin/caskpg"
-  install -Dm644 "$srcdir/caskpg.desktop" "$pkgdir/usr/share/applications/caskpg.desktop"
-  install -Dm644 "$srcdir/caskpg.png" "$pkgdir/usr/share/icons/hicolor/512x512/apps/caskpg.png"
+  install -Dm755 "$srcdir/caskify" "$pkgdir/usr/bin/caskify"
+  install -Dm644 "$srcdir/caskify.desktop" "$pkgdir/usr/share/applications/caskify.desktop"
+  install -Dm644 "$srcdir/caskify.png" "$pkgdir/usr/share/icons/hicolor/512x512/apps/caskify.png"
 }

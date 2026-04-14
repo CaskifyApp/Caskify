@@ -194,6 +194,10 @@ export function TestConnection(arg1) {
   return window['go']['main']['App']['TestConnection'](arg1);
 }
 
+export function TestProfileConnection(arg1) {
+  return window['go']['main']['App']['TestProfileConnection'](arg1);
+}
+
 export function UpdateProfile(arg1) {
   return window['go']['main']['App']['UpdateProfile'](arg1);
 }

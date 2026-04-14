@@ -102,6 +102,8 @@ export function SaveSettings(arg1:config.Settings):Promise<void>;
 
 export function TestConnection(arg1:string):Promise<void>;
 
+export function TestProfileConnection(arg1:db.ConnectionTestParams):Promise<db.ConnectionTestResult>;
+
 export function UpdateProfile(arg1:profiles.Profile):Promise<void>;
 
 export function UpdateTableRow(arg1:db.UpdateRowParams):Promise<void>;

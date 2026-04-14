@@ -1,9 +1,22 @@
 package db
 
+import "caskify/internal/profiles"
+
 type QueryExecutionParams struct {
 	ProfileID string `json:"profileId"`
 	Database  string `json:"database"`
 	SQL       string `json:"sql"`
+}
+
+type ConnectionTestParams struct {
+	Profile  profiles.Profile `json:"profile"`
+	Password string           `json:"password"`
+}
+
+type ConnectionTestResult struct {
+	Healthy bool   `json:"healthy"`
+	SSLMode string `json:"sslMode"`
+	Message string `json:"message"`
 }
 
 type DatabaseBackupParams struct {

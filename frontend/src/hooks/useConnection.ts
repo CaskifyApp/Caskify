@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useConnectionStore } from '@/store/connectionStore';
-import type { Profile } from '@/types';
+import type { Profile, ConnectionTestParams } from '@/types';
 
 export function useProfiles() {
   const { profiles, loadProfiles, isLoading, error } = useConnectionStore();
@@ -65,10 +65,10 @@ export function useTestConnection() {
   const [testing, setTesting] = useState(false);
   const { testConnection } = useConnectionStore();
 
-  const test = useCallback(async (connString: string) => {
+  const test = useCallback(async (params: ConnectionTestParams) => {
     setTesting(true);
     try {
-      return await testConnection(connString);
+      return await testConnection(params);
     } finally {
       setTesting(false);
     }

@@ -22,6 +22,32 @@ import (
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
+func normalizeConnectionError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	message := err.Error()
+	lowerMessage := strings.ToLower(message)
+
+	switch {
+	case strings.Contains(lowerMessage, "password authentication failed"):
+		return fmt.Errorf("authentication failed: verify the username and password")
+	case strings.Contains(lowerMessage, "no pg_hba.conf entry"):
+		return fmt.Errorf("connection rejected by server policy: verify host access and SSL mode")
+	case strings.Contains(lowerMessage, "connection refused"):
+		return fmt.Errorf("connection refused: verify the host, port, and server status")
+	case strings.Contains(lowerMessage, "server does not support ssl"):
+		return fmt.Errorf("server rejected SSL: try disabling SSL mode for this server")
+	case strings.Contains(lowerMessage, "tls") || strings.Contains(lowerMessage, "ssl"):
+		return fmt.Errorf("SSL negotiation failed: verify the selected SSL mode and server certificate requirements")
+	case strings.Contains(lowerMessage, "timeout"):
+		return fmt.Errorf("connection timed out: verify the host, port, and network reachability")
+	default:
+		return err
+	}
+}
+
 type App struct {
 	ctx              context.Context
 	runningQueries   map[string]context.CancelFunc
@@ -99,7 +125,24 @@ func (a *App) DeleteProfile(id string) error {
 }
 
 func (a *App) TestConnection(connString string) error {
-	return db.GetManager().TestConnection(connString)
+	return normalizeConnectionError(db.GetManager().TestConnection(connString))
+}
+
+func (a *App) TestProfileConnection(params db.ConnectionTestParams) (*db.ConnectionTestResult, error) {
+	if err := params.Profile.Validate(); err != nil {
+		return nil, err
+	}
+
+	connString := params.Profile.BuildConnectionString(params.Password)
+	if err := db.GetManager().TestConnection(connString); err != nil {
+		return nil, normalizeConnectionError(err)
+	}
+
+	return &db.ConnectionTestResult{
+		Healthy: true,
+		SSLMode: params.Profile.ResolvedSSLMode(),
+		Message: fmt.Sprintf("Connection successful using %s SSL mode.", params.Profile.ResolvedSSLMode()),
+	}, nil
 }
 
 func (a *App) ConnectProfile(profileID string) error {
@@ -112,7 +155,7 @@ func (a *App) ConnectProfile(profileID string) error {
 		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
 	}
 	connString := profile.BuildConnectionString(password)
-	return db.GetManager().Connect(profileID, profile.ActiveDatabase(), connString)
+	return normalizeConnectionError(db.GetManager().Connect(profileID, profile.ActiveDatabase(), connString))
 }
 
 func (a *App) DisconnectProfile(profileID string) {

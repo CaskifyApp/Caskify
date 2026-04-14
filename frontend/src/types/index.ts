@@ -9,6 +9,17 @@ export interface Profile {
   ssl_mode: string;
 }
 
+export interface ConnectionTestParams {
+  profile: Profile;
+  password: string;
+}
+
+export interface ConnectionTestResult {
+  healthy: boolean;
+  sslMode: string;
+  message: string;
+}
+
 export interface ConnectionStatus {
   profileId: string;
   connected: boolean;

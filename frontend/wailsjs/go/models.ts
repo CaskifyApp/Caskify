@@ -662,6 +662,36 @@ export namespace db {
 
 export namespace discovery {
 	
+	export class DockerDatabaseInfo {
+	    id: string;
+	    source: string;
+	    containerId: string;
+	    containerName: string;
+	    image: string;
+	    host: string;
+	    port: number;
+	    database: string;
+	    username: string;
+	    password?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DockerDatabaseInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.source = source["source"];
+	        this.containerId = source["containerId"];
+	        this.containerName = source["containerName"];
+	        this.image = source["image"];
+	        this.host = source["host"];
+	        this.port = source["port"];
+	        this.database = source["database"];
+	        this.username = source["username"];
+	        this.password = source["password"];
+	    }
+	}
 	export class LocalDatabaseInfo {
 	    id: string;
 	    source: string;

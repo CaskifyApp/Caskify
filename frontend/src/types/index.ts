@@ -328,6 +328,19 @@ export interface LocalDatabaseInfo {
   label: string;
 }
 
+export interface DockerDatabaseInfo {
+  id: string;
+  source: string;
+  containerId: string;
+  containerName: string;
+  image: string;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  password?: string;
+}
+
 export interface TreeNode {
   id: string;
   label: string;

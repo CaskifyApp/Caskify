@@ -66,6 +66,10 @@ export function DisconnectProfile(arg1) {
   return window['go']['main']['App']['DisconnectProfile'](arg1);
 }
 
+export function DiscoverDockerDatabases() {
+  return window['go']['main']['App']['DiscoverDockerDatabases']();
+}
+
 export function DiscoverLocalDatabases() {
   return window['go']['main']['App']['DiscoverLocalDatabases']();
 }

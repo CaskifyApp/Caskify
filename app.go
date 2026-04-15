@@ -106,6 +106,10 @@ func (a *App) DiscoverLocalDatabases() ([]discovery.LocalDatabaseInfo, error) {
 	return discovery.DiscoverLocalDatabases(a.ctx)
 }
 
+func (a *App) DiscoverDockerDatabases() ([]discovery.DockerDatabaseInfo, error) {
+	return discovery.DiscoverDockerDatabases(a.ctx)
+}
+
 func (a *App) GetProfile(id string) (*profiles.Profile, error) {
 	return profiles.GetByID(id)
 }

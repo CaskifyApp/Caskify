@@ -39,6 +39,8 @@ export function DeleteTableRow(arg1:db.DeleteRowParams):Promise<void>;
 
 export function DisconnectProfile(arg1:string):Promise<void>;
 
+export function DiscoverDockerDatabases():Promise<Array<discovery.DockerDatabaseInfo>>;
+
 export function DiscoverLocalDatabases():Promise<Array<discovery.LocalDatabaseInfo>>;
 
 export function DropColumn(arg1:db.DropColumnParams):Promise<void>;

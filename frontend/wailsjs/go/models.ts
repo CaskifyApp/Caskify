@@ -660,6 +660,35 @@ export namespace db {
 
 }
 
+export namespace discovery {
+	
+	export class LocalDatabaseInfo {
+	    id: string;
+	    source: string;
+	    host: string;
+	    port: number;
+	    database: string;
+	    username: string;
+	    label: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LocalDatabaseInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.source = source["source"];
+	        this.host = source["host"];
+	        this.port = source["port"];
+	        this.database = source["database"];
+	        this.username = source["username"];
+	        this.label = source["label"];
+	    }
+	}
+
+}
+
 export namespace history {
 	
 	export class HistoryEntry {

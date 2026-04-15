@@ -318,6 +318,16 @@ export interface DatabaseInfo {
   name: string;
 }
 
+export interface LocalDatabaseInfo {
+  id: string;
+  source: string;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  label: string;
+}
+
 export interface TreeNode {
   id: string;
   label: string;

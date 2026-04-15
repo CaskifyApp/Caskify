@@ -13,6 +13,7 @@ import (
 
 	"caskify/internal/config"
 	"caskify/internal/db"
+	"caskify/internal/discovery"
 	"caskify/internal/history"
 	"caskify/internal/keyring"
 	"caskify/internal/profiles"
@@ -99,6 +100,10 @@ func (a *App) withProfileDatabasePool(profileID, databaseName string, callback f
 
 func (a *App) GetProfiles() ([]profiles.Profile, error) {
 	return profiles.GetAll()
+}
+
+func (a *App) DiscoverLocalDatabases() ([]discovery.LocalDatabaseInfo, error) {
+	return discovery.DiscoverLocalDatabases(a.ctx)
 }
 
 func (a *App) GetProfile(id string) (*profiles.Profile, error) {

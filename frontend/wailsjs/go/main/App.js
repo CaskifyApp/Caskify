@@ -162,6 +162,18 @@ export function IsProfileConnected(arg1) {
   return window['go']['main']['App']['IsProfileConnected'](arg1);
 }
 
+export function RefreshCloudProfiles() {
+  return window['go']['main']['App']['RefreshCloudProfiles']();
+}
+
+export function RefreshDockerDiscovery() {
+  return window['go']['main']['App']['RefreshDockerDiscovery']();
+}
+
+export function RefreshLocalDiscovery() {
+  return window['go']['main']['App']['RefreshLocalDiscovery']();
+}
+
 export function RenameColumn(arg1) {
   return window['go']['main']['App']['RenameColumn'](arg1);
 }

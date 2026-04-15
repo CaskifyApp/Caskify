@@ -8,6 +8,7 @@ import { WelcomeView } from '@/components/Views/WelcomeView';
 import { Button } from '@/components/ui/button';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTabStore } from '@/store/tabStore';
+import { useDiscoveryStore } from '@/store/discoveryStore';
 
 const QueryView = lazy(() => import('@/components/Views/QueryView').then((module) => ({ default: module.QueryView })));
 const SettingsView = lazy(() => import('@/components/Views/SettingsView').then((module) => ({ default: module.SettingsView })));
@@ -20,10 +21,18 @@ export function AppShell() {
   const activeTabId = useTabStore((state) => state.activeTabId);
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const startDiscoverySync = useDiscoveryStore((state) => state.startSync);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
   }, [settings.theme]);
+
+  useEffect(() => {
+    const stopSync = startDiscoverySync();
+    return () => {
+      stopSync();
+    };
+  }, [startDiscoverySync]);
 
   const loadingFallback = (
     <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">

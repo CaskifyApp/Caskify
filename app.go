@@ -68,6 +68,24 @@ func (a *App) startup(ctx context.Context) {
 	keyring.Init()
 }
 
+func (a *App) emitDiscoveryEvent(name string, payload any) {
+	if a.ctx == nil {
+		return
+	}
+	wailsruntime.EventsEmit(a.ctx, name, payload)
+}
+
+func (a *App) emitDiscoveryError(source string, err error) {
+	if err == nil {
+		return
+	}
+
+	a.emitDiscoveryEvent("discovery:error", map[string]string{
+		"source":  source,
+		"message": normalizeConnectionError(err).Error(),
+	})
+}
+
 func (a *App) withProfileDatabasePool(profileID, databaseName string, callback func(pool *pgxpool.Pool) error) error {
 	profile, err := profiles.GetByID(profileID)
 	if err != nil {
@@ -104,12 +122,45 @@ func (a *App) GetProfiles() ([]profiles.Profile, error) {
 	return profiles.GetAll()
 }
 
+func (a *App) RefreshCloudProfiles() ([]profiles.Profile, error) {
+	allProfiles, err := profiles.GetAll()
+	if err != nil {
+		a.emitDiscoveryError("cloud", err)
+		return nil, err
+	}
+
+	a.emitDiscoveryEvent("discovery:cloud.updated", allProfiles)
+	return allProfiles, nil
+}
+
 func (a *App) DiscoverLocalDatabases() ([]discovery.LocalDatabaseInfo, error) {
 	return discovery.DiscoverLocalDatabases(a.ctx)
 }
 
+func (a *App) RefreshLocalDiscovery() ([]discovery.LocalDatabaseInfo, error) {
+	localDatabases, err := discovery.DiscoverLocalDatabases(a.ctx)
+	if err != nil {
+		a.emitDiscoveryError("local", err)
+		return nil, err
+	}
+
+	a.emitDiscoveryEvent("discovery:local.updated", localDatabases)
+	return localDatabases, nil
+}
+
 func (a *App) DiscoverDockerDatabases() ([]discovery.DockerDatabaseInfo, error) {
 	return discovery.DiscoverDockerDatabases(a.ctx)
+}
+
+func (a *App) RefreshDockerDiscovery() ([]discovery.DockerDatabaseInfo, error) {
+	dockerDatabases, err := discovery.DiscoverDockerDatabases(a.ctx)
+	if err != nil {
+		a.emitDiscoveryError("docker", err)
+		return nil, err
+	}
+
+	a.emitDiscoveryEvent("discovery:docker.updated", dockerDatabases)
+	return dockerDatabases, nil
 }
 
 func (a *App) GetProfile(id string) (*profiles.Profile, error) {

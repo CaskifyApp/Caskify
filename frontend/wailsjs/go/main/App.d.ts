@@ -87,6 +87,12 @@ export function InsertTableRow(arg1:db.InsertRowParams):Promise<void>;
 
 export function IsProfileConnected(arg1:string):Promise<boolean>;
 
+export function RefreshCloudProfiles():Promise<Array<profiles.Profile>>;
+
+export function RefreshDockerDiscovery():Promise<Array<discovery.DockerDatabaseInfo>>;
+
+export function RefreshLocalDiscovery():Promise<Array<discovery.LocalDatabaseInfo>>;
+
 export function RenameColumn(arg1:db.RenameColumnParams):Promise<void>;
 
 export function RenameTable(arg1:db.RenameTableParams):Promise<void>;

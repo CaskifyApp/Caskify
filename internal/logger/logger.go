@@ -10,6 +10,8 @@ import (
 var log *logrus.Logger
 
 var passwordRegex = regexp.MustCompile(`(password=)[^\s&]+`)
+var userInfoRegex = regexp.MustCompile(`(postgres(?:ql)?://[^:\s]+:)[^@\s]+(@)`)
+var envPasswordRegex = regexp.MustCompile(`(POSTGRES_PASSWORD=)[^\s]+`)
 
 func Init() {
 	log = logrus.New()
@@ -36,5 +38,8 @@ func SetLevel(level string) {
 }
 
 func RedactConnectionString(connStr string) string {
-	return passwordRegex.ReplaceAllString(connStr, "${1}***")
+	redacted := passwordRegex.ReplaceAllString(connStr, "${1}***")
+	redacted = userInfoRegex.ReplaceAllString(redacted, "${1}***${2}")
+	redacted = envPasswordRegex.ReplaceAllString(redacted, "${1}***")
+	return redacted
 }

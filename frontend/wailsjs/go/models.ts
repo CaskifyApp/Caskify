@@ -672,7 +672,7 @@ export namespace discovery {
 	    port: number;
 	    database: string;
 	    username: string;
-	    password?: string;
+	    passwordAvailable: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new DockerDatabaseInfo(source);
@@ -689,7 +689,7 @@ export namespace discovery {
 	        this.port = source["port"];
 	        this.database = source["database"];
 	        this.username = source["username"];
-	        this.password = source["password"];
+	        this.passwordAvailable = source["passwordAvailable"];
 	    }
 	}
 	export class LocalDatabaseInfo {

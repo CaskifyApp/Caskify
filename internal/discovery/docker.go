@@ -17,16 +17,16 @@ var (
 )
 
 type DockerDatabaseInfo struct {
-	ID            string `json:"id"`
-	Source        string `json:"source"`
-	ContainerID   string `json:"containerId"`
-	ContainerName string `json:"containerName"`
-	Image         string `json:"image"`
-	Host          string `json:"host"`
-	Port          int    `json:"port"`
-	Database      string `json:"database"`
-	Username      string `json:"username"`
-	Password      string `json:"password,omitempty"`
+	ID                string `json:"id"`
+	Source            string `json:"source"`
+	ContainerID       string `json:"containerId"`
+	ContainerName     string `json:"containerName"`
+	Image             string `json:"image"`
+	Host              string `json:"host"`
+	Port              int    `json:"port"`
+	Database          string `json:"database"`
+	Username          string `json:"username"`
+	PasswordAvailable bool   `json:"passwordAvailable"`
 }
 
 type dockerDiscoveryDeps struct {
@@ -159,16 +159,16 @@ func mapDockerInspectRecord(record dockerInspectRecord) (DockerDatabaseInfo, boo
 
 	id := fmt.Sprintf("docker:%s:%s:%d", shortContainerID(record.ID), host, port)
 	return DockerDatabaseInfo{
-		ID:            id,
-		Source:        "docker",
-		ContainerID:   shortContainerID(record.ID),
-		ContainerName: containerName,
-		Image:         record.Config.Image,
-		Host:          host,
-		Port:          port,
-		Database:      databaseName,
-		Username:      username,
-		Password:      envMap["POSTGRES_PASSWORD"],
+		ID:                id,
+		Source:            "docker",
+		ContainerID:       shortContainerID(record.ID),
+		ContainerName:     containerName,
+		Image:             record.Config.Image,
+		Host:              host,
+		Port:              port,
+		Database:          databaseName,
+		Username:          username,
+		PasswordAvailable: envMap["POSTGRES_PASSWORD"] != "",
 	}, true
 }
 

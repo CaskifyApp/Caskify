@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,6 +17,7 @@ import (
 	"caskify/internal/discovery"
 	"caskify/internal/history"
 	"caskify/internal/keyring"
+	"caskify/internal/logger"
 	"caskify/internal/profiles"
 	"caskify/internal/queries"
 	"github.com/google/uuid"
@@ -45,7 +47,7 @@ func normalizeConnectionError(err error) error {
 	case strings.Contains(lowerMessage, "timeout"):
 		return fmt.Errorf("connection timed out: verify the host, port, and network reachability")
 	default:
-		return err
+		return errors.New(logger.RedactConnectionString(message))
 	}
 }
 

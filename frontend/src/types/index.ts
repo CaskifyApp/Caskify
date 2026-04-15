@@ -338,7 +338,7 @@ export interface DockerDatabaseInfo {
   port: number;
   database: string;
   username: string;
-  password?: string;
+  passwordAvailable: boolean;
 }
 
 export interface TreeNode {

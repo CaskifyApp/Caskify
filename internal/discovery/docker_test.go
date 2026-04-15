@@ -64,6 +64,9 @@ func TestDiscoverDockerDatabasesWithDeps(t *testing.T) {
 	if container.Database != "app_db" || container.Username != "app_user" {
 		t.Fatalf("unexpected connection details: %#v", container)
 	}
+	if !container.PasswordAvailable {
+		t.Fatalf("expected passwordAvailable to be true")
+	}
 }
 
 func TestDiscoverDockerDatabasesWithDepsReturnsDockerUnavailable(t *testing.T) {

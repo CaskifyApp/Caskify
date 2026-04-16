@@ -1,15 +1,26 @@
+import { useState } from 'react';
 import { HardDrive, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDiscoveryStore } from '@/store/discoveryStore';
 
 interface LocalDatabaseSectionProps {
-  onBrowse: (databaseId: string) => void;
+  onBrowse: (databaseId: string) => Promise<void>;
 }
 
 export function LocalDatabaseSection({ onBrowse }: LocalDatabaseSectionProps) {
   const localDatabases = useDiscoveryStore((state) => state.localDatabases);
   const refreshAll = useDiscoveryStore((state) => state.refreshAll);
   const error = useDiscoveryStore((state) => state.discoveryErrors.local);
+  const [browsingId, setBrowsingId] = useState<string | null>(null);
+
+  const handleBrowse = async (databaseId: string) => {
+    setBrowsingId(databaseId);
+    try {
+      await onBrowse(databaseId);
+    } finally {
+      setBrowsingId(null);
+    }
+  };
 
   return (
     <section className="border-b px-3 py-3">
@@ -41,8 +52,8 @@ export function LocalDatabaseSection({ onBrowse }: LocalDatabaseSectionProps) {
                   <div className="truncate text-sm font-medium">{database.database}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{database.label} as {database.username}</div>
                 </div>
-                <Button variant="outline" size="xs" onClick={() => onBrowse(database.id)}>
-                  Browse
+                <Button variant="outline" size="xs" disabled={browsingId === database.id} onClick={() => void handleBrowse(database.id)}>
+                  {browsingId === database.id ? 'Opening...' : 'Browse'}
                 </Button>
               </div>
             </li>

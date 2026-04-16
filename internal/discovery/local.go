@@ -36,6 +36,7 @@ type localCandidate struct {
 
 type localDiscoveryDeps struct {
 	currentUsername func() (string, error)
+	envUsername     func() string
 	tcpReachable    func(host string, port int) bool
 	socketExists    func(path string) bool
 	listDatabases   func(ctx context.Context, candidate localCandidate, username string) ([]string, error)
@@ -44,6 +45,7 @@ type localDiscoveryDeps struct {
 func DiscoverLocalDatabases(ctx context.Context) ([]LocalDatabaseInfo, error) {
 	deps := localDiscoveryDeps{
 		currentUsername: currentUsername,
+		envUsername:     envUsername,
 		tcpReachable:    tcpReachable,
 		socketExists:    socketExists,
 		listDatabases:   listLocalDatabases,
@@ -52,7 +54,7 @@ func DiscoverLocalDatabases(ctx context.Context) ([]LocalDatabaseInfo, error) {
 }
 
 func discoverLocalDatabasesWithDeps(ctx context.Context, deps localDiscoveryDeps) ([]LocalDatabaseInfo, error) {
-	username, err := deps.currentUsername()
+	usernames, err := candidateUsernames(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -77,27 +79,31 @@ func discoverLocalDatabasesWithDeps(ctx context.Context, deps localDiscoveryDeps
 			continue
 		}
 
-		databases, listErr := deps.listDatabases(ctx, candidate, username)
-		if listErr != nil {
-			continue
-		}
-
-		for _, databaseName := range databases {
-			key := fmt.Sprintf("%s:%s:%d:%s", candidate.Source, candidate.Host, candidate.Port, databaseName)
-			if _, exists := seen[key]; exists {
+		for _, username := range usernames {
+			databases, listErr := deps.listDatabases(ctx, candidate, username)
+			if listErr != nil {
 				continue
 			}
 
-			seen[key] = struct{}{}
-			discovered = append(discovered, LocalDatabaseInfo{
-				ID:       key,
-				Source:   candidate.Source,
-				Host:     candidate.Host,
-				Port:     candidate.Port,
-				Database: databaseName,
-				Username: username,
-				Label:    candidate.Label,
-			})
+			for _, databaseName := range databases {
+				key := fmt.Sprintf("local:%d:%s", candidate.Port, databaseName)
+				if _, exists := seen[key]; exists {
+					continue
+				}
+
+				seen[key] = struct{}{}
+				discovered = append(discovered, LocalDatabaseInfo{
+					ID:       key,
+					Source:   candidate.Source,
+					Host:     candidate.Host,
+					Port:     candidate.Port,
+					Database: databaseName,
+					Username: username,
+					Label:    candidate.Label,
+				})
+			}
+
+			break
 		}
 	}
 
@@ -114,11 +120,43 @@ func discoverLocalDatabasesWithDeps(ctx context.Context, deps localDiscoveryDeps
 	return discovered, nil
 }
 
-func currentUsername() (string, error) {
-	if envUser := strings.TrimSpace(os.Getenv("PGUSER")); envUser != "" {
-		return envUser, nil
+func candidateUsernames(deps localDiscoveryDeps) ([]string, error) {
+	usernames := make([]string, 0, 3)
+	seen := make(map[string]struct{}, 3)
+
+	appendUsername := func(username string) {
+		normalized := strings.TrimSpace(username)
+		if normalized == "" {
+			return
+		}
+		if _, exists := seen[normalized]; exists {
+			return
+		}
+		seen[normalized] = struct{}{}
+		usernames = append(usernames, normalized)
 	}
 
+	appendUsername(deps.envUsername())
+	appendUsername("postgres")
+
+	currentUsername, err := deps.currentUsername()
+	if err != nil {
+		return nil, err
+	}
+	appendUsername(currentUsername)
+
+	if len(usernames) == 0 {
+		return nil, fmt.Errorf("no local PostgreSQL usernames available for discovery")
+	}
+
+	return usernames, nil
+}
+
+func envUsername() string {
+	return strings.TrimSpace(os.Getenv("PGUSER"))
+}
+
+func currentUsername() (string, error) {
 	currentUser, err := user.Current()
 	if err != nil {
 		return "", fmt.Errorf("failed to detect current user: %w", err)

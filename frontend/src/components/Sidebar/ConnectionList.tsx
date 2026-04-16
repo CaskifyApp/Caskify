@@ -23,6 +23,7 @@ export function ConnectionList() {
   const { connect, connecting } = useConnectProfile();
   const { disconnect, disconnecting } = useDisconnectProfile();
   const openTableTab = useTabStore((state) => state.openTableTab);
+  const openQueryTabForConnection = useTabStore((state) => state.openQueryTabForConnection);
   const resetConnectionTree = useSidebarStore((state) => state.resetConnectionTree);
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
   const saveProfile = useConnectionStore((state) => state.saveProfile);
@@ -118,6 +119,7 @@ export function ConnectionList() {
     const targetProfile = existingProfile ?? await saveProfile(profileInput);
     await handleConnect(targetProfile.id);
     await loadDatabases(targetProfile.id, true);
+    openQueryTabForConnection(targetProfile.id, discovered.database, discovered.database);
   };
 
   const handleUseDockerDetails = (databaseId: string) => {
@@ -151,7 +153,7 @@ export function ConnectionList() {
 			</div>
 			
 			<div className="flex-1 overflow-y-auto">
-				<LocalDatabaseSection onBrowse={(databaseId) => void handleBrowseLocal(databaseId)} />
+				<LocalDatabaseSection onBrowse={handleBrowseLocal} />
 				<DockerDatabaseSection onUseDetails={handleUseDockerDetails} />
 				<CloudConnectionsSection
 					profiles={profiles}

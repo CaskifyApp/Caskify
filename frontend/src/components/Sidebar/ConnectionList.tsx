@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
-import { Database, Edit2, Plus, Plug, PlugZap, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CreateDatabaseDialog, DropDatabaseDialog } from '@/components/Modals/DatabaseAdminDialogs';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useDeleteProfile, useConnectProfile, useDisconnectProfile } from '@/hooks/useConnection';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
-import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
+import { LocalDatabaseSection } from '@/components/Sidebar/LocalDatabaseSection';
+import { DockerDatabaseSection } from '@/components/Sidebar/DockerDatabaseSection';
+import { CloudConnectionsSection } from '@/components/Sidebar/CloudConnectionsSection';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useTabStore } from '@/store/tabStore';
 import { useState } from 'react';
@@ -35,19 +36,19 @@ export function ConnectionList() {
     loadProfiles();
   }, [loadProfiles]);
 
-  useEffect(() => {
-    const handleQuickLocalServer = () => {
-      setEditingProfile(null);
-      setInitialProfile({
-        name: 'Local PostgreSQL',
-        host: 'localhost',
-        port: 5432,
-        defaultDatabase: 'postgres',
-        username: 'postgres',
-        ssl_mode: 'disable',
-      });
-      setModalOpen(true);
-    };
+	useEffect(() => {
+		const handleQuickLocalServer = () => {
+			setEditingProfile(null);
+			setInitialProfile({
+				name: 'Local PostgreSQL',
+				host: 'localhost',
+				port: 5432,
+				defaultDatabase: 'postgres',
+				username: 'postgres',
+				ssl_mode: 'auto',
+			});
+			setModalOpen(true);
+		};
 
     window.addEventListener('caskpg:quick-local-server', handleQuickLocalServer);
     return () => window.removeEventListener('caskpg:quick-local-server', handleQuickLocalServer);
@@ -87,106 +88,36 @@ export function ConnectionList() {
     resetConnectionTree(profileId);
   };
 
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-3 border-b">
-        <h3 className="font-medium text-sm">Connections</h3>
-        <Button variant="ghost" size="icon-xs" onClick={handleNew}>
-          <Plus className="size-4" />
-        </Button>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto">
-        {profiles.length === 0 ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">
-            No connections yet.
-            <br />
-            Click + to add one.
-          </div>
-        ) : (
-          <ul className="p-2">
-            {profiles.map((profile) => {
-              const status = connectionStatuses.get(profile.id);
-              const isConnected = status?.connected || false;
-              
-              return (
-                <li key={profile.id} className="rounded-lg hover:bg-muted/60 group">
-                  <div className="flex items-center gap-2 p-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{profile.name}</div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {profile.host}:{profile.port}{profile.defaultDatabase ? ` (default: ${profile.defaultDatabase})` : ''}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {isConnected ? (
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => handleDisconnect(profile.id)}
-                          disabled={disconnecting}
-                          title="Disconnect"
-                        >
-                          <PlugZap className="size-3 text-green-500" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => handleConnect(profile.id)}
-                          disabled={connecting}
-                          title="Connect"
-                        >
-                          <Plug className="size-3" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => setProfileForCreateDatabase(profile)}
-                        title="Create Database"
-                      >
-                        <Database className="size-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => handleEdit(profile)}
-                        title="Edit"
-                      >
-                        <Edit2 className="size-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => setProfilePendingDelete(profile)}
-                        disabled={deleting}
-                        title="Delete"
-                      >
-                        <Trash2 className="size-3 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <DatabaseTree
-                    connectionId={profile.id}
-                    connected={isConnected}
-                    onTableSelect={openTableTab}
-                    onRequestDropDatabase={(databaseName) => setDatabaseForDrop({ profile, databaseName })}
-                  />
-
-                  {status?.error ? (
-                    <div className="px-3 pb-2 text-xs text-destructive">
-                      {status.error}
-                    </div>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+	return (
+		<div className="flex flex-col h-full">
+			<div className="flex items-center justify-between border-b px-3 py-3">
+				<div>
+					<h3 className="font-medium text-sm">Database Sources</h3>
+					<p className="text-xs text-muted-foreground">Local, Docker, and cloud PostgreSQL workflows.</p>
+				</div>
+				<Button variant="outline" size="xs" onClick={handleNew}>
+					Add Cloud
+				</Button>
+			</div>
+			
+			<div className="flex-1 overflow-y-auto">
+				<LocalDatabaseSection />
+				<DockerDatabaseSection />
+				<CloudConnectionsSection
+					profiles={profiles}
+					connectionStatuses={connectionStatuses}
+					connecting={connecting}
+					disconnecting={disconnecting}
+					onCreate={handleNew}
+					onEdit={handleEdit}
+					onDelete={setProfilePendingDelete}
+					onConnect={(profileId) => void handleConnect(profileId)}
+					onDisconnect={(profileId) => void handleDisconnect(profileId)}
+					onCreateDatabase={setProfileForCreateDatabase}
+					onRequestDropDatabase={(profile, databaseName) => setDatabaseForDrop({ profile, databaseName })}
+					onTableSelect={openTableTab}
+				/>
+			</div>
 
       <ConnectionModal
         open={modalOpen}

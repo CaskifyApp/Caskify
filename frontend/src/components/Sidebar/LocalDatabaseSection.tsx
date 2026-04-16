@@ -2,7 +2,11 @@ import { HardDrive, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDiscoveryStore } from '@/store/discoveryStore';
 
-export function LocalDatabaseSection() {
+interface LocalDatabaseSectionProps {
+  onBrowse: (databaseId: string) => void;
+}
+
+export function LocalDatabaseSection({ onBrowse }: LocalDatabaseSectionProps) {
   const localDatabases = useDiscoveryStore((state) => state.localDatabases);
   const refreshAll = useDiscoveryStore((state) => state.refreshAll);
   const error = useDiscoveryStore((state) => state.discoveryErrors.local);
@@ -37,6 +41,9 @@ export function LocalDatabaseSection() {
                   <div className="truncate text-sm font-medium">{database.database}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{database.label} as {database.username}</div>
                 </div>
+                <Button variant="outline" size="xs" onClick={() => onBrowse(database.id)}>
+                  Browse
+                </Button>
               </div>
             </li>
           ))}

@@ -42,3 +42,15 @@ func TestBuildConnectionStringUsesResolvedSSLMode(t *testing.T) {
 		t.Fatalf("expected connection string to use detected sslmode=require, got %q", connString)
 	}
 }
+
+func TestSupportsPasswordlessAuth(t *testing.T) {
+	localProfile := Profile{Host: "localhost"}
+	if !localProfile.SupportsPasswordlessAuth() {
+		t.Fatalf("expected localhost profile to support passwordless auth")
+	}
+
+	cloudProfile := Profile{Host: "db.example.com"}
+	if cloudProfile.SupportsPasswordlessAuth() {
+		t.Fatalf("expected remote profile to require password auth")
+	}
+}

@@ -86,15 +86,28 @@ func (a *App) emitDiscoveryError(source string, err error) {
 	})
 }
 
+func (a *App) getProfilePassword(profileID string, profile *profiles.Profile) (string, error) {
+	password, err := keyring.GetPassword("caskpg", profileID)
+	if err == nil {
+		return password, nil
+	}
+
+	if profile.SupportsPasswordlessAuth() {
+		return "", nil
+	}
+
+	return "", fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+}
+
 func (a *App) withProfileDatabasePool(profileID, databaseName string, callback func(pool *pgxpool.Pool) error) error {
 	profile, err := profiles.GetByID(profileID)
 	if err != nil {
 		return err
 	}
 
-	password, err := keyring.GetPassword("caskpg", profileID)
+	password, err := a.getProfilePassword(profileID, profile)
 	if err != nil {
-		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return err
 	}
 
 	activeDatabase := databaseName
@@ -212,9 +225,9 @@ func (a *App) ConnectProfile(profileID string) error {
 	if err != nil {
 		return err
 	}
-	password, err := keyring.GetPassword("caskpg", profileID)
+	password, err := a.getProfilePassword(profileID, profile)
 	if err != nil {
-		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return err
 	}
 	connString := profile.BuildConnectionString(password)
 	return normalizeConnectionError(db.GetManager().Connect(profileID, profile.ActiveDatabase(), connString))
@@ -531,9 +544,9 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 		return nil, err
 	}
 
-	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	password, err := a.getProfilePassword(params.ProfileID, profile)
 	if err != nil {
-		return nil, fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return nil, err
 	}
 
 	databaseName := params.Database
@@ -597,9 +610,9 @@ func (a *App) CreateEmptyDatabase(params db.CreateDatabaseParams) error {
 		return err
 	}
 
-	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	password, err := a.getProfilePassword(params.ProfileID, profile)
 	if err != nil {
-		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return err
 	}
 
 	pool, err := db.OpenPool(profile.BuildConnectionStringForDatabase(password, "postgres"))
@@ -617,9 +630,9 @@ func (a *App) DropDatabase(params db.DropDatabaseParams) error {
 		return err
 	}
 
-	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	password, err := a.getProfilePassword(params.ProfileID, profile)
 	if err != nil {
-		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return err
 	}
 
 	pool, err := db.OpenPool(profile.BuildConnectionStringForDatabase(password, "postgres"))
@@ -689,9 +702,9 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 		return nil, err
 	}
 
-	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	password, err := a.getProfilePassword(params.ProfileID, profile)
 	if err != nil {
-		return nil, fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return nil, err
 	}
 
 	databaseName := params.Database

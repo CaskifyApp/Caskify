@@ -187,6 +187,11 @@ func (p *Profile) ResolvedSSLMode() string {
 	return DetectSSLMode(p.Host, p.SSLMode)
 }
 
+func (p *Profile) SupportsPasswordlessAuth() bool {
+	normalizedHost := strings.ToLower(strings.TrimSpace(p.Host))
+	return normalizedHost == "localhost" || normalizedHost == "127.0.0.1" || normalizedHost == "::1" || strings.HasPrefix(normalizedHost, "/")
+}
+
 func (p *Profile) Validate() error {
 	if p.Name == "" {
 		return fmt.Errorf("profile name is required")

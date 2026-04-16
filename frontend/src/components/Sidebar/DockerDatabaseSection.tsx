@@ -2,7 +2,11 @@ import { Container, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDiscoveryStore } from '@/store/discoveryStore';
 
-export function DockerDatabaseSection() {
+interface DockerDatabaseSectionProps {
+  onUseDetails: (databaseId: string) => void;
+}
+
+export function DockerDatabaseSection({ onUseDetails }: DockerDatabaseSectionProps) {
   const dockerDatabases = useDiscoveryStore((state) => state.dockerDatabases);
   const refreshDocker = useDiscoveryStore((state) => state.refreshDocker);
   const error = useDiscoveryStore((state) => state.discoveryErrors.docker);
@@ -37,6 +41,9 @@ export function DockerDatabaseSection() {
                   <div className="truncate text-sm font-medium">{database.containerName}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{database.host}:{database.port} • {database.database}</div>
                 </div>
+                <Button variant="outline" size="xs" onClick={() => onUseDetails(database.id)}>
+                  Use Details
+                </Button>
               </div>
             </li>
           ))}

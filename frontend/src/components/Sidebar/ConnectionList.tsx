@@ -8,6 +8,7 @@ import { ConnectionModal } from '@/components/Modals/ConnectionModal';
 import { LocalDatabaseSection } from '@/components/Sidebar/LocalDatabaseSection';
 import { DockerDatabaseSection } from '@/components/Sidebar/DockerDatabaseSection';
 import { CloudConnectionsSection } from '@/components/Sidebar/CloudConnectionsSection';
+import { useDiscoveryStore } from '@/store/discoveryStore';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useTabStore } from '@/store/tabStore';
 import { useState } from 'react';
@@ -24,6 +25,9 @@ export function ConnectionList() {
   const openTableTab = useTabStore((state) => state.openTableTab);
   const resetConnectionTree = useSidebarStore((state) => state.resetConnectionTree);
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
+  const saveProfile = useConnectionStore((state) => state.saveProfile);
+  const localDatabases = useDiscoveryStore((state) => state.localDatabases);
+  const dockerDatabases = useDiscoveryStore((state) => state.dockerDatabases);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
@@ -88,6 +92,52 @@ export function ConnectionList() {
     resetConnectionTree(profileId);
   };
 
+  const handleBrowseLocal = async (databaseId: string) => {
+    const discovered = localDatabases.find((database) => database.id === databaseId);
+    if (!discovered) {
+      return;
+    }
+
+    const existingProfile = profiles.find((profile) =>
+      profile.host === discovered.host
+      && profile.port === discovered.port
+      && profile.defaultDatabase === discovered.database
+      && profile.username === discovered.username,
+    );
+
+    const profileInput: Profile = existingProfile ?? {
+      id: '',
+      name: `Local ${discovered.database}`,
+      host: discovered.host,
+      port: discovered.port,
+      defaultDatabase: discovered.database,
+      username: discovered.username,
+      ssl_mode: 'auto',
+    };
+
+    const targetProfile = existingProfile ?? await saveProfile(profileInput);
+    await handleConnect(targetProfile.id);
+    await loadDatabases(targetProfile.id, true);
+  };
+
+  const handleUseDockerDetails = (databaseId: string) => {
+    const discovered = dockerDatabases.find((database) => database.id === databaseId);
+    if (!discovered) {
+      return;
+    }
+
+    setEditingProfile(null);
+    setInitialProfile({
+      name: `Docker ${discovered.containerName}`,
+      host: discovered.host,
+      port: discovered.port,
+      defaultDatabase: discovered.database,
+      username: discovered.username,
+      ssl_mode: 'auto',
+    });
+    setModalOpen(true);
+  };
+
 	return (
 		<div className="flex flex-col h-full">
 			<div className="flex items-center justify-between border-b px-3 py-3">
@@ -101,8 +151,8 @@ export function ConnectionList() {
 			</div>
 			
 			<div className="flex-1 overflow-y-auto">
-				<LocalDatabaseSection />
-				<DockerDatabaseSection />
+				<LocalDatabaseSection onBrowse={(databaseId) => void handleBrowseLocal(databaseId)} />
+				<DockerDatabaseSection onUseDetails={handleUseDockerDetails} />
 				<CloudConnectionsSection
 					profiles={profiles}
 					connectionStatuses={connectionStatuses}

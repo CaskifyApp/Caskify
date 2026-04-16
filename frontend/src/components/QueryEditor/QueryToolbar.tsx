@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import * as wails from '../../../wailsjs/go/main/App';
 import { History, Play, Save, Square, WandSparkles } from 'lucide-react';
 import { format as formatSQL } from 'sql-formatter';
 import { Button } from '@/components/ui/button';
@@ -39,27 +38,20 @@ export function QueryToolbar({ profileId, databaseName, queryText, running, onPr
       return;
     }
 
-    let cancelled = false;
     const profile = profiles.find((item) => item.id === profileId);
-    void wails.GetDatabases(profileId).then((items) => {
-      if (!cancelled) {
-        const nextDatabases = items ?? [];
-        setDatabases(nextDatabases);
-        if (!databaseName && nextDatabases.length > 0) {
-          const preferredDatabase = profile?.defaultDatabase;
-          const nextDatabase = nextDatabases.find((item) => item.name === preferredDatabase)?.name ?? nextDatabases[0].name;
-          onDatabaseChange(nextDatabase);
-        }
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setDatabases([]);
-      }
-    });
+    const selectedDatabase = profile?.defaultDatabase ?? profile?.database ?? '';
+    if (!selectedDatabase) {
+      setDatabases([]);
+      return;
+    }
 
-    return () => {
-      cancelled = true;
-    };
+    const nextDatabases: DatabaseInfo[] = [{ connectionId: profileId, name: selectedDatabase }];
+    setDatabases(nextDatabases);
+    if (!databaseName) {
+      onDatabaseChange(selectedDatabase);
+    }
+
+    return undefined;
   }, [databaseName, onDatabaseChange, profileId, profiles]);
 
   return (

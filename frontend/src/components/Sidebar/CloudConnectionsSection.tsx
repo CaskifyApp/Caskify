@@ -90,6 +90,7 @@ export function CloudConnectionsSection({
                 <DatabaseTree
                   connectionId={profile.id}
                   connected={isConnected}
+                  selectedDatabaseName={profile.defaultDatabase || profile.database || 'postgres'}
                   onTableSelect={onTableSelect}
                   onRequestDropDatabase={(databaseName) => onRequestDropDatabase(profile, databaseName)}
                 />

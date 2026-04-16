@@ -10,7 +10,7 @@ func Init() error {
 	cfg = viper.New()
 	cfg.SetConfigName("settings")
 	cfg.SetConfigType("json")
-	cfg.AddConfigPath("$HOME/.config/caskpg")
+	cfg.AddConfigPath("$HOME/.config/caskify")
 	cfg.SetDefault("theme", "dark")
 	cfg.SetDefault("rowsPerPage", 50)
 	return cfg.ReadInConfig()

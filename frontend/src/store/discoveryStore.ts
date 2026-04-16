@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 import * as wails from '../../wailsjs/go/main/App';
-import type { DockerDatabaseInfo, LocalDatabaseInfo, Profile } from '@/types';
+import type { DockerDatabaseInfo, LocalDatabaseInfo } from '@/types';
 
 const DOCKER_POLL_INTERVAL_MS = 30_000;
 
@@ -13,7 +13,6 @@ interface DiscoveryErrorPayload {
 interface DiscoveryState {
   localDatabases: LocalDatabaseInfo[];
   dockerDatabases: DockerDatabaseInfo[];
-  cloudProfiles: Profile[];
   discoveryErrors: Record<string, string | null>;
   syncing: boolean;
   startSync: () => () => void;
@@ -21,7 +20,6 @@ interface DiscoveryState {
   refreshDocker: () => Promise<void>;
   setLocalDatabases: (items: LocalDatabaseInfo[]) => void;
   setDockerDatabases: (items: DockerDatabaseInfo[]) => void;
-  setCloudProfiles: (items: Profile[]) => void;
   setDiscoveryError: (source: string, message: string | null) => void;
 }
 
@@ -38,7 +36,6 @@ let stopDiscoverySync: (() => void) | null = null;
 export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
   localDatabases: [],
   dockerDatabases: [],
-  cloudProfiles: [],
   discoveryErrors: {},
   syncing: false,
 
@@ -47,7 +44,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
     await Promise.allSettled([
       wails.RefreshLocalDiscovery(),
       wails.RefreshDockerDiscovery(),
-      wails.RefreshCloudProfiles(),
     ]);
     set({ syncing: false });
   },
@@ -71,11 +67,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       get().setDiscoveryError('docker', null);
     });
 
-    const stopCloud = EventsOn('discovery:cloud.updated', (payload: Profile[]) => {
-      get().setCloudProfiles(Array.isArray(payload) ? payload : []);
-      get().setDiscoveryError('cloud', null);
-    });
-
     const stopError = EventsOn('discovery:error', (payload: DiscoveryErrorPayload) => {
       if (!payload?.source) {
         return;
@@ -93,7 +84,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
       window.clearInterval(intervalId);
       stopLocal();
       stopDocker();
-      stopCloud();
       stopError();
       stopDiscoverySync = null;
     };
@@ -103,7 +93,6 @@ export const useDiscoveryStore = create<DiscoveryState>((set, get) => ({
 
   setLocalDatabases: (items) => set({ localDatabases: sortByLabel(items, (item) => item.label) }),
   setDockerDatabases: (items) => set({ dockerDatabases: sortByLabel(items, (item) => item.containerName) }),
-  setCloudProfiles: (items) => set({ cloudProfiles: sortByLabel(items, (item) => item.name) }),
   setDiscoveryError: (source, message) => set((state) => ({
     discoveryErrors: {
       ...state.discoveryErrors,

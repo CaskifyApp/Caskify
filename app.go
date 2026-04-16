@@ -87,7 +87,7 @@ func (a *App) emitDiscoveryError(source string, err error) {
 }
 
 func (a *App) getProfilePassword(profileID string, profile *profiles.Profile) (string, error) {
-	password, err := keyring.GetPassword("caskpg", profileID)
+	password, err := keyring.GetPassword("caskify", profileID)
 	if err == nil {
 		return password, nil
 	}
@@ -133,17 +133,6 @@ func (a *App) withProfileDatabasePool(profileID, databaseName string, callback f
 
 func (a *App) GetProfiles() ([]profiles.Profile, error) {
 	return profiles.GetAll()
-}
-
-func (a *App) RefreshCloudProfiles() ([]profiles.Profile, error) {
-	allProfiles, err := profiles.GetAll()
-	if err != nil {
-		a.emitDiscoveryError("cloud", err)
-		return nil, err
-	}
-
-	a.emitDiscoveryEvent("discovery:cloud.updated", allProfiles)
-	return allProfiles, nil
 }
 
 func (a *App) DiscoverLocalDatabases() ([]discovery.LocalDatabaseInfo, error) {
@@ -195,7 +184,7 @@ func (a *App) UpdateProfile(profile profiles.Profile) error {
 }
 
 func (a *App) DeleteProfile(id string) error {
-	keyring.DeletePassword("caskpg", id)
+	keyring.DeletePassword("caskify", id)
 	return profiles.Delete(id)
 }
 
@@ -242,11 +231,11 @@ func (a *App) IsProfileConnected(profileID string) bool {
 }
 
 func (a *App) SavePassword(profileID, password string) error {
-	return keyring.SavePassword("caskpg", profileID, password)
+	return keyring.SavePassword("caskify", profileID, password)
 }
 
 func (a *App) DeletePassword(profileID string) error {
-	return keyring.DeletePassword("caskpg", profileID)
+	return keyring.DeletePassword("caskify", profileID)
 }
 
 func (a *App) GetDatabases(profileID string) ([]db.DatabaseInfo, error) {

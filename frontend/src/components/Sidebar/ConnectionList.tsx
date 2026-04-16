@@ -55,8 +55,8 @@ export function ConnectionList() {
 			setModalOpen(true);
 		};
 
-    window.addEventListener('caskpg:quick-local-server', handleQuickLocalServer);
-    return () => window.removeEventListener('caskpg:quick-local-server', handleQuickLocalServer);
+    window.addEventListener('caskify:quick-local-server', handleQuickLocalServer);
+    return () => window.removeEventListener('caskify:quick-local-server', handleQuickLocalServer);
   }, []);
 
   const handleEdit = (profile: Profile) => {

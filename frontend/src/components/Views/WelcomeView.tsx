@@ -24,7 +24,7 @@ export function WelcomeView() {
           <button
             type="button"
             className="rounded-full border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            onClick={() => window.dispatchEvent(new CustomEvent('caskpg:quick-local-server'))}
+            onClick={() => window.dispatchEvent(new CustomEvent('caskify:quick-local-server'))}
           >
             Quick Add Local Server
           </button>

@@ -32,7 +32,7 @@ export function useKeyboardShortcuts() {
       refreshTableData(activeTab.id);
       return;
     }
-    window.dispatchEvent(new CustomEvent('caskpg:run-query', { detail: { tabId: activeTab.id } }));
+    window.dispatchEvent(new CustomEvent('caskify:run-query', { detail: { tabId: activeTab.id } }));
   }, { enableOnFormTags: false }, [activeTab]);
 
   useHotkeys('ctrl+s,meta+s', (event) => {
@@ -40,6 +40,6 @@ export function useKeyboardShortcuts() {
       return;
     }
     event.preventDefault();
-    window.dispatchEvent(new CustomEvent('caskpg:save-query', { detail: { tabId: activeTab.id } }));
+    window.dispatchEvent(new CustomEvent('caskify:save-query', { detail: { tabId: activeTab.id } }));
   }, { enableOnFormTags: false }, [activeTab]);
 }

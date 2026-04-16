@@ -7,12 +7,12 @@ import (
 
 func GetConfigDir() string {
 	home := os.Getenv("HOME")
-	return filepath.Join(home, ".config", "caskpg")
+	return filepath.Join(home, ".config", "caskify")
 }
 
 func GetDataDir() string {
 	home := os.Getenv("HOME")
-	return filepath.Join(home, ".local", "share", "caskpg")
+	return filepath.Join(home, ".local", "share", "caskify")
 }
 
 func GetDownloadsDir() string {
@@ -31,5 +31,5 @@ func GetDownloadsDir() string {
 
 func GetCacheDir() string {
 	home := os.Getenv("HOME")
-	return filepath.Join(home, ".cache", "caskpg")
+	return filepath.Join(home, ".cache", "caskify")
 }

@@ -12,7 +12,7 @@ var useLibsecret = true
 func Init() error {
 	var err error
 	ring, err = keyring.Open(keyring.Config{
-		ServiceName: "caskpg",
+		ServiceName: "caskify",
 	})
 	if err != nil {
 		useLibsecret = false
@@ -31,7 +31,7 @@ func SavePassword(service, username, password string) error {
 	return ring.Set(keyring.Item{
 		Key:         service + ":" + username,
 		Data:        []byte(password),
-		Description: "CaskPG connection password",
+		Description: "Caskify connection password",
 	})
 }
 

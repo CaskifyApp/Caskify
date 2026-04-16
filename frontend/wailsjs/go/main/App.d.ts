@@ -87,8 +87,6 @@ export function InsertTableRow(arg1:db.InsertRowParams):Promise<void>;
 
 export function IsProfileConnected(arg1:string):Promise<boolean>;
 
-export function RefreshCloudProfiles():Promise<Array<profiles.Profile>>;
-
 export function RefreshDockerDiscovery():Promise<Array<discovery.DockerDatabaseInfo>>;
 
 export function RefreshLocalDiscovery():Promise<Array<discovery.LocalDatabaseInfo>>;

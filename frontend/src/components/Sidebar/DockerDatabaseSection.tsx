@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Container, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
 import { useDiscoveryStore } from '@/store/discoveryStore';
+import { useSidebarStore } from '@/store/sidebarStore';
 import type { TreeNode } from '@/types';
 
 interface DockerDatabaseSectionProps {
@@ -14,9 +15,14 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
   const dockerDatabases = useDiscoveryStore((state) => state.dockerDatabases);
   const refreshDocker = useDiscoveryStore((state) => state.refreshDocker);
   const error = useDiscoveryStore((state) => state.discoveryErrors.docker);
+  const loadScopedDatabase = useSidebarStore((state) => state.loadScopedDatabase);
   const [browsingId, setBrowsingId] = useState<string | null>(null);
   const [activeDatabaseId, setActiveDatabaseId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
+
+  const activeDatabase = activeDatabaseId
+    ? dockerDatabases.find((database) => database.id === activeDatabaseId) ?? null
+    : null;
 
   const handleBrowse = async (databaseId: string) => {
     setBrowsingId(databaseId);
@@ -24,10 +30,29 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
       const connectionId = await onBrowse(databaseId);
       setActiveDatabaseId(databaseId);
       setActiveConnectionId(connectionId);
+      const selectedDatabase = dockerDatabases.find((database) => database.id === databaseId);
+      if (selectedDatabase) {
+        await loadScopedDatabase(connectionId, selectedDatabase.database, true);
+      }
     } finally {
       setBrowsingId(null);
     }
   };
+
+  const handleRefresh = async () => {
+    await refreshDocker();
+    if (activeDatabase && activeConnectionId) {
+      await loadScopedDatabase(activeConnectionId, activeDatabase.database, true);
+    }
+  };
+
+  useEffect(() => {
+    if (!activeDatabase || !activeConnectionId) {
+      return;
+    }
+
+    void loadScopedDatabase(activeConnectionId, activeDatabase.database, true);
+  }, [activeConnectionId, activeDatabase, loadScopedDatabase]);
 
   return (
     <section className="border-b px-3 py-3">
@@ -36,7 +61,7 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
           <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Docker Databases</h3>
           <p className="text-xs text-muted-foreground">Detected PostgreSQL containers from Docker.</p>
         </div>
-        <Button variant="ghost" size="icon-xs" title="Refresh Docker discovery" onClick={() => void refreshDocker()}>
+        <Button variant="ghost" size="icon-xs" title="Refresh Docker discovery" onClick={() => void handleRefresh()}>
           <RefreshCw className="size-3" />
         </Button>
       </div>

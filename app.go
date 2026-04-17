@@ -165,6 +165,67 @@ func (a *App) RefreshDockerDiscovery() ([]discovery.DockerDatabaseInfo, error) {
 	return dockerDatabases, nil
 }
 
+func (a *App) BrowseDockerDatabase(dockerDatabaseID string) (*profiles.Profile, error) {
+	resolved, err := discovery.ResolveDockerDatabase(a.ctx, dockerDatabaseID)
+	if err != nil {
+		return nil, normalizeConnectionError(err)
+	}
+
+	allProfiles, err := profiles.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var targetProfile *profiles.Profile
+	for index := range allProfiles {
+		profile := allProfiles[index]
+		if profile.Hidden && profile.Host == resolved.DatabaseInfo.Host && profile.Port == resolved.DatabaseInfo.Port && profile.DefaultDatabase == resolved.DatabaseInfo.Database && profile.Username == resolved.DatabaseInfo.Username {
+			targetProfile = &profile
+			break
+		}
+	}
+
+	profileInput := profiles.Profile{
+		Name:            fmt.Sprintf("Docker %s", resolved.DatabaseInfo.ContainerName),
+		Host:            resolved.DatabaseInfo.Host,
+		Port:            resolved.DatabaseInfo.Port,
+		DefaultDatabase: resolved.DatabaseInfo.Database,
+		Username:        resolved.DatabaseInfo.Username,
+		SSLMode:         "auto",
+		Hidden:          true,
+	}
+
+	if targetProfile != nil {
+		profileInput.ID = targetProfile.ID
+		if err := profiles.Update(profileInput); err != nil {
+			return nil, err
+		}
+		if resolved.Password != "" {
+			if err := keyring.SavePassword("caskify", profileInput.ID, resolved.Password); err != nil {
+				return nil, err
+			}
+		}
+		if err := a.ConnectProfile(profileInput.ID); err != nil {
+			return nil, err
+		}
+		return &profileInput, nil
+	}
+
+	savedProfile, err := profiles.Save(profileInput)
+	if err != nil {
+		return nil, err
+	}
+	if resolved.Password != "" {
+		if err := keyring.SavePassword("caskify", savedProfile.ID, resolved.Password); err != nil {
+			return nil, err
+		}
+	}
+	if err := a.ConnectProfile(savedProfile.ID); err != nil {
+		return nil, err
+	}
+	return &savedProfile, nil
+}
+
 func (a *App) GetProfile(id string) (*profiles.Profile, error) {
 	return profiles.GetByID(id)
 }

@@ -56,12 +56,25 @@ type dockerNetworkAttachment struct {
 	IPAddress string `json:"IPAddress"`
 }
 
+type dockerResolvedInfo struct {
+	DatabaseInfo DockerDatabaseInfo
+	Password     string
+}
+
 func DiscoverDockerDatabases(ctx context.Context) ([]DockerDatabaseInfo, error) {
 	deps := dockerDiscoveryDeps{
 		lookPath: exec.LookPath,
 		run:      runDockerCommand,
 	}
 	return discoverDockerDatabasesWithDeps(ctx, deps)
+}
+
+func ResolveDockerDatabase(ctx context.Context, dockerDatabaseID string) (*dockerResolvedInfo, error) {
+	deps := dockerDiscoveryDeps{
+		lookPath: exec.LookPath,
+		run:      runDockerCommand,
+	}
+	return resolveDockerDatabaseWithDeps(ctx, dockerDatabaseID, deps)
 }
 
 func discoverDockerDatabasesWithDeps(ctx context.Context, deps dockerDiscoveryDeps) ([]DockerDatabaseInfo, error) {
@@ -79,6 +92,56 @@ func discoverDockerDatabasesWithDeps(ctx context.Context, deps dockerDiscoveryDe
 		return []DockerDatabaseInfo{}, nil
 	}
 
+	resolvedInfos, err := inspectDockerRecords(ctx, containerIDs, deps)
+	if err != nil {
+		return nil, err
+	}
+
+	discovered := make([]DockerDatabaseInfo, 0, len(resolvedInfos))
+	for _, resolved := range resolvedInfos {
+		discovered = append(discovered, resolved.DatabaseInfo)
+	}
+
+	sort.Slice(discovered, func(i, j int) bool {
+		if discovered[i].ContainerName == discovered[j].ContainerName {
+			return discovered[i].Database < discovered[j].Database
+		}
+		return discovered[i].ContainerName < discovered[j].ContainerName
+	})
+
+	return discovered, nil
+}
+
+func resolveDockerDatabaseWithDeps(ctx context.Context, dockerDatabaseID string, deps dockerDiscoveryDeps) (*dockerResolvedInfo, error) {
+	if _, err := deps.lookPath("docker"); err != nil {
+		return nil, ErrDockerUnavailable
+	}
+
+	containerIDsOutput, err := deps.run(ctx, "ps", "--format", "{{.ID}}")
+	if err != nil {
+		return nil, normalizeDockerError(err)
+	}
+
+	containerIDs := strings.Fields(strings.TrimSpace(string(containerIDsOutput)))
+	if len(containerIDs) == 0 {
+		return nil, fmt.Errorf("no running Docker containers found")
+	}
+
+	resolvedInfos, err := inspectDockerRecords(ctx, containerIDs, deps)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, resolved := range resolvedInfos {
+		if resolved.DatabaseInfo.ID == dockerDatabaseID {
+			return &resolved, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Docker database %q was not found", dockerDatabaseID)
+}
+
+func inspectDockerRecords(ctx context.Context, containerIDs []string, deps dockerDiscoveryDeps) ([]dockerResolvedInfo, error) {
 	inspectArgs := append([]string{"inspect"}, containerIDs...)
 	inspectOutput, err := deps.run(ctx, inspectArgs...)
 	if err != nil {
@@ -90,23 +153,16 @@ func discoverDockerDatabasesWithDeps(ctx context.Context, deps dockerDiscoveryDe
 		return nil, fmt.Errorf("failed to parse Docker inspect output: %w", err)
 	}
 
-	discovered := make([]DockerDatabaseInfo, 0)
+	resolvedInfos := make([]dockerResolvedInfo, 0)
 	for _, record := range records {
-		info, ok := mapDockerInspectRecord(record)
+		resolved, ok := mapDockerInspectRecord(record)
 		if !ok {
 			continue
 		}
-		discovered = append(discovered, info)
+		resolvedInfos = append(resolvedInfos, resolved)
 	}
 
-	sort.Slice(discovered, func(i, j int) bool {
-		if discovered[i].ContainerName == discovered[j].ContainerName {
-			return discovered[i].Database < discovered[j].Database
-		}
-		return discovered[i].ContainerName < discovered[j].ContainerName
-	})
-
-	return discovered, nil
+	return resolvedInfos, nil
 }
 
 func normalizeDockerError(err error) error {
@@ -127,14 +183,14 @@ func normalizeDockerError(err error) error {
 	}
 }
 
-func mapDockerInspectRecord(record dockerInspectRecord) (DockerDatabaseInfo, bool) {
+func mapDockerInspectRecord(record dockerInspectRecord) (dockerResolvedInfo, bool) {
 	imageName := strings.ToLower(record.Config.Image)
 	envMap := parseDockerEnv(record.Config.Env)
 
 	isPostgresImage := strings.Contains(imageName, "postgres") || strings.Contains(imageName, "postgis")
 	hasPostgresEnv := envMap["POSTGRES_DB"] != "" || envMap["POSTGRES_USER"] != "" || envMap["POSTGRES_PASSWORD"] != ""
 	if !isPostgresImage && !hasPostgresEnv {
-		return DockerDatabaseInfo{}, false
+		return dockerResolvedInfo{}, false
 	}
 
 	host, port := resolveDockerEndpoint(record)
@@ -158,17 +214,20 @@ func mapDockerInspectRecord(record dockerInspectRecord) (DockerDatabaseInfo, boo
 	}
 
 	id := fmt.Sprintf("docker:%s:%s:%d", shortContainerID(record.ID), host, port)
-	return DockerDatabaseInfo{
-		ID:                id,
-		Source:            "docker",
-		ContainerID:       shortContainerID(record.ID),
-		ContainerName:     containerName,
-		Image:             record.Config.Image,
-		Host:              host,
-		Port:              port,
-		Database:          databaseName,
-		Username:          username,
-		PasswordAvailable: envMap["POSTGRES_PASSWORD"] != "",
+	return dockerResolvedInfo{
+		DatabaseInfo: DockerDatabaseInfo{
+			ID:                id,
+			Source:            "docker",
+			ContainerID:       shortContainerID(record.ID),
+			ContainerName:     containerName,
+			Image:             record.Config.Image,
+			Host:              host,
+			Port:              port,
+			Database:          databaseName,
+			Username:          username,
+			PasswordAvailable: envMap["POSTGRES_PASSWORD"] != "",
+		},
+		Password: envMap["POSTGRES_PASSWORD"],
 	}, true
 }
 

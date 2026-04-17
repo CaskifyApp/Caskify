@@ -6,6 +6,10 @@ export function AddColumn(arg1) {
   return window['go']['main']['App']['AddColumn'](arg1);
 }
 
+export function BrowseDockerDatabase(arg1) {
+  return window['go']['main']['App']['BrowseDockerDatabase'](arg1);
+}
+
 export function CancelQuery(arg1) {
   return window['go']['main']['App']['CancelQuery'](arg1);
 }

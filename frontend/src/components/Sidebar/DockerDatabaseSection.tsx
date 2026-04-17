@@ -1,15 +1,33 @@
+import { useState } from 'react';
 import { Container, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
 import { useDiscoveryStore } from '@/store/discoveryStore';
+import type { TreeNode } from '@/types';
 
 interface DockerDatabaseSectionProps {
-  onUseDetails: (databaseId: string) => void;
+  onBrowse: (databaseId: string) => Promise<string>;
+  onTableSelect: (node: TreeNode) => void;
 }
 
-export function DockerDatabaseSection({ onUseDetails }: DockerDatabaseSectionProps) {
+export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabaseSectionProps) {
   const dockerDatabases = useDiscoveryStore((state) => state.dockerDatabases);
   const refreshDocker = useDiscoveryStore((state) => state.refreshDocker);
   const error = useDiscoveryStore((state) => state.discoveryErrors.docker);
+  const [browsingId, setBrowsingId] = useState<string | null>(null);
+  const [activeDatabaseId, setActiveDatabaseId] = useState<string | null>(null);
+  const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
+
+  const handleBrowse = async (databaseId: string) => {
+    setBrowsingId(databaseId);
+    try {
+      const connectionId = await onBrowse(databaseId);
+      setActiveDatabaseId(databaseId);
+      setActiveConnectionId(connectionId);
+    } finally {
+      setBrowsingId(null);
+    }
+  };
 
   return (
     <section className="border-b px-3 py-3">
@@ -41,10 +59,19 @@ export function DockerDatabaseSection({ onUseDetails }: DockerDatabaseSectionPro
                   <div className="truncate text-sm font-medium">{database.containerName}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{database.host}:{database.port} • {database.database}</div>
                 </div>
-                <Button variant="outline" size="xs" onClick={() => onUseDetails(database.id)}>
-                  Use Details
+                <Button variant="outline" size="xs" disabled={browsingId === database.id} onClick={() => void handleBrowse(database.id)}>
+                  {browsingId === database.id ? 'Opening...' : 'Browse'}
                 </Button>
               </div>
+
+              {activeDatabaseId === database.id && activeConnectionId ? (
+                <DatabaseTree
+                  connectionId={activeConnectionId}
+                  connected={true}
+                  selectedDatabaseName={database.database}
+                  onTableSelect={onTableSelect}
+                />
+              ) : null}
             </li>
           ))}
         </ul>

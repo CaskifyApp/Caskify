@@ -69,6 +69,43 @@ func TestDiscoverDockerDatabasesWithDeps(t *testing.T) {
 	}
 }
 
+func TestResolveDockerDatabaseWithDeps(t *testing.T) {
+	deps := dockerDiscoveryDeps{
+		lookPath: func(file string) (string, error) {
+			return "/usr/bin/docker", nil
+		},
+		run: func(ctx context.Context, args ...string) ([]byte, error) {
+			if len(args) > 0 && args[0] == "ps" {
+				return []byte("abc123\n"), nil
+			}
+
+			return []byte(`[
+				{
+					"Id": "abc123",
+					"Name": "/caskify-pg",
+					"Config": {
+						"Image": "postgres:16",
+						"Env": ["POSTGRES_DB=app_db", "POSTGRES_USER=postgres", "POSTGRES_PASSWORD=postgres"]
+					},
+					"NetworkSettings": {
+						"Ports": {"5432/tcp": [{"HostIp": "0.0.0.0", "HostPort": "55432"}]},
+						"Networks": {"bridge": {"IPAddress": "172.17.0.2"}}
+					}
+				}
+			]`), nil
+		},
+	}
+
+	resolved, err := resolveDockerDatabaseWithDeps(context.Background(), "docker:abc123:127.0.0.1:55432", deps)
+	if err != nil {
+		t.Fatalf("resolveDockerDatabaseWithDeps returned error: %v", err)
+	}
+
+	if resolved.Password != "postgres" {
+		t.Fatalf("expected resolved password, got %q", resolved.Password)
+	}
+}
+
 func TestDiscoverDockerDatabasesWithDepsReturnsDockerUnavailable(t *testing.T) {
 	deps := dockerDiscoveryDeps{
 		lookPath: func(file string) (string, error) {

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CreateDatabaseDialog, DropDatabaseDialog } from '@/components/Modals/DatabaseAdminDialogs';
@@ -27,7 +28,6 @@ export function ConnectionList() {
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
   const saveProfile = useConnectionStore((state) => state.saveProfile);
   const localDatabases = useDiscoveryStore((state) => state.localDatabases);
-  const dockerDatabases = useDiscoveryStore((state) => state.dockerDatabases);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
@@ -123,22 +123,10 @@ export function ConnectionList() {
     return targetProfile.id;
   };
 
-  const handleUseDockerDetails = (databaseId: string) => {
-    const discovered = dockerDatabases.find((database) => database.id === databaseId);
-    if (!discovered) {
-      return;
-    }
-
-    setEditingProfile(null);
-    setInitialProfile({
-      name: `Docker ${discovered.containerName}`,
-      host: discovered.host,
-      port: discovered.port,
-      defaultDatabase: discovered.database,
-      username: discovered.username,
-      ssl_mode: 'auto',
-    });
-    setModalOpen(true);
+  const handleBrowseDocker = async (databaseId: string) => {
+    const profile = await wails.BrowseDockerDatabase(databaseId);
+    await loadDatabases(profile.id, true);
+    return profile.id;
   };
 
 	return (
@@ -155,7 +143,7 @@ export function ConnectionList() {
 			
 			<div className="flex-1 overflow-y-auto">
 				<LocalDatabaseSection onBrowse={handleBrowseLocal} onTableSelect={openTableTab} />
-				<DockerDatabaseSection onUseDetails={handleUseDockerDetails} />
+				<DockerDatabaseSection onBrowse={handleBrowseDocker} onTableSelect={openTableTab} />
 				<CloudConnectionsSection
 					profiles={profiles}
 					connectionStatuses={connectionStatuses}

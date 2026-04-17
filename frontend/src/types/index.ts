@@ -7,6 +7,7 @@ export interface Profile {
   defaultDatabase?: string;
   username: string;
   ssl_mode: string;
+  hidden?: boolean;
 }
 
 export interface ConnectionTestParams {

@@ -22,6 +22,7 @@ type Profile struct {
 	Database        string `json:"database,omitempty"`
 	Username        string `json:"username"`
 	SSLMode         string `json:"ssl_mode"`
+	Hidden          bool   `json:"hidden,omitempty"`
 }
 
 func DetectSSLMode(host, configuredSSLMode string) string {

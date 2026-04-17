@@ -23,7 +23,6 @@ export function ConnectionList() {
   const { connect, connecting } = useConnectProfile();
   const { disconnect, disconnecting } = useDisconnectProfile();
   const openTableTab = useTabStore((state) => state.openTableTab);
-  const openQueryTabForConnection = useTabStore((state) => state.openQueryTabForConnection);
   const resetConnectionTree = useSidebarStore((state) => state.resetConnectionTree);
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
   const saveProfile = useConnectionStore((state) => state.saveProfile);
@@ -96,14 +95,15 @@ export function ConnectionList() {
   const handleBrowseLocal = async (databaseId: string) => {
     const discovered = localDatabases.find((database) => database.id === databaseId);
     if (!discovered) {
-      return;
+      return '';
     }
 
     const existingProfile = profiles.find((profile) =>
       profile.host === discovered.host
       && profile.port === discovered.port
       && profile.defaultDatabase === discovered.database
-      && profile.username === discovered.username,
+      && profile.username === discovered.username
+      && profile.hidden,
     );
 
     const profileInput: Profile = existingProfile ?? {
@@ -114,12 +114,13 @@ export function ConnectionList() {
       defaultDatabase: discovered.database,
       username: discovered.username,
       ssl_mode: 'auto',
+      hidden: true,
     };
 
     const targetProfile = existingProfile ?? await saveProfile(profileInput);
     await handleConnect(targetProfile.id);
     await loadDatabases(targetProfile.id, true);
-    openQueryTabForConnection(targetProfile.id, discovered.database, discovered.database);
+    return targetProfile.id;
   };
 
   const handleUseDockerDetails = (databaseId: string) => {
@@ -153,7 +154,7 @@ export function ConnectionList() {
 			</div>
 			
 			<div className="flex-1 overflow-y-auto">
-				<LocalDatabaseSection onBrowse={handleBrowseLocal} />
+				<LocalDatabaseSection onBrowse={handleBrowseLocal} onTableSelect={openTableTab} />
 				<DockerDatabaseSection onUseDetails={handleUseDockerDetails} />
 				<CloudConnectionsSection
 					profiles={profiles}

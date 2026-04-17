@@ -51,7 +51,7 @@ export function CloudConnectionsSection({
         </div>
       ) : (
         <ul className="space-y-2">
-          {profiles.map((profile) => {
+          {profiles.filter((profile) => !profile.hidden).map((profile) => {
             const status = connectionStatuses.get(profile.id);
             const isConnected = status?.connected || false;
 

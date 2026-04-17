@@ -1,22 +1,29 @@
 import { useState } from 'react';
 import { HardDrive, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
 import { useDiscoveryStore } from '@/store/discoveryStore';
+import type { TreeNode } from '@/types';
 
 interface LocalDatabaseSectionProps {
-  onBrowse: (databaseId: string) => Promise<void>;
+  onBrowse: (databaseId: string) => Promise<string>;
+  onTableSelect: (node: TreeNode) => void;
 }
 
-export function LocalDatabaseSection({ onBrowse }: LocalDatabaseSectionProps) {
+export function LocalDatabaseSection({ onBrowse, onTableSelect }: LocalDatabaseSectionProps) {
   const localDatabases = useDiscoveryStore((state) => state.localDatabases);
   const refreshAll = useDiscoveryStore((state) => state.refreshAll);
   const error = useDiscoveryStore((state) => state.discoveryErrors.local);
   const [browsingId, setBrowsingId] = useState<string | null>(null);
+  const [activeDatabaseId, setActiveDatabaseId] = useState<string | null>(null);
+  const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
 
   const handleBrowse = async (databaseId: string) => {
     setBrowsingId(databaseId);
     try {
-      await onBrowse(databaseId);
+      const connectionId = await onBrowse(databaseId);
+      setActiveDatabaseId(databaseId);
+      setActiveConnectionId(connectionId);
     } finally {
       setBrowsingId(null);
     }
@@ -56,6 +63,15 @@ export function LocalDatabaseSection({ onBrowse }: LocalDatabaseSectionProps) {
                   {browsingId === database.id ? 'Opening...' : 'Browse'}
                 </Button>
               </div>
+
+              {activeDatabaseId === database.id && activeConnectionId ? (
+                <DatabaseTree
+                  connectionId={activeConnectionId}
+                  connected={true}
+                  selectedDatabaseName={database.database}
+                  onTableSelect={onTableSelect}
+                />
+              ) : null}
             </li>
           ))}
         </ul>

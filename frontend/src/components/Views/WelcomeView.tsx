@@ -4,7 +4,7 @@ import { useConnectionStore } from '@/store/connectionStore';
 export function WelcomeView() {
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
-  const featuredProfiles = profiles.slice(0, 3);
+  const featuredProfiles = profiles.filter((profile) => !profile.hidden).slice(0, 3);
 
   return (
     <div className="flex h-full items-center justify-center p-6">

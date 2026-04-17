@@ -15,14 +15,10 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
   const dockerDatabases = useDiscoveryStore((state) => state.dockerDatabases);
   const refreshDocker = useDiscoveryStore((state) => state.refreshDocker);
   const error = useDiscoveryStore((state) => state.discoveryErrors.docker);
-  const loadScopedDatabase = useSidebarStore((state) => state.loadScopedDatabase);
+  const loadDatabases = useSidebarStore((state) => state.loadDatabases);
   const [browsingId, setBrowsingId] = useState<string | null>(null);
   const [activeDatabaseId, setActiveDatabaseId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
-
-  const activeDatabase = activeDatabaseId
-    ? dockerDatabases.find((database) => database.id === activeDatabaseId) ?? null
-    : null;
 
   const handleBrowse = async (databaseId: string) => {
     setBrowsingId(databaseId);
@@ -30,10 +26,7 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
       const connectionId = await onBrowse(databaseId);
       setActiveDatabaseId(databaseId);
       setActiveConnectionId(connectionId);
-      const selectedDatabase = dockerDatabases.find((database) => database.id === databaseId);
-      if (selectedDatabase) {
-        await loadScopedDatabase(connectionId, selectedDatabase.database, true);
-      }
+      await loadDatabases(connectionId, true);
     } finally {
       setBrowsingId(null);
     }
@@ -41,18 +34,18 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
 
   const handleRefresh = async () => {
     await refreshDocker();
-    if (activeDatabase && activeConnectionId) {
-      await loadScopedDatabase(activeConnectionId, activeDatabase.database, true);
+    if (activeConnectionId) {
+      await loadDatabases(activeConnectionId, true);
     }
   };
 
   useEffect(() => {
-    if (!activeDatabase || !activeConnectionId) {
+    if (!activeDatabaseId || !activeConnectionId) {
       return;
     }
 
-    void loadScopedDatabase(activeConnectionId, activeDatabase.database, true);
-  }, [activeConnectionId, activeDatabase, loadScopedDatabase]);
+    void loadDatabases(activeConnectionId, true);
+  }, [activeConnectionId, activeDatabaseId, dockerDatabases, loadDatabases]);
 
   return (
     <section className="border-b px-3 py-3">
@@ -93,7 +86,6 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
                 <DatabaseTree
                   connectionId={activeConnectionId}
                   connected={true}
-                  selectedDatabaseName={database.database}
                   onTableSelect={onTableSelect}
                 />
               ) : null}

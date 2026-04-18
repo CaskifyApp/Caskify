@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HardDrive, RefreshCw } from 'lucide-react';
+import { HardDrive, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
 import { useDiscoveryStore } from '@/store/discoveryStore';
@@ -7,10 +7,11 @@ import type { TreeNode } from '@/types';
 
 interface LocalDatabaseSectionProps {
   onBrowse: (databaseId: string) => Promise<string>;
+  onCreateDatabase: () => void;
   onTableSelect: (node: TreeNode) => void;
 }
 
-export function LocalDatabaseSection({ onBrowse, onTableSelect }: LocalDatabaseSectionProps) {
+export function LocalDatabaseSection({ onBrowse, onCreateDatabase, onTableSelect }: LocalDatabaseSectionProps) {
   const localDatabases = useDiscoveryStore((state) => state.localDatabases);
   const refreshAll = useDiscoveryStore((state) => state.refreshAll);
   const error = useDiscoveryStore((state) => state.discoveryErrors.local);
@@ -36,9 +37,14 @@ export function LocalDatabaseSection({ onBrowse, onTableSelect }: LocalDatabaseS
           <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Local Databases</h3>
           <p className="text-xs text-muted-foreground">Auto-discovered native PostgreSQL databases.</p>
         </div>
-        <Button variant="ghost" size="icon-xs" title="Refresh local discovery" onClick={() => void refreshAll()}>
-          <RefreshCw className="size-3" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon-xs" title="Create database" onClick={onCreateDatabase}>
+            <Plus className="size-3" />
+          </Button>
+          <Button variant="ghost" size="icon-xs" title="Refresh local discovery" onClick={() => void refreshAll()}>
+            <RefreshCw className="size-3" />
+          </Button>
+        </div>
       </div>
 
       {error ? <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div> : null}

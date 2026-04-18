@@ -1,4 +1,4 @@
-import { Database, Edit2, Plus, Plug, PlugZap, Trash2 } from 'lucide-react';
+import { Edit2, Plus, Plug, PlugZap, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
 import type { ConnectionStatus, Profile } from '@/types';
@@ -14,7 +14,6 @@ interface CloudConnectionsSectionProps {
   onDelete: (profile: Profile) => void;
   onConnect: (profileId: string) => void;
   onDisconnect: (profileId: string) => void;
-  onCreateDatabase: (profile: Profile) => void;
   onRequestDropDatabase: (profile: Profile, databaseName: string) => void;
   onTableSelect: (node: TreeNode) => void;
 }
@@ -29,7 +28,6 @@ export function CloudConnectionsSection({
   onDelete,
   onConnect,
   onDisconnect,
-  onCreateDatabase,
   onRequestDropDatabase,
   onTableSelect,
 }: CloudConnectionsSectionProps) {
@@ -75,9 +73,6 @@ export function CloudConnectionsSection({
                         <Plug className="size-3" />
                       </Button>
                     )}
-                    <Button variant="ghost" size="icon-xs" onClick={() => onCreateDatabase(profile)} title="Create database">
-                      <Database className="size-3" />
-                    </Button>
                     <Button variant="ghost" size="icon-xs" onClick={() => onEdit(profile)} title="Edit connection">
                       <Edit2 className="size-3" />
                     </Button>

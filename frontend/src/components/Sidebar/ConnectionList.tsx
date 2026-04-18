@@ -28,6 +28,7 @@ export function ConnectionList() {
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
   const saveProfile = useConnectionStore((state) => state.saveProfile);
   const localDatabases = useDiscoveryStore((state) => state.localDatabases);
+  const refreshAllDiscovery = useDiscoveryStore((state) => state.refreshAll);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
@@ -129,10 +130,39 @@ export function ConnectionList() {
     return profile.id;
   };
 
+  const handleCreateLocalDatabase = async () => {
+    const sourceDatabase = localDatabases.find((database) => database.database === 'postgres') ?? localDatabases[0];
+    if (!sourceDatabase) {
+      return;
+    }
+
+    const existingProfile = profiles.find((profile) =>
+      profile.host === sourceDatabase.host
+      && profile.port === sourceDatabase.port
+      && profile.defaultDatabase === 'postgres'
+      && profile.username === sourceDatabase.username
+      && profile.hidden,
+    );
+
+    const profileInput: Profile = existingProfile ?? {
+      id: '',
+      name: 'Local PostgreSQL',
+      host: sourceDatabase.host,
+      port: sourceDatabase.port,
+      defaultDatabase: 'postgres',
+      username: sourceDatabase.username,
+      ssl_mode: 'auto',
+      hidden: true,
+    };
+
+    const targetProfile = existingProfile ?? await saveProfile(profileInput);
+    setProfileForCreateDatabase(targetProfile);
+  };
+
 	return (
 		<div className="flex flex-col h-full">
 			<div className="flex-1 overflow-y-auto">
-				<LocalDatabaseSection onBrowse={handleBrowseLocal} onTableSelect={openTableTab} />
+				<LocalDatabaseSection onBrowse={handleBrowseLocal} onCreateDatabase={() => void handleCreateLocalDatabase()} onTableSelect={openTableTab} />
 				<DockerDatabaseSection onBrowse={handleBrowseDocker} onTableSelect={openTableTab} />
 				<CloudConnectionsSection
 					profiles={profiles}
@@ -144,7 +174,6 @@ export function ConnectionList() {
 					onDelete={setProfilePendingDelete}
 					onConnect={(profileId) => void handleConnect(profileId)}
 					onDisconnect={(profileId) => void handleDisconnect(profileId)}
-					onCreateDatabase={setProfileForCreateDatabase}
 					onRequestDropDatabase={(profile, databaseName) => setDatabaseForDrop({ profile, databaseName })}
 					onTableSelect={openTableTab}
 				/>
@@ -167,6 +196,7 @@ export function ConnectionList() {
           if (profileForCreateDatabase) {
             void loadDatabases(profileForCreateDatabase.id, true)
           }
+          void refreshAllDiscovery()
           setProfileForCreateDatabase(null)
         }}
       />

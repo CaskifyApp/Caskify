@@ -3,7 +3,60 @@ import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CUSTOM_COLUMN_TYPE_VALUE, isPresetPostgresColumnType, normalizePostgresColumnType, POSTGRES_COLUMN_TYPE_GROUPS } from '@/lib/postgres-column-types';
 import type { CreateTableColumnInput } from '@/types';
+
+function ColumnTypeField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const normalizedValue = normalizePostgresColumnType(value);
+  const usesPreset = isPresetPostgresColumnType(normalizedValue);
+  const selectValue = usesPreset ? normalizedValue : CUSTOM_COLUMN_TYPE_VALUE;
+
+  return (
+    <div className="grid gap-2">
+      <Select value={selectValue} onValueChange={(nextValue) => {
+        if (nextValue === CUSTOM_COLUMN_TYPE_VALUE) {
+          if (usesPreset) {
+            onChange('');
+          }
+          return;
+        }
+        onChange(nextValue ?? 'text');
+      }}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Choose type" />
+        </SelectTrigger>
+        <SelectContent>
+          {POSTGRES_COLUMN_TYPE_GROUPS.map((group, index) => (
+            <SelectGroup key={group.label}>
+              <SelectLabel>{group.label}</SelectLabel>
+              {group.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+              {index < POSTGRES_COLUMN_TYPE_GROUPS.length - 1 ? <SelectSeparator /> : null}
+            </SelectGroup>
+          ))}
+          <SelectSeparator />
+          <SelectGroup>
+            <SelectLabel>Custom</SelectLabel>
+            <SelectItem value={CUSTOM_COLUMN_TYPE_VALUE}>Custom...</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {!usesPreset ? (
+        <Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="custom_type" />
+      ) : null}
+    </div>
+  );
+}
 
 interface CreateTableDialogProps {
   open: boolean;
@@ -90,7 +143,7 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
               <div key={index} className="grid gap-2 rounded-3xl border p-3">
                 <div className="grid grid-cols-2 gap-2">
                   <Input value={column.name} onChange={(event) => updateColumn(index, { name: event.target.value })} placeholder="column_name" />
-                  <Input value={column.type} onChange={(event) => updateColumn(index, { type: event.target.value })} placeholder="text" />
+                  <ColumnTypeField value={column.type} onChange={(value) => updateColumn(index, { type: value })} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Input value={column.defaultValue ?? ''} onChange={(event) => updateColumn(index, { defaultValue: event.target.value || undefined })} placeholder="Default value (optional)" />

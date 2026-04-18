@@ -3,6 +3,59 @@ import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CUSTOM_COLUMN_TYPE_VALUE, isPresetPostgresColumnType, normalizePostgresColumnType, POSTGRES_COLUMN_TYPE_GROUPS } from '@/lib/postgres-column-types';
+
+function ColumnTypeField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const normalizedValue = normalizePostgresColumnType(value);
+  const usesPreset = isPresetPostgresColumnType(normalizedValue);
+  const selectValue = usesPreset ? normalizedValue : CUSTOM_COLUMN_TYPE_VALUE;
+
+  return (
+    <div className="grid gap-2">
+      <Select value={selectValue} onValueChange={(nextValue) => {
+        if (nextValue === CUSTOM_COLUMN_TYPE_VALUE) {
+          if (usesPreset) {
+            onChange('');
+          }
+          return;
+        }
+        onChange(nextValue ?? 'text');
+      }}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Choose type" />
+        </SelectTrigger>
+        <SelectContent>
+          {POSTGRES_COLUMN_TYPE_GROUPS.map((group, index) => (
+            <SelectGroup key={group.label}>
+              <SelectLabel>{group.label}</SelectLabel>
+              {group.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+              {index < POSTGRES_COLUMN_TYPE_GROUPS.length - 1 ? <SelectSeparator /> : null}
+            </SelectGroup>
+          ))}
+          <SelectSeparator />
+          <SelectGroup>
+            <SelectLabel>Custom</SelectLabel>
+            <SelectItem value={CUSTOM_COLUMN_TYPE_VALUE}>Custom...</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {!usesPreset ? (
+        <Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="custom_type" />
+      ) : null}
+    </div>
+  );
+}
 
 interface BaseColumnDialogProps {
   profileId: string;
@@ -62,7 +115,7 @@ export function AddColumnDialog({ open, onOpenChange, profileId, databaseName, s
         </DialogHeader>
         <div className="grid gap-3">
           <Input value={columnName} onChange={(event) => setColumnName(event.target.value)} placeholder="column_name" />
-          <Input value={columnType} onChange={(event) => setColumnType(event.target.value)} placeholder="text" />
+          <ColumnTypeField value={columnType} onChange={setColumnType} />
           <Input value={defaultValue} onChange={(event) => setDefaultValue(event.target.value)} placeholder="Default value (optional)" />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={nullable} onChange={(event) => setNullable(event.target.checked)} /> Nullable</label>
         </div>

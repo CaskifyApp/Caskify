@@ -22,6 +22,10 @@ function isLongTextColumn(column: ColumnDef) {
   return column.type === 'text';
 }
 
+function requiresManualValue(column: ColumnDef) {
+  return !column.isNullable && !column.hasDefault && !column.isIdentity && !column.isGenerated;
+}
+
 function formatDraftValue(column: ColumnDef, value: unknown) {
   if (value === null || value === undefined) {
     return '';
@@ -98,13 +102,19 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
 
   const shouldHideColumn = (column: ColumnDef) => {
     if (mode === 'insert') {
-      return column.isPrimaryKey || column.isIdentity || column.isGenerated || isTimestampAuditColumn(column);
+      return column.isIdentity || column.isGenerated || isTimestampAuditColumn(column) || (column.isPrimaryKey && column.hasDefault);
     }
 
     return column.isGenerated || column.isPrimaryKey || column.isIdentity || isTimestampAuditColumn(column);
   };
 
-  const isReadonlyColumn = (column: ColumnDef) => column.isIdentity || column.isGenerated || column.isPrimaryKey || !column.isUpdatable;
+  const isReadonlyColumn = (column: ColumnDef) => {
+    if (mode === 'insert') {
+      return column.isIdentity || column.isGenerated || (!column.isUpdatable && !requiresManualValue(column));
+    }
+
+    return column.isIdentity || column.isGenerated || column.isPrimaryKey || !column.isUpdatable;
+  };
 
   const visibleColumns = columns.filter((column) => !shouldHideColumn(column));
   const editableColumns = visibleColumns.filter((column) => !isReadonlyColumn(column));
@@ -130,12 +140,17 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
 
     try {
       if (mode === 'insert') {
+        const missingRequiredColumn = editableColumns.find((column) => requiresManualValue(column) && normalizeValue(column, draft[column.name] ?? '') === null);
+        if (missingRequiredColumn) {
+          throw new Error(`${missingRequiredColumn.name} is required.`);
+        }
+
         const payload: InsertRowParams = {
           profileId,
           database,
           schema,
           table,
-          values: Object.fromEntries(visibleColumns.map((column) => [column.name, normalizeValue(column, draft[column.name] ?? '')])),
+          values: Object.fromEntries(editableColumns.map((column) => [column.name, normalizeValue(column, draft[column.name] ?? '')])),
         };
         await wails.InsertTableRow(payload);
       } else {
@@ -213,6 +228,7 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
                 {column.hasDefault ? ' • defaulted' : ''}
                 {column.isIdentity ? ' • identity' : ''}
                 {column.isGenerated ? ' • generated' : ''}
+                {requiresManualValue(column) ? ' • manual value required' : ''}
                 {isReadonlyColumn(column) ? ' • read-only' : ''}
               </div>
             </div>

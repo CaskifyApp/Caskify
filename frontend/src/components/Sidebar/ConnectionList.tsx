@@ -131,16 +131,6 @@ export function ConnectionList() {
 
 	return (
 		<div className="flex flex-col h-full">
-			<div className="flex items-center justify-between border-b px-3 py-3">
-				<div>
-					<h3 className="font-medium text-sm">Database Sources</h3>
-					<p className="text-xs text-muted-foreground">Local, Docker, and cloud PostgreSQL workflows.</p>
-				</div>
-				<Button variant="outline" size="xs" onClick={handleNew}>
-					Add Cloud
-				</Button>
-			</div>
-			
 			<div className="flex-1 overflow-y-auto">
 				<LocalDatabaseSection onBrowse={handleBrowseLocal} onTableSelect={openTableTab} />
 				<DockerDatabaseSection onBrowse={handleBrowseDocker} onTableSelect={openTableTab} />

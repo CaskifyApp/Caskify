@@ -16,6 +16,7 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
   const refreshDocker = useDiscoveryStore((state) => state.refreshDocker);
   const error = useDiscoveryStore((state) => state.discoveryErrors.docker);
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
+  const invalidateConnectionCache = useSidebarStore((state) => state.invalidateConnectionCache);
   const [browsingId, setBrowsingId] = useState<string | null>(null);
   const [activeDatabaseId, setActiveDatabaseId] = useState<string | null>(null);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
@@ -26,6 +27,7 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
       const connectionId = await onBrowse(databaseId);
       setActiveDatabaseId(databaseId);
       setActiveConnectionId(connectionId);
+      invalidateConnectionCache(connectionId);
       await loadDatabases(connectionId, true);
     } finally {
       setBrowsingId(null);
@@ -35,6 +37,7 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
   const handleRefresh = async () => {
     await refreshDocker();
     if (activeConnectionId) {
+      invalidateConnectionCache(activeConnectionId);
       await loadDatabases(activeConnectionId, true);
     }
   };
@@ -44,8 +47,9 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
       return;
     }
 
+    invalidateConnectionCache(activeConnectionId);
     void loadDatabases(activeConnectionId, true);
-  }, [activeConnectionId, activeDatabaseId, dockerDatabases, loadDatabases]);
+  }, [activeConnectionId, activeDatabaseId, dockerDatabases, invalidateConnectionCache, loadDatabases]);
 
   return (
     <section className="border-b px-3 py-3">

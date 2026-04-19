@@ -16,6 +16,7 @@ interface SidebarState {
   loadTables: (connectionId: string, databaseName: string, schemaName: string, force?: boolean) => Promise<void>;
   toggleNode: (node: TreeNode) => Promise<void>;
   setConnectionTree: (connectionId: string, nodes: TreeNode[]) => void;
+  invalidateConnectionCache: (connectionId: string) => void;
   resetConnectionTree: (connectionId: string) => void;
   getConnectionTree: (connectionId: string) => TreeNode[];
 }
@@ -340,6 +341,20 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
         ...state.treeByConnection,
         [connectionId]: nodes,
       },
+    }));
+  },
+
+  invalidateConnectionCache: (connectionId) => {
+    set((state) => ({
+      loadedAtByNodeId: Object.fromEntries(
+        Object.entries(state.loadedAtByNodeId).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      ),
+      loadingNodeIds: Object.fromEntries(
+        Object.entries(state.loadingNodeIds).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      ),
+      errorByNodeId: Object.fromEntries(
+        Object.entries(state.errorByNodeId).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      ),
     }));
   },
 

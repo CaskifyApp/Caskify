@@ -22,6 +22,14 @@ function isLongTextColumn(column: ColumnDef) {
   return column.type === 'text';
 }
 
+function isUuidColumn(column: ColumnDef) {
+  return column.type === 'uuid';
+}
+
+function isValidUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 function requiresManualValue(column: ColumnDef) {
   return !column.isNullable && !column.hasDefault && !column.isIdentity && !column.isGenerated;
 }
@@ -73,6 +81,13 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
   const normalizeValue = (column: ColumnDef, value: string): unknown => {
     if (value === '') {
       return null;
+    }
+
+    if (isUuidColumn(column)) {
+      if (!isValidUuid(value)) {
+        throw new Error(`Invalid UUID value for ${column.name}`);
+      }
+      return value;
     }
 
     if (column.type === 'boolean') {
@@ -220,8 +235,21 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
                   value={draft[column.name] ?? ''}
                   onChange={(event) => setDraftValue(column.name, event.target.value)}
                   disabled={isReadonlyColumn(column)}
+                  placeholder={isUuidColumn(column) ? '550e8400-e29b-41d4-a716-446655440000' : undefined}
                 />
               )}
+              {isUuidColumn(column) && !isReadonlyColumn(column) ? (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDraftValue(column.name, crypto.randomUUID())}
+                    type="button"
+                  >
+                    Generate UUID
+                  </Button>
+                </div>
+              ) : null}
               <div className="text-xs text-muted-foreground">
                 {column.type}
                 {column.isNullable ? ' • nullable' : ' • required'}

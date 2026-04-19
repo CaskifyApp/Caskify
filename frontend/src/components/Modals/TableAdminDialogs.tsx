@@ -70,7 +70,7 @@ interface CreateTableDialogProps {
 export function CreateTableDialog({ open, onOpenChange, profileId, databaseName, schemaName, onSuccess }: CreateTableDialogProps) {
   const [tableName, setTableName] = useState('');
   const [columns, setColumns] = useState<CreateTableColumnInput[]>([
-    { name: 'id', type: 'uuid', nullable: false, defaultValue: undefined, isPrimaryKey: true },
+    { name: 'id', type: 'serial', nullable: false, defaultValue: undefined, isPrimaryKey: true },
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +109,7 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
         name: tableName.trim(),
         columns,
       } as any);
-      setColumns([{ name: 'id', type: 'uuid', nullable: false, defaultValue: undefined, isPrimaryKey: true }]);
+      setColumns([{ name: 'id', type: 'serial', nullable: false, defaultValue: undefined, isPrimaryKey: true }]);
       setTableName('');
       onOpenChange(false);
       onSuccess();

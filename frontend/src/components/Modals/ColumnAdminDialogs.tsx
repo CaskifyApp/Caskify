@@ -78,6 +78,18 @@ export function AddColumnDialog({ open, onOpenChange, profileId, databaseName, s
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setColumnName('');
+    setColumnType('text');
+    setDefaultValue('');
+    setNullable(true);
+    setError(null);
+  }, [open]);
+
   const handleSubmit = async () => {
     if (!columnName.trim() || !columnType.trim()) {
       setError('Column name and type are required.');

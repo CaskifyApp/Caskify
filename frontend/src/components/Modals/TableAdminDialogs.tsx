@@ -7,6 +7,22 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSepa
 import { CUSTOM_COLUMN_TYPE_VALUE, isPresetPostgresColumnType, normalizePostgresColumnType, POSTGRES_COLUMN_TYPE_GROUPS } from '@/lib/postgres-column-types';
 import type { CreateTableColumnInput } from '@/types';
 
+const DEFAULT_PRIMARY_KEY_COLUMN: CreateTableColumnInput = {
+  name: 'id',
+  type: 'serial',
+  nullable: false,
+  defaultValue: undefined,
+  isPrimaryKey: true,
+};
+
+const DEFAULT_TEXT_COLUMN: CreateTableColumnInput = {
+  name: '',
+  type: 'text',
+  nullable: true,
+  defaultValue: undefined,
+  isPrimaryKey: false,
+};
+
 function ColumnTypeField({
   value,
   onChange,
@@ -69,18 +85,26 @@ interface CreateTableDialogProps {
 
 export function CreateTableDialog({ open, onOpenChange, profileId, databaseName, schemaName, onSuccess }: CreateTableDialogProps) {
   const [tableName, setTableName] = useState('');
-  const [columns, setColumns] = useState<CreateTableColumnInput[]>([
-    { name: 'id', type: 'serial', nullable: false, defaultValue: undefined, isPrimaryKey: true },
-  ]);
+  const [columns, setColumns] = useState<CreateTableColumnInput[]>([{ ...DEFAULT_PRIMARY_KEY_COLUMN }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setTableName('');
+    setColumns([{ ...DEFAULT_PRIMARY_KEY_COLUMN }]);
+    setError(null);
+  }, [open]);
 
   const updateColumn = (index: number, patch: Partial<CreateTableColumnInput>) => {
     setColumns((current) => current.map((column, currentIndex) => (currentIndex === index ? { ...column, ...patch } : column)));
   };
 
   const addColumn = () => {
-    setColumns((current) => [...current, { name: '', type: 'text', nullable: true, defaultValue: undefined, isPrimaryKey: false }]);
+    setColumns((current) => [...current, { ...DEFAULT_TEXT_COLUMN }]);
   };
 
   const removeColumn = (index: number) => {
@@ -109,7 +133,7 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
         name: tableName.trim(),
         columns,
       } as any);
-      setColumns([{ name: 'id', type: 'serial', nullable: false, defaultValue: undefined, isPrimaryKey: true }]);
+      setColumns([{ ...DEFAULT_PRIMARY_KEY_COLUMN }]);
       setTableName('');
       onOpenChange(false);
       onSuccess();
@@ -125,7 +149,7 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Create Table</DialogTitle>
-          <DialogDescription>Create a new table in schema "{schemaName}".</DialogDescription>
+          <DialogDescription>Create a new table in schema "{schemaName}". The first column defaults to a testing-friendly serial primary key.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3">

@@ -3,9 +3,11 @@ package db
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -151,10 +153,42 @@ func (m *ConnectionManager) TestConnection(connString string) error {
 	return nil
 }
 
+func shouldUsePoolerSafeMode(host string, port uint16) bool {
+	normalizedHost := strings.ToLower(strings.TrimSpace(host))
+	if normalizedHost == "" {
+		return false
+	}
+
+	if port == 6543 {
+		return true
+	}
+
+	pooledHostMarkers := []string{
+		"pooler.",
+		"-pooler.",
+		"proxy.",
+		"pgbouncer",
+	}
+
+	for _, marker := range pooledHostMarkers {
+		if strings.Contains(normalizedHost, marker) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func OpenPool(connString string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		return nil, fmt.Errorf("invalid connection string: %w", err)
+	}
+
+	if shouldUsePoolerSafeMode(config.ConnConfig.Host, config.ConnConfig.Port) {
+		config.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+		config.ConnConfig.StatementCacheCapacity = 0
+		config.ConnConfig.DescriptionCacheCapacity = 0
 	}
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {

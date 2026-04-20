@@ -8,6 +8,8 @@ export interface Profile {
   username: string;
   ssl_mode: string;
   hidden?: boolean;
+  sourceKind?: string;
+  sourceKey?: string;
 }
 
 export interface ConnectionTestParams {

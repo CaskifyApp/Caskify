@@ -756,6 +756,8 @@ export namespace profiles {
 	    username: string;
 	    ssl_mode: string;
 	    hidden?: boolean;
+	    sourceKind?: string;
+	    sourceKey?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new Profile(source);
@@ -772,6 +774,8 @@ export namespace profiles {
 	        this.username = source["username"];
 	        this.ssl_mode = source["ssl_mode"];
 	        this.hidden = source["hidden"];
+	        this.sourceKind = source["sourceKind"];
+	        this.sourceKey = source["sourceKey"];
 	    }
 	}
 

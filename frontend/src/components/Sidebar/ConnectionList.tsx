@@ -100,11 +100,9 @@ export function ConnectionList() {
     }
 
     const existingProfile = profiles.find((profile) =>
-      profile.host === discovered.host
-      && profile.port === discovered.port
-      && profile.defaultDatabase === discovered.database
-      && profile.username === discovered.username
-      && profile.hidden,
+      profile.hidden
+      && profile.sourceKind === 'local'
+      && profile.sourceKey === discovered.id,
     );
 
     const profileInput: Profile = existingProfile ?? {
@@ -116,6 +114,8 @@ export function ConnectionList() {
       username: discovered.username,
       ssl_mode: 'auto',
       hidden: true,
+      sourceKind: 'local',
+      sourceKey: discovered.id,
     };
 
     const targetProfile = existingProfile ?? await saveProfile(profileInput);
@@ -137,11 +137,9 @@ export function ConnectionList() {
     }
 
     const existingProfile = profiles.find((profile) =>
-      profile.host === sourceDatabase.host
-      && profile.port === sourceDatabase.port
-      && profile.defaultDatabase === 'postgres'
-      && profile.username === sourceDatabase.username
-      && profile.hidden,
+      profile.hidden
+      && profile.sourceKind === 'local'
+      && profile.sourceKey === sourceDatabase.id,
     );
 
     const profileInput: Profile = existingProfile ?? {
@@ -153,6 +151,8 @@ export function ConnectionList() {
       username: sourceDatabase.username,
       ssl_mode: 'auto',
       hidden: true,
+      sourceKind: 'local',
+      sourceKey: sourceDatabase.id,
     };
 
     const targetProfile = existingProfile ?? await saveProfile(profileInput);

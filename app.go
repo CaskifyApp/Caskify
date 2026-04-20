@@ -179,7 +179,7 @@ func (a *App) BrowseDockerDatabase(dockerDatabaseID string) (*profiles.Profile, 
 	var targetProfile *profiles.Profile
 	for index := range allProfiles {
 		profile := allProfiles[index]
-		if profile.Hidden && profile.Host == resolved.DatabaseInfo.Host && profile.Port == resolved.DatabaseInfo.Port && profile.DefaultDatabase == resolved.DatabaseInfo.Database && profile.Username == resolved.DatabaseInfo.Username {
+		if profile.Hidden && profile.SourceKind == "docker" && profile.SourceKey == dockerDatabaseID {
 			targetProfile = &profile
 			break
 		}
@@ -193,6 +193,8 @@ func (a *App) BrowseDockerDatabase(dockerDatabaseID string) (*profiles.Profile, 
 		Username:        resolved.DatabaseInfo.Username,
 		SSLMode:         "auto",
 		Hidden:          true,
+		SourceKind:      "docker",
+		SourceKey:       dockerDatabaseID,
 	}
 
 	if targetProfile != nil {

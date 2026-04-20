@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
+import { db } from '../../../wailsjs/go/models';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -126,13 +127,13 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
     setError(null);
 
     try {
-      await wails.CreateTable({
+      await wails.CreateTable(db.CreateTableParams.createFrom({
         profileId,
         database: databaseName,
         schema: schemaName,
         name: tableName.trim(),
         columns,
-      } as any);
+      }));
       setColumns([{ ...DEFAULT_PRIMARY_KEY_COLUMN }]);
       setTableName('');
       onOpenChange(false);
@@ -226,13 +227,13 @@ export function RenameTableDialog({ open, onOpenChange, profileId, databaseName,
     setError(null);
 
     try {
-      await wails.RenameTable({
+      await wails.RenameTable(db.RenameTableParams.createFrom({
         profileId,
         database: databaseName,
         schema: schemaName,
         oldName: tableName,
         newName: newName.trim(),
-      } as any);
+      }));
       onOpenChange(false);
       onSuccess();
     } catch (nextError) {
@@ -300,7 +301,7 @@ export function DropTableDialog({ open, onOpenChange, profileId, databaseName, s
     setError(null);
 
     try {
-      await wails.DropTable({ profileId, database: databaseName, schema: schemaName, name: tableName } as any);
+      await wails.DropTable(db.DropTableParams.createFrom({ profileId, database: databaseName, schema: schemaName, name: tableName }));
       onOpenChange(false);
       onSuccess();
     } catch (nextError) {

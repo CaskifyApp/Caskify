@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
+import { db } from '../../../wailsjs/go/models';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -99,7 +100,7 @@ export function AddColumnDialog({ open, onOpenChange, profileId, databaseName, s
     setLoading(true);
     setError(null);
     try {
-      await wails.AddColumn({
+      await wails.AddColumn(db.AddColumnParams.createFrom({
         profileId,
         database: databaseName,
         schema: schemaName,
@@ -108,7 +109,7 @@ export function AddColumnDialog({ open, onOpenChange, profileId, databaseName, s
         type: columnType.trim(),
         nullable,
         default: defaultValue.trim() || undefined,
-      } as any);
+      }));
       onOpenChange(false);
       onSuccess();
     } catch (nextError) {
@@ -161,14 +162,14 @@ export function RenameColumnDialog({ open, onOpenChange, profileId, databaseName
     setLoading(true);
     setError(null);
     try {
-      await wails.RenameColumn({
+      await wails.RenameColumn(db.RenameColumnParams.createFrom({
         profileId,
         database: databaseName,
         schema: schemaName,
         table: tableName,
         oldName: columnName,
         newName: newName.trim(),
-      } as any);
+      }));
       onOpenChange(false);
       onSuccess();
     } catch (nextError) {
@@ -225,7 +226,7 @@ export function DropColumnDialog({ open, onOpenChange, profileId, databaseName, 
     setLoading(true);
     setError(null);
     try {
-      await wails.DropColumn({ profileId, database: databaseName, schema: schemaName, table: tableName, name: columnName } as any);
+      await wails.DropColumn(db.DropColumnParams.createFrom({ profileId, database: databaseName, schema: schemaName, table: tableName, name: columnName }));
       onOpenChange(false);
       onSuccess();
     } catch (nextError) {

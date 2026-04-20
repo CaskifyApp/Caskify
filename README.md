@@ -6,9 +6,15 @@ Native PostgreSQL manager for Linux.
 
 ## Beta Status
 
-Current release target: `1.0.0-beta1`
+Current release target: `1.0.0-beta2`
 
 This beta is intended for real-world testing before the stable `1.0.0` release. Core workflows are implemented and usable, but you should still expect rough edges and report issues you find.
+
+Beta2 focuses on the new source-driven workflow split:
+
+- `Local Databases`: auto-discovered native PostgreSQL with direct browse
+- `Docker Databases`: detected PostgreSQL containers with direct browse
+- `Cloud Connections`: saved manual profiles scoped to a single database
 
 ## Core Features
 
@@ -35,20 +41,20 @@ This beta is intended for real-world testing before the stable `1.0.0` release. 
 ### AppImage
 
 ```bash
-chmod +x caskify_1.0.0-beta1_amd64.AppImage
-./caskify_1.0.0-beta1_amd64.AppImage
+chmod +x caskify_1.0.0-beta2_amd64.AppImage
+./caskify_1.0.0-beta2_amd64.AppImage
 ```
 
 ### Debian / Ubuntu
 
 ```bash
-sudo dpkg -i caskify_1.0.0-beta1_amd64.deb
+sudo dpkg -i caskify_1.0.0-beta2_amd64.deb
 ```
 
 ### Fedora / RHEL / openSUSE
 
 ```bash
-sudo rpm -i caskify_1.0.0-beta1-1.x86_64.rpm
+sudo rpm -i caskify_1.0.0-beta2-1.x86_64.rpm
 ```
 
 ### Arch Linux
@@ -66,6 +72,8 @@ Use these connection values as a baseline:
 - `Database`: `postgres` or your own database
 - `SSL Mode`: `disable`
 
+After startup, Local databases should appear automatically in the sidebar. Use `Browse` to open the database tree without creating a visible saved connection.
+
 ### Test a Supabase database
 
 Use the database credentials from **Project Settings -> Database**:
@@ -74,6 +82,28 @@ Use the database credentials from **Project Settings -> Database**:
 - `Port`: `5432`
 - `Database`: usually `postgres`
 - `SSL Mode`: `require`
+
+Cloud profiles are database-scoped in beta2. One saved connection should represent one target database.
+
+### Test a Docker PostgreSQL container
+
+Run a sample PostgreSQL container:
+
+```bash
+docker run --name caskify-pg \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=app_db \
+  -p 55432:5432 \
+  -d postgres:16
+```
+
+Then verify:
+
+```bash
+docker ps
+```
+
+The container should appear under `Docker Databases`. Use `Browse` to inspect all databases currently available in that container.
 
 ### Basic smoke test queries
 
@@ -131,10 +161,10 @@ pnpm --dir frontend build
 Use the packaging script to create Linux artifacts:
 
 ```bash
-VERSION=1.0.0-beta1 bash build/packaging/release.sh appimage
-VERSION=1.0.0-beta1 bash build/packaging/release.sh deb
-VERSION=1.0.0-beta1 bash build/packaging/release.sh rpm
-VERSION=1.0.0-beta1 bash build/packaging/release.sh arch
+VERSION=1.0.0-beta2 bash build/packaging/release.sh appimage
+VERSION=1.0.0-beta2 bash build/packaging/release.sh deb
+VERSION=1.0.0-beta2 bash build/packaging/release.sh rpm
+VERSION=1.0.0-beta2 bash build/packaging/release.sh arch
 ```
 
 ## Keyboard Shortcuts
@@ -149,6 +179,7 @@ VERSION=1.0.0-beta1 bash build/packaging/release.sh arch
 ## Known Beta Limitations
 
 - Large query results are preview-capped to keep the app responsive
+- Docker source updates still rely on polling and manual refresh instead of native Docker event streaming
 - The Linux packaging workflow is production-oriented, but beta distribution still needs broader distro validation
 - Some UX areas are still being refined for the stable `1.0.0` release
 

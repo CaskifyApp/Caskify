@@ -7,6 +7,22 @@ import { QueryTemplates } from '@/components/QueryEditor/QueryTemplates';
 import { useConnectionStore } from '@/store/connectionStore';
 import type { DatabaseInfo } from '@/types';
 
+function formatProfileLabel(profile: { name: string; hidden?: boolean; sourceKind?: string; defaultDatabase?: string; sourceKey?: string }) {
+  if (!profile.hidden) {
+    return profile.name;
+  }
+
+  const databaseName = profile.defaultDatabase || 'postgres';
+  switch (profile.sourceKind) {
+    case 'docker':
+      return `Docker / ${databaseName}`;
+    case 'local':
+      return `Local / ${databaseName}`;
+    default:
+      return profile.name;
+  }
+}
+
 interface QueryToolbarProps {
   profileId: string;
   databaseName: string;
@@ -27,9 +43,10 @@ export function QueryToolbar({ profileId, databaseName, queryText, running, onPr
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
   const [databases, setDatabases] = useState<DatabaseInfo[]>([]);
+  const activeProfile = profiles.find((profile) => profile.id === profileId) ?? null;
   const connectedProfiles = useMemo(
-    () => profiles.filter((profile) => connectionStatuses.get(profile.id)?.connected),
-    [profiles, connectionStatuses]
+    () => profiles.filter((profile) => connectionStatuses.get(profile.id)?.connected && (!profile.hidden || profile.id === profileId)),
+    [profileId, profiles, connectionStatuses]
   );
 
   useEffect(() => {
@@ -63,7 +80,7 @@ export function QueryToolbar({ profileId, databaseName, queryText, running, onPr
         <SelectContent>
           {connectedProfiles.map((profile) => (
             <SelectItem key={profile.id} value={profile.id}>
-              {profile.name}
+              {formatProfileLabel(profile)}
             </SelectItem>
           ))}
         </SelectContent>
@@ -81,6 +98,12 @@ export function QueryToolbar({ profileId, databaseName, queryText, running, onPr
           ))}
         </SelectContent>
       </Select>
+
+      {activeProfile?.hidden ? (
+        <div className="rounded-full border border-border bg-background px-3 py-2 text-xs text-muted-foreground">
+          {formatProfileLabel(activeProfile)}
+        </div>
+      ) : null}
 
       {running ? (
         <Button variant="destructive" size="sm" onClick={onCancel}>

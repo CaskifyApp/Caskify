@@ -31,6 +31,8 @@ export function CloudConnectionsSection({
   onRequestDropDatabase,
   onTableSelect,
 }: CloudConnectionsSectionProps) {
+  const visibleProfiles = profiles.filter((profile) => !profile.hidden);
+
   return (
     <section className="px-3 py-3">
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -43,13 +45,13 @@ export function CloudConnectionsSection({
         </Button>
       </div>
 
-      {profiles.length === 0 ? (
+      {visibleProfiles.length === 0 ? (
         <div className="rounded-2xl border border-dashed px-3 py-3 text-xs text-muted-foreground">
           No saved cloud connections yet.
         </div>
       ) : (
         <ul className="space-y-2">
-          {profiles.filter((profile) => !profile.hidden).map((profile) => {
+          {visibleProfiles.map((profile) => {
             const status = connectionStatuses.get(profile.id);
             const isConnected = status?.connected || false;
 

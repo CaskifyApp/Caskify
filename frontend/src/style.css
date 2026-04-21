@@ -129,6 +129,10 @@ body {
     translate: 0 0;
         }
     }
+  --color-glow-primary: var(--glow-primary);
+  --color-glow-destructive: var(--glow-destructive);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-inset: var(--surface-inset);
 }
 
 :root {
@@ -171,6 +175,10 @@ body {
     --success-foreground: var(--color-emerald-700);
     --warning: var(--color-amber-500);
     --warning-foreground: var(--color-amber-700);
+    --glow-primary: oklch(0.52 0.105 223.128 / 0.25);
+    --glow-destructive: oklch(0.577 0.245 27.325 / 0.25);
+    --surface-elevated: oklch(1 0 0);
+    --surface-inset: oklch(0.963 0.002 197.1);
 }
 
 .dark {
@@ -212,6 +220,10 @@ body {
     --success-foreground: var(--color-emerald-400);
     --warning: var(--color-amber-500);
     --warning-foreground: var(--color-amber-400);
+    --glow-primary: oklch(0.45 0.085 224.283 / 0.35);
+    --glow-destructive: oklch(0.704 0.191 22.216 / 0.35);
+    --surface-elevated: oklch(0.218 0.008 223.9);
+    --surface-inset: oklch(0.148 0.004 228.8);
 }
 
 @layer base {
@@ -243,10 +255,53 @@ body {
   background-color: color-mix(in oklch, var(--muted) 92%, transparent);
 }
 
+@layer base {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.6 0.01 240 / 0.25);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.6 0.01 240 / 0.4);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: oklch(0.4 0.01 240 / 0.35);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.4 0.01 240 / 0.5);
+  }
+}
+
 @layer utilities {
   .perf-scroll {
     will-change: transform;
     contain: layout style paint;
     -webkit-overflow-scrolling: touch;
+  }
+  .surface-elevated {
+    background-color: var(--surface-elevated);
+    box-shadow: 0 1px 2px oklch(0 0 0 / 0.05), 0 0 0 1px oklch(0 0 0 / 0.03);
+  }
+  .dark .surface-elevated {
+    box-shadow: 0 1px 2px oklch(0 0 0 / 0.2), 0 0 0 1px oklch(1 0 0 / 0.06);
+  }
+  .surface-inset {
+    background-color: var(--surface-inset);
+    box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.04);
+  }
+  .dark .surface-inset {
+    box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.25);
+  }
+  .ring-glow-primary {
+    box-shadow: 0 0 0 1px var(--primary), 0 0 0 4px var(--glow-primary);
+  }
+  .ring-glow-destructive {
+    box-shadow: 0 0 0 1px var(--destructive), 0 0 0 4px var(--glow-destructive);
   }
 }

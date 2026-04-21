@@ -34,6 +34,10 @@ export const badgeVariants = cva(
           "bg-secondary text-secondary-foreground [button&,a&]:hover:bg-secondary/90",
         success: "bg-success/8 text-success-foreground dark:bg-success/16",
         warning: "bg-warning/8 text-warning-foreground dark:bg-warning/16",
+        status:
+          "border-border/50 bg-background text-foreground dark:bg-input/32",
+        datatype:
+          "border-border/60 bg-transparent text-muted-foreground font-normal rounded-md",
       },
     },
   },

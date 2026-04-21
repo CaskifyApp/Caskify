@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"caskpg/internal/config"
+	"caskify/internal/config"
 	"github.com/google/uuid"
 )
 

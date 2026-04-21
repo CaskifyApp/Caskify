@@ -13,7 +13,7 @@ import (
 	"runtime"
 	"strings"
 
-	"caskpg/internal/config"
+	"caskify/internal/config"
 )
 
 var useFallback bool

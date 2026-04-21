@@ -7,8 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
-	"caskpg/internal/config"
+	"caskify/internal/config"
 	"github.com/google/uuid"
 )
 
@@ -21,6 +22,48 @@ type Profile struct {
 	Database        string `json:"database,omitempty"`
 	Username        string `json:"username"`
 	SSLMode         string `json:"ssl_mode"`
+	Hidden          bool   `json:"hidden,omitempty"`
+	SourceKind      string `json:"sourceKind,omitempty"`
+	SourceKey       string `json:"sourceKey,omitempty"`
+}
+
+func DetectSSLMode(host, configuredSSLMode string) string {
+	if configuredSSLMode == "auto" {
+		configuredSSLMode = ""
+	}
+
+	if configuredSSLMode != "" {
+		return configuredSSLMode
+	}
+
+	normalizedHost := strings.ToLower(strings.TrimSpace(host))
+	if normalizedHost == "" {
+		return "disable"
+	}
+
+	cloudPatterns := []string{
+		"supabase.co",
+		"neon.tech",
+		"railway.app",
+		"render.com",
+		"tembo.io",
+		"amazonaws.com",
+		"azure.com",
+		"googleusercontent.com",
+	}
+
+	for _, pattern := range cloudPatterns {
+		if strings.Contains(normalizedHost, pattern) {
+			return "require"
+		}
+	}
+
+	switch normalizedHost {
+	case "localhost", "127.0.0.1", "::1":
+		return "disable"
+	default:
+		return "disable"
+	}
 }
 
 func GetAll() ([]Profile, error) {
@@ -125,10 +168,7 @@ func (p *Profile) BuildConnectionString(password string) string {
 }
 
 func (p *Profile) BuildConnectionStringForDatabase(password, databaseName string) string {
-	sslMode := p.SSLMode
-	if sslMode == "" {
-		sslMode = "disable"
-	}
+	sslMode := DetectSSLMode(p.Host, p.SSLMode)
 	if databaseName == "" {
 		databaseName = p.ActiveDatabase()
 	}
@@ -144,6 +184,15 @@ func (p *Profile) BuildConnectionStringForDatabase(password, databaseName string
 	query.Set("connect_timeout", strconv.Itoa(10))
 	connURL.RawQuery = query.Encode()
 	return connURL.String()
+}
+
+func (p *Profile) ResolvedSSLMode() string {
+	return DetectSSLMode(p.Host, p.SSLMode)
+}
+
+func (p *Profile) SupportsPasswordlessAuth() bool {
+	normalizedHost := strings.ToLower(strings.TrimSpace(p.Host))
+	return normalizedHost == "localhost" || normalizedHost == "127.0.0.1" || normalizedHost == "::1" || strings.HasPrefix(normalizedHost, "/")
 }
 
 func (p *Profile) Validate() error {

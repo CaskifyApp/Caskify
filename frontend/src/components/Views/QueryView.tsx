@@ -104,12 +104,12 @@ export function QueryView({ tab }: QueryViewProps) {
       }
     };
 
-    window.addEventListener('caskpg:run-query', handleRun);
-    window.addEventListener('caskpg:save-query', handleSave);
+    window.addEventListener('caskify:run-query', handleRun);
+    window.addEventListener('caskify:save-query', handleSave);
 
     return () => {
-      window.removeEventListener('caskpg:run-query', handleRun);
-      window.removeEventListener('caskpg:save-query', handleSave);
+      window.removeEventListener('caskify:run-query', handleRun);
+      window.removeEventListener('caskify:save-query', handleSave);
     };
   }, [runQuery, tab.id, tab.queryText]);
 

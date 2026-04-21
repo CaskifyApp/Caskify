@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
-import { Database, Edit2, Plus, Plug, PlugZap, Trash2 } from 'lucide-react';
+import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CreateDatabaseDialog, DropDatabaseDialog } from '@/components/Modals/DatabaseAdminDialogs';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useDeleteProfile, useConnectProfile, useDisconnectProfile } from '@/hooks/useConnection';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
-import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
+import { LocalDatabaseSection } from '@/components/Sidebar/LocalDatabaseSection';
+import { DockerDatabaseSection } from '@/components/Sidebar/DockerDatabaseSection';
+import { CloudConnectionsSection } from '@/components/Sidebar/CloudConnectionsSection';
+import { useDiscoveryStore } from '@/store/discoveryStore';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { useTabStore } from '@/store/tabStore';
 import { useState } from 'react';
@@ -23,6 +26,9 @@ export function ConnectionList() {
   const openTableTab = useTabStore((state) => state.openTableTab);
   const resetConnectionTree = useSidebarStore((state) => state.resetConnectionTree);
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
+  const saveProfile = useConnectionStore((state) => state.saveProfile);
+  const localDatabases = useDiscoveryStore((state) => state.localDatabases);
+  const refreshAllDiscovery = useDiscoveryStore((state) => state.refreshAll);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
@@ -35,22 +41,22 @@ export function ConnectionList() {
     loadProfiles();
   }, [loadProfiles]);
 
-  useEffect(() => {
-    const handleQuickLocalServer = () => {
-      setEditingProfile(null);
-      setInitialProfile({
-        name: 'Local PostgreSQL',
-        host: 'localhost',
-        port: 5432,
-        defaultDatabase: 'postgres',
-        username: 'postgres',
-        ssl_mode: 'disable',
-      });
-      setModalOpen(true);
-    };
+	useEffect(() => {
+		const handleQuickLocalServer = () => {
+			setEditingProfile(null);
+			setInitialProfile({
+				name: 'Local PostgreSQL',
+				host: 'localhost',
+				port: 5432,
+				defaultDatabase: 'postgres',
+				username: 'postgres',
+				ssl_mode: 'auto',
+			});
+			setModalOpen(true);
+		};
 
-    window.addEventListener('caskpg:quick-local-server', handleQuickLocalServer);
-    return () => window.removeEventListener('caskpg:quick-local-server', handleQuickLocalServer);
+    window.addEventListener('caskify:quick-local-server', handleQuickLocalServer);
+    return () => window.removeEventListener('caskify:quick-local-server', handleQuickLocalServer);
   }, []);
 
   const handleEdit = (profile: Profile) => {
@@ -87,106 +93,91 @@ export function ConnectionList() {
     resetConnectionTree(profileId);
   };
 
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-3 border-b">
-        <h3 className="font-medium text-sm">Connections</h3>
-        <Button variant="ghost" size="icon-xs" onClick={handleNew}>
-          <Plus className="size-4" />
-        </Button>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto">
-        {profiles.length === 0 ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">
-            No connections yet.
-            <br />
-            Click + to add one.
-          </div>
-        ) : (
-          <ul className="p-2">
-            {profiles.map((profile) => {
-              const status = connectionStatuses.get(profile.id);
-              const isConnected = status?.connected || false;
-              
-              return (
-                <li key={profile.id} className="rounded-lg hover:bg-muted/60 group">
-                  <div className="flex items-center gap-2 p-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{profile.name}</div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {profile.host}:{profile.port}{profile.defaultDatabase ? ` (default: ${profile.defaultDatabase})` : ''}
-                      </div>
-                    </div>
+  const handleBrowseLocal = async (databaseId: string) => {
+    const discovered = localDatabases.find((database) => database.id === databaseId);
+    if (!discovered) {
+      return '';
+    }
 
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {isConnected ? (
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => handleDisconnect(profile.id)}
-                          disabled={disconnecting}
-                          title="Disconnect"
-                        >
-                          <PlugZap className="size-3 text-green-500" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => handleConnect(profile.id)}
-                          disabled={connecting}
-                          title="Connect"
-                        >
-                          <Plug className="size-3" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => setProfileForCreateDatabase(profile)}
-                        title="Create Database"
-                      >
-                        <Database className="size-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => handleEdit(profile)}
-                        title="Edit"
-                      >
-                        <Edit2 className="size-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => setProfilePendingDelete(profile)}
-                        disabled={deleting}
-                        title="Delete"
-                      >
-                        <Trash2 className="size-3 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
+    const existingProfile = profiles.find((profile) =>
+      profile.hidden
+      && profile.sourceKind === 'local'
+      && profile.sourceKey === discovered.id,
+    );
 
-                  <DatabaseTree
-                    connectionId={profile.id}
-                    connected={isConnected}
-                    onTableSelect={openTableTab}
-                    onRequestDropDatabase={(databaseName) => setDatabaseForDrop({ profile, databaseName })}
-                  />
+    const profileInput: Profile = existingProfile ?? {
+      id: '',
+      name: `Local ${discovered.database}`,
+      host: discovered.host,
+      port: discovered.port,
+      defaultDatabase: discovered.database,
+      username: discovered.username,
+      ssl_mode: 'auto',
+      hidden: true,
+      sourceKind: 'local',
+      sourceKey: discovered.id,
+    };
 
-                  {status?.error ? (
-                    <div className="px-3 pb-2 text-xs text-destructive">
-                      {status.error}
-                    </div>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+    const targetProfile = existingProfile ?? await saveProfile(profileInput);
+    await handleConnect(targetProfile.id);
+    await loadDatabases(targetProfile.id, true);
+    return targetProfile.id;
+  };
+
+  const handleBrowseDocker = async (databaseId: string) => {
+    const profile = await wails.BrowseDockerDatabase(databaseId);
+    await loadDatabases(profile.id, true);
+    return profile.id;
+  };
+
+  const handleCreateLocalDatabase = async () => {
+    const sourceDatabase = localDatabases.find((database) => database.database === 'postgres') ?? localDatabases[0];
+    if (!sourceDatabase) {
+      return;
+    }
+
+    const existingProfile = profiles.find((profile) =>
+      profile.hidden
+      && profile.sourceKind === 'local'
+      && profile.sourceKey === sourceDatabase.id,
+    );
+
+    const profileInput: Profile = existingProfile ?? {
+      id: '',
+      name: 'Local PostgreSQL',
+      host: sourceDatabase.host,
+      port: sourceDatabase.port,
+      defaultDatabase: 'postgres',
+      username: sourceDatabase.username,
+      ssl_mode: 'auto',
+      hidden: true,
+      sourceKind: 'local',
+      sourceKey: sourceDatabase.id,
+    };
+
+    const targetProfile = existingProfile ?? await saveProfile(profileInput);
+    setProfileForCreateDatabase(targetProfile);
+  };
+
+	return (
+		<div className="flex flex-col h-full">
+			<div className="flex-1 overflow-y-auto">
+				<LocalDatabaseSection onBrowse={handleBrowseLocal} onCreateDatabase={() => void handleCreateLocalDatabase()} onTableSelect={openTableTab} />
+				<DockerDatabaseSection onBrowse={handleBrowseDocker} onTableSelect={openTableTab} />
+				<CloudConnectionsSection
+					profiles={profiles}
+					connectionStatuses={connectionStatuses}
+					connecting={connecting}
+					disconnecting={disconnecting}
+					onCreate={handleNew}
+					onEdit={handleEdit}
+					onDelete={setProfilePendingDelete}
+					onConnect={(profileId) => void handleConnect(profileId)}
+					onDisconnect={(profileId) => void handleDisconnect(profileId)}
+					onRequestDropDatabase={(profile, databaseName) => setDatabaseForDrop({ profile, databaseName })}
+					onTableSelect={openTableTab}
+				/>
+			</div>
 
       <ConnectionModal
         open={modalOpen}
@@ -205,6 +196,7 @@ export function ConnectionList() {
           if (profileForCreateDatabase) {
             void loadDatabases(profileForCreateDatabase.id, true)
           }
+          void refreshAllDiscovery()
           setProfileForCreateDatabase(null)
         }}
       />

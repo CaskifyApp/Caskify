@@ -6,6 +6,10 @@ export function AddColumn(arg1) {
   return window['go']['main']['App']['AddColumn'](arg1);
 }
 
+export function BrowseDockerDatabase(arg1) {
+  return window['go']['main']['App']['BrowseDockerDatabase'](arg1);
+}
+
 export function CancelQuery(arg1) {
   return window['go']['main']['App']['CancelQuery'](arg1);
 }
@@ -64,6 +68,14 @@ export function DeleteTableRow(arg1) {
 
 export function DisconnectProfile(arg1) {
   return window['go']['main']['App']['DisconnectProfile'](arg1);
+}
+
+export function DiscoverDockerDatabases() {
+  return window['go']['main']['App']['DiscoverDockerDatabases']();
+}
+
+export function DiscoverLocalDatabases() {
+  return window['go']['main']['App']['DiscoverLocalDatabases']();
 }
 
 export function DropColumn(arg1) {
@@ -154,6 +166,14 @@ export function IsProfileConnected(arg1) {
   return window['go']['main']['App']['IsProfileConnected'](arg1);
 }
 
+export function RefreshDockerDiscovery() {
+  return window['go']['main']['App']['RefreshDockerDiscovery']();
+}
+
+export function RefreshLocalDiscovery() {
+  return window['go']['main']['App']['RefreshLocalDiscovery']();
+}
+
 export function RenameColumn(arg1) {
   return window['go']['main']['App']['RenameColumn'](arg1);
 }
@@ -192,6 +212,10 @@ export function SaveSettings(arg1) {
 
 export function TestConnection(arg1) {
   return window['go']['main']['App']['TestConnection'](arg1);
+}
+
+export function TestProfileConnection(arg1) {
+  return window['go']['main']['App']['TestProfileConnection'](arg1);
 }
 
 export function UpdateProfile(arg1) {

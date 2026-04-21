@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import type { Profile, ConnectionStatus } from '@/types';
+import type { Profile, ConnectionStatus, ConnectionTestParams, ConnectionTestResult } from '@/types';
 import * as wails from '../../wailsjs/go/main/App';
+import { db } from '../../wailsjs/go/models';
 
 interface ConnectionState {
   profiles: Profile[];
@@ -15,7 +16,7 @@ interface ConnectionState {
   connectProfile: (id: string) => Promise<void>;
   disconnectProfile: (id: string) => Promise<void>;
   savePassword: (profileId: string, password: string) => Promise<void>;
-  testConnection: (connString: string) => Promise<boolean>;
+  testConnection: (params: ConnectionTestParams) => Promise<ConnectionTestResult>;
   setError: (error: string | null) => void;
 }
 
@@ -125,13 +126,8 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     }
   },
 
-  testConnection: async (connString: string) => {
-    try {
-      await wails.TestConnection(connString);
-      return true;
-    } catch {
-      return false;
-    }
+  testConnection: async (params) => {
+    return await wails.TestProfileConnection(db.ConnectionTestParams.createFrom(params)) as ConnectionTestResult;
   },
 
   setError: (error: string | null) => set({ error }),

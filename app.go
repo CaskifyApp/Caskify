@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,16 +12,44 @@ import (
 	"strings"
 	"sync"
 
-	"caskpg/internal/config"
-	"caskpg/internal/db"
-	"caskpg/internal/history"
-	"caskpg/internal/keyring"
-	"caskpg/internal/profiles"
-	"caskpg/internal/queries"
+	"caskify/internal/config"
+	"caskify/internal/db"
+	"caskify/internal/discovery"
+	"caskify/internal/history"
+	"caskify/internal/keyring"
+	"caskify/internal/logger"
+	"caskify/internal/profiles"
+	"caskify/internal/queries"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+func normalizeConnectionError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	message := err.Error()
+	lowerMessage := strings.ToLower(message)
+
+	switch {
+	case strings.Contains(lowerMessage, "password authentication failed"):
+		return fmt.Errorf("authentication failed: verify the username and password")
+	case strings.Contains(lowerMessage, "no pg_hba.conf entry"):
+		return fmt.Errorf("connection rejected by server policy: verify host access and SSL mode")
+	case strings.Contains(lowerMessage, "connection refused"):
+		return fmt.Errorf("connection refused: verify the host, port, and server status")
+	case strings.Contains(lowerMessage, "server does not support ssl"):
+		return fmt.Errorf("server rejected SSL: try disabling SSL mode for this server")
+	case strings.Contains(lowerMessage, "tls") || strings.Contains(lowerMessage, "ssl"):
+		return fmt.Errorf("SSL negotiation failed: verify the selected SSL mode and server certificate requirements")
+	case strings.Contains(lowerMessage, "timeout"):
+		return fmt.Errorf("connection timed out: verify the host, port, and network reachability")
+	default:
+		return errors.New(logger.RedactConnectionString(message))
+	}
+}
 
 type App struct {
 	ctx              context.Context
@@ -39,15 +68,46 @@ func (a *App) startup(ctx context.Context) {
 	keyring.Init()
 }
 
+func (a *App) emitDiscoveryEvent(name string, payload any) {
+	if a.ctx == nil {
+		return
+	}
+	wailsruntime.EventsEmit(a.ctx, name, payload)
+}
+
+func (a *App) emitDiscoveryError(source string, err error) {
+	if err == nil {
+		return
+	}
+
+	a.emitDiscoveryEvent("discovery:error", map[string]string{
+		"source":  source,
+		"message": normalizeConnectionError(err).Error(),
+	})
+}
+
+func (a *App) getProfilePassword(profileID string, profile *profiles.Profile) (string, error) {
+	password, err := keyring.GetPassword("caskify", profileID)
+	if err == nil {
+		return password, nil
+	}
+
+	if profile.SupportsPasswordlessAuth() {
+		return "", nil
+	}
+
+	return "", fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+}
+
 func (a *App) withProfileDatabasePool(profileID, databaseName string, callback func(pool *pgxpool.Pool) error) error {
 	profile, err := profiles.GetByID(profileID)
 	if err != nil {
 		return err
 	}
 
-	password, err := keyring.GetPassword("caskpg", profileID)
+	password, err := a.getProfilePassword(profileID, profile)
 	if err != nil {
-		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return err
 	}
 
 	activeDatabase := databaseName
@@ -75,6 +135,99 @@ func (a *App) GetProfiles() ([]profiles.Profile, error) {
 	return profiles.GetAll()
 }
 
+func (a *App) DiscoverLocalDatabases() ([]discovery.LocalDatabaseInfo, error) {
+	return discovery.DiscoverLocalDatabases(a.ctx)
+}
+
+func (a *App) RefreshLocalDiscovery() ([]discovery.LocalDatabaseInfo, error) {
+	localDatabases, err := discovery.DiscoverLocalDatabases(a.ctx)
+	if err != nil {
+		a.emitDiscoveryError("local", err)
+		return nil, err
+	}
+
+	a.emitDiscoveryEvent("discovery:local.updated", localDatabases)
+	return localDatabases, nil
+}
+
+func (a *App) DiscoverDockerDatabases() ([]discovery.DockerDatabaseInfo, error) {
+	return discovery.DiscoverDockerDatabases(a.ctx)
+}
+
+func (a *App) RefreshDockerDiscovery() ([]discovery.DockerDatabaseInfo, error) {
+	dockerDatabases, err := discovery.DiscoverDockerDatabases(a.ctx)
+	if err != nil {
+		a.emitDiscoveryError("docker", err)
+		return nil, err
+	}
+
+	a.emitDiscoveryEvent("discovery:docker.updated", dockerDatabases)
+	return dockerDatabases, nil
+}
+
+func (a *App) BrowseDockerDatabase(dockerDatabaseID string) (*profiles.Profile, error) {
+	resolved, err := discovery.ResolveDockerDatabase(a.ctx, dockerDatabaseID)
+	if err != nil {
+		return nil, normalizeConnectionError(err)
+	}
+
+	allProfiles, err := profiles.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	var targetProfile *profiles.Profile
+	for index := range allProfiles {
+		profile := allProfiles[index]
+		if profile.Hidden && profile.SourceKind == "docker" && profile.SourceKey == dockerDatabaseID {
+			targetProfile = &profile
+			break
+		}
+	}
+
+	profileInput := profiles.Profile{
+		Name:            fmt.Sprintf("Docker %s", resolved.DatabaseInfo.ContainerName),
+		Host:            resolved.DatabaseInfo.Host,
+		Port:            resolved.DatabaseInfo.Port,
+		DefaultDatabase: resolved.DatabaseInfo.Database,
+		Username:        resolved.DatabaseInfo.Username,
+		SSLMode:         "auto",
+		Hidden:          true,
+		SourceKind:      "docker",
+		SourceKey:       dockerDatabaseID,
+	}
+
+	if targetProfile != nil {
+		profileInput.ID = targetProfile.ID
+		if err := profiles.Update(profileInput); err != nil {
+			return nil, err
+		}
+		if resolved.Password != "" {
+			if err := keyring.SavePassword("caskify", profileInput.ID, resolved.Password); err != nil {
+				return nil, err
+			}
+		}
+		if err := a.ConnectProfile(profileInput.ID); err != nil {
+			return nil, err
+		}
+		return &profileInput, nil
+	}
+
+	savedProfile, err := profiles.Save(profileInput)
+	if err != nil {
+		return nil, err
+	}
+	if resolved.Password != "" {
+		if err := keyring.SavePassword("caskify", savedProfile.ID, resolved.Password); err != nil {
+			return nil, err
+		}
+	}
+	if err := a.ConnectProfile(savedProfile.ID); err != nil {
+		return nil, err
+	}
+	return &savedProfile, nil
+}
+
 func (a *App) GetProfile(id string) (*profiles.Profile, error) {
 	return profiles.GetByID(id)
 }
@@ -94,12 +247,29 @@ func (a *App) UpdateProfile(profile profiles.Profile) error {
 }
 
 func (a *App) DeleteProfile(id string) error {
-	keyring.DeletePassword("caskpg", id)
+	keyring.DeletePassword("caskify", id)
 	return profiles.Delete(id)
 }
 
 func (a *App) TestConnection(connString string) error {
-	return db.GetManager().TestConnection(connString)
+	return normalizeConnectionError(db.GetManager().TestConnection(connString))
+}
+
+func (a *App) TestProfileConnection(params db.ConnectionTestParams) (*db.ConnectionTestResult, error) {
+	if err := params.Profile.Validate(); err != nil {
+		return nil, err
+	}
+
+	connString := params.Profile.BuildConnectionString(params.Password)
+	if err := db.GetManager().TestConnection(connString); err != nil {
+		return nil, normalizeConnectionError(err)
+	}
+
+	return &db.ConnectionTestResult{
+		Healthy: true,
+		SSLMode: params.Profile.ResolvedSSLMode(),
+		Message: fmt.Sprintf("Connection successful using %s SSL mode.", params.Profile.ResolvedSSLMode()),
+	}, nil
 }
 
 func (a *App) ConnectProfile(profileID string) error {
@@ -107,12 +277,12 @@ func (a *App) ConnectProfile(profileID string) error {
 	if err != nil {
 		return err
 	}
-	password, err := keyring.GetPassword("caskpg", profileID)
+	password, err := a.getProfilePassword(profileID, profile)
 	if err != nil {
-		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return err
 	}
 	connString := profile.BuildConnectionString(password)
-	return db.GetManager().Connect(profileID, profile.ActiveDatabase(), connString)
+	return normalizeConnectionError(db.GetManager().Connect(profileID, profile.ActiveDatabase(), connString))
 }
 
 func (a *App) DisconnectProfile(profileID string) {
@@ -124,11 +294,11 @@ func (a *App) IsProfileConnected(profileID string) bool {
 }
 
 func (a *App) SavePassword(profileID, password string) error {
-	return keyring.SavePassword("caskpg", profileID, password)
+	return keyring.SavePassword("caskify", profileID, password)
 }
 
 func (a *App) DeletePassword(profileID string) error {
-	return keyring.DeletePassword("caskpg", profileID)
+	return keyring.DeletePassword("caskify", profileID)
 }
 
 func (a *App) GetDatabases(profileID string) ([]db.DatabaseInfo, error) {
@@ -426,9 +596,9 @@ func (a *App) ExportDatabaseSQL(params db.DatabaseBackupParams) (*db.DatabaseOpe
 		return nil, err
 	}
 
-	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	password, err := a.getProfilePassword(params.ProfileID, profile)
 	if err != nil {
-		return nil, fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return nil, err
 	}
 
 	databaseName := params.Database
@@ -492,9 +662,9 @@ func (a *App) CreateEmptyDatabase(params db.CreateDatabaseParams) error {
 		return err
 	}
 
-	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	password, err := a.getProfilePassword(params.ProfileID, profile)
 	if err != nil {
-		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return err
 	}
 
 	pool, err := db.OpenPool(profile.BuildConnectionStringForDatabase(password, "postgres"))
@@ -512,9 +682,9 @@ func (a *App) DropDatabase(params db.DropDatabaseParams) error {
 		return err
 	}
 
-	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	password, err := a.getProfilePassword(params.ProfileID, profile)
 	if err != nil {
-		return fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return err
 	}
 
 	pool, err := db.OpenPool(profile.BuildConnectionStringForDatabase(password, "postgres"))
@@ -584,9 +754,9 @@ func (a *App) ImportDatabaseSQL(params db.DatabaseRestoreParams) (*db.DatabaseOp
 		return nil, err
 	}
 
-	password, err := keyring.GetPassword("caskpg", params.ProfileID)
+	password, err := a.getProfilePassword(params.ProfileID, profile)
 	if err != nil {
-		return nil, fmt.Errorf("stored password is missing; edit the connection and save the password again: %w", err)
+		return nil, err
 	}
 
 	databaseName := params.Database

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=CaskPG
+Name=Caskify
 Comment=PostgreSQL Manager for Linux
-Exec=caskpg
-Icon=caskpg
+Exec=caskify
+Icon=caskify
 Terminal=false
 Categories=Development;Database;
 StartupNotify=true

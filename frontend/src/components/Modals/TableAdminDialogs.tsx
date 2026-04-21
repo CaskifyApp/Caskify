@@ -1,9 +1,79 @@
 import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
+import { db } from '../../../wailsjs/go/models';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CUSTOM_COLUMN_TYPE_VALUE, isPresetPostgresColumnType, normalizePostgresColumnType, POSTGRES_COLUMN_TYPE_GROUPS } from '@/lib/postgres-column-types';
 import type { CreateTableColumnInput } from '@/types';
+
+const DEFAULT_PRIMARY_KEY_COLUMN: CreateTableColumnInput = {
+  name: 'id',
+  type: 'serial',
+  nullable: false,
+  defaultValue: undefined,
+  isPrimaryKey: true,
+};
+
+const DEFAULT_TEXT_COLUMN: CreateTableColumnInput = {
+  name: '',
+  type: 'text',
+  nullable: true,
+  defaultValue: undefined,
+  isPrimaryKey: false,
+};
+
+function ColumnTypeField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const normalizedValue = normalizePostgresColumnType(value);
+  const usesPreset = isPresetPostgresColumnType(normalizedValue);
+  const selectValue = usesPreset ? normalizedValue : CUSTOM_COLUMN_TYPE_VALUE;
+
+  return (
+    <div className="grid gap-2">
+      <Select value={selectValue} onValueChange={(nextValue) => {
+        if (nextValue === CUSTOM_COLUMN_TYPE_VALUE) {
+          if (usesPreset) {
+            onChange('');
+          }
+          return;
+        }
+        onChange(nextValue ?? 'text');
+      }}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Choose type" />
+        </SelectTrigger>
+        <SelectContent>
+          {POSTGRES_COLUMN_TYPE_GROUPS.map((group, index) => (
+            <SelectGroup key={group.label}>
+              <SelectLabel>{group.label}</SelectLabel>
+              {group.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+              {index < POSTGRES_COLUMN_TYPE_GROUPS.length - 1 ? <SelectSeparator /> : null}
+            </SelectGroup>
+          ))}
+          <SelectSeparator />
+          <SelectGroup>
+            <SelectLabel>Custom</SelectLabel>
+            <SelectItem value={CUSTOM_COLUMN_TYPE_VALUE}>Custom...</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {!usesPreset ? (
+        <Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="custom_type" />
+      ) : null}
+    </div>
+  );
+}
 
 interface CreateTableDialogProps {
   open: boolean;
@@ -16,18 +86,26 @@ interface CreateTableDialogProps {
 
 export function CreateTableDialog({ open, onOpenChange, profileId, databaseName, schemaName, onSuccess }: CreateTableDialogProps) {
   const [tableName, setTableName] = useState('');
-  const [columns, setColumns] = useState<CreateTableColumnInput[]>([
-    { name: 'id', type: 'uuid', nullable: false, defaultValue: undefined, isPrimaryKey: true },
-  ]);
+  const [columns, setColumns] = useState<CreateTableColumnInput[]>([{ ...DEFAULT_PRIMARY_KEY_COLUMN }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setTableName('');
+    setColumns([{ ...DEFAULT_PRIMARY_KEY_COLUMN }]);
+    setError(null);
+  }, [open]);
 
   const updateColumn = (index: number, patch: Partial<CreateTableColumnInput>) => {
     setColumns((current) => current.map((column, currentIndex) => (currentIndex === index ? { ...column, ...patch } : column)));
   };
 
   const addColumn = () => {
-    setColumns((current) => [...current, { name: '', type: 'text', nullable: true, defaultValue: undefined, isPrimaryKey: false }]);
+    setColumns((current) => [...current, { ...DEFAULT_TEXT_COLUMN }]);
   };
 
   const removeColumn = (index: number) => {
@@ -49,14 +127,14 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
     setError(null);
 
     try {
-      await wails.CreateTable({
+      await wails.CreateTable(db.CreateTableParams.createFrom({
         profileId,
         database: databaseName,
         schema: schemaName,
         name: tableName.trim(),
         columns,
-      } as any);
-      setColumns([{ name: 'id', type: 'uuid', nullable: false, defaultValue: undefined, isPrimaryKey: true }]);
+      }));
+      setColumns([{ ...DEFAULT_PRIMARY_KEY_COLUMN }]);
       setTableName('');
       onOpenChange(false);
       onSuccess();
@@ -72,7 +150,7 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Create Table</DialogTitle>
-          <DialogDescription>Create a new table in schema "{schemaName}".</DialogDescription>
+          <DialogDescription>Create a new table in schema "{schemaName}". The first column defaults to a testing-friendly serial primary key.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3">
@@ -90,7 +168,7 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
               <div key={index} className="grid gap-2 rounded-3xl border p-3">
                 <div className="grid grid-cols-2 gap-2">
                   <Input value={column.name} onChange={(event) => updateColumn(index, { name: event.target.value })} placeholder="column_name" />
-                  <Input value={column.type} onChange={(event) => updateColumn(index, { type: event.target.value })} placeholder="text" />
+                  <ColumnTypeField value={column.type} onChange={(value) => updateColumn(index, { type: value })} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Input value={column.defaultValue ?? ''} onChange={(event) => updateColumn(index, { defaultValue: event.target.value || undefined })} placeholder="Default value (optional)" />
@@ -149,13 +227,13 @@ export function RenameTableDialog({ open, onOpenChange, profileId, databaseName,
     setError(null);
 
     try {
-      await wails.RenameTable({
+      await wails.RenameTable(db.RenameTableParams.createFrom({
         profileId,
         database: databaseName,
         schema: schemaName,
         oldName: tableName,
         newName: newName.trim(),
-      } as any);
+      }));
       onOpenChange(false);
       onSuccess();
     } catch (nextError) {
@@ -223,7 +301,7 @@ export function DropTableDialog({ open, onOpenChange, profileId, databaseName, s
     setError(null);
 
     try {
-      await wails.DropTable({ profileId, database: databaseName, schema: schemaName, name: tableName } as any);
+      await wails.DropTable(db.DropTableParams.createFrom({ profileId, database: databaseName, schema: schemaName, name: tableName }));
       onOpenChange(false);
       onSuccess();
     } catch (nextError) {

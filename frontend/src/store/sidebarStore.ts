@@ -11,10 +11,12 @@ interface SidebarState {
   errorByNodeId: Record<string, string | null>;
   loadedAtByNodeId: Record<string, number>;
   loadDatabases: (connectionId: string, force?: boolean) => Promise<void>;
+  loadScopedDatabase: (connectionId: string, databaseName: string, force?: boolean) => Promise<void>;
   loadSchemas: (connectionId: string, databaseName: string, force?: boolean) => Promise<void>;
   loadTables: (connectionId: string, databaseName: string, schemaName: string, force?: boolean) => Promise<void>;
   toggleNode: (node: TreeNode) => Promise<void>;
   setConnectionTree: (connectionId: string, nodes: TreeNode[]) => void;
+  invalidateConnectionCache: (connectionId: string) => void;
   resetConnectionTree: (connectionId: string) => void;
   getConnectionTree: (connectionId: string) => TreeNode[];
 }
@@ -134,6 +136,67 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
       }));
     } catch (error) {
       set((state) => ({
+        loadingNodeIds: { ...state.loadingNodeIds, [cacheKey]: false },
+        errorByNodeId: { ...state.errorByNodeId, [cacheKey]: String(error) },
+      }));
+      throw error;
+    }
+  },
+
+  loadScopedDatabase: async (connectionId, databaseName, force = false) => {
+    const cacheKey = `${connectionId}:scoped:${databaseName}`;
+    const { loadedAtByNodeId, treeByConnection } = get();
+    if (!force && treeByConnection[connectionId]?.length && isFresh(loadedAtByNodeId[cacheKey])) {
+      return;
+    }
+
+    const rootNodeId = getDatabaseNodeId(connectionId, databaseName);
+    set((state) => ({
+      loadingNodeIds: { ...state.loadingNodeIds, [cacheKey]: true },
+      errorByNodeId: { ...state.errorByNodeId, [cacheKey]: null },
+      treeByConnection: {
+        ...state.treeByConnection,
+        [connectionId]: [{
+          id: rootNodeId,
+          label: databaseName,
+          type: 'database',
+          connectionId,
+          database: databaseName,
+          children: [],
+          expanded: true,
+          loading: true,
+          error: null,
+        }],
+      },
+      expandedNodeIds: { ...state.expandedNodeIds, [rootNodeId]: true },
+    }));
+
+    try {
+      const schemas = await wails.GetSchemas(connectionId, databaseName);
+      const nextSchemas = ensureArray(schemas);
+      set((state) => ({
+        treeByConnection: {
+          ...state.treeByConnection,
+          [connectionId]: updateTreeNodes(state.treeByConnection[connectionId] ?? [], rootNodeId, (node) => ({
+            ...node,
+            loading: false,
+            expanded: true,
+            children: nextSchemas.map(mapSchemaNode),
+          })),
+        },
+        loadedAtByNodeId: { ...state.loadedAtByNodeId, [cacheKey]: Date.now(), [rootNodeId]: Date.now() },
+        loadingNodeIds: { ...state.loadingNodeIds, [cacheKey]: false },
+      }));
+    } catch (error) {
+      set((state) => ({
+        treeByConnection: {
+          ...state.treeByConnection,
+          [connectionId]: updateTreeNodes(state.treeByConnection[connectionId] ?? [], rootNodeId, (node) => ({
+            ...node,
+            loading: false,
+            error: String(error),
+          })),
+        },
         loadingNodeIds: { ...state.loadingNodeIds, [cacheKey]: false },
         errorByNodeId: { ...state.errorByNodeId, [cacheKey]: String(error) },
       }));
@@ -278,6 +341,20 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
         ...state.treeByConnection,
         [connectionId]: nodes,
       },
+    }));
+  },
+
+  invalidateConnectionCache: (connectionId) => {
+    set((state) => ({
+      loadedAtByNodeId: Object.fromEntries(
+        Object.entries(state.loadedAtByNodeId).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      ),
+      loadingNodeIds: Object.fromEntries(
+        Object.entries(state.loadingNodeIds).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      ),
+      errorByNodeId: Object.fromEntries(
+        Object.entries(state.errorByNodeId).filter(([key]) => !key.startsWith(`${connectionId}:`)),
+      ),
     }));
   },
 

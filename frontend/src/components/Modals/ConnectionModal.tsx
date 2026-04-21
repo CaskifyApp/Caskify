@@ -24,9 +24,10 @@ export function ConnectionModal({ open, onOpenChange, editingProfile, initialPro
   const [defaultDatabase, setDefaultDatabase] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [sslMode, setSslMode] = useState('disable');
+  const [sslMode, setSslMode] = useState('auto');
   const [testStatus, setTestStatus] = useState<TestStatus>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [testMessage, setTestMessage] = useState<string | null>(null);
 
   const { save } = useSaveProfile();
   const { update } = useUpdateProfile();
@@ -39,7 +40,7 @@ export function ConnectionModal({ open, onOpenChange, editingProfile, initialPro
       setPort(String(editingProfile.port));
       setDefaultDatabase(editingProfile.defaultDatabase ?? '');
       setUsername(editingProfile.username);
-      setSslMode(editingProfile.ssl_mode || 'disable');
+      setSslMode(editingProfile.ssl_mode || 'auto');
       setPassword('');
     } else {
       setName(initialProfile?.name ?? 'Local PostgreSQL');
@@ -48,49 +49,49 @@ export function ConnectionModal({ open, onOpenChange, editingProfile, initialPro
       setDefaultDatabase(initialProfile?.defaultDatabase ?? 'postgres');
       setUsername(initialProfile?.username ?? 'postgres');
       setPassword('');
-      setSslMode(initialProfile?.ssl_mode ?? 'disable');
+      setSslMode(initialProfile?.ssl_mode ?? 'auto');
     }
     setTestStatus('idle');
     setError(null);
+    setTestMessage(null);
   }, [editingProfile, initialProfile, open]);
 
-  const buildConnString = () => {
-    const databaseName = defaultDatabase || 'postgres';
-    const encodedUsername = encodeURIComponent(username);
-    const encodedPassword = encodeURIComponent(password);
-    const encodedDatabase = encodeURIComponent(databaseName);
-    return `postgres://${encodedUsername}:${encodedPassword}@${host}:${port}/${encodedDatabase}?sslmode=${sslMode}`;
-  };
+  const buildProfile = (): Profile => ({
+    id: editingProfile?.id || '',
+    name,
+    host,
+    port: parseInt(port, 10),
+    defaultDatabase,
+    username,
+    ssl_mode: sslMode === 'auto' ? '' : sslMode,
+  });
 
   const handleTest = async () => {
     setError(null);
     setTestStatus('testing');
     
     try {
-      const result = await test(buildConnString());
-      if (result) {
+      const result = await test({
+        profile: buildProfile(),
+        password,
+      });
+      if (result.healthy) {
         setTestStatus('success');
+        setTestMessage(result.message);
       } else {
         setTestStatus('failed');
-        setError('Connection failed. Please check your credentials.');
+        setError(result.message || 'Connection failed. Please check your credentials.');
       }
     } catch (err) {
       setTestStatus('failed');
+      setTestMessage(null);
       setError(String(err));
     }
   };
 
   const handleSave = async () => {
     setError(null);
-    const profile: Profile = {
-      id: editingProfile?.id || '',
-      name,
-      host,
-      port: parseInt(port, 10),
-      defaultDatabase,
-      username,
-      ssl_mode: sslMode,
-    };
+    const profile = buildProfile();
 
     try {
       if (editingProfile) {
@@ -188,13 +189,14 @@ export function ConnectionModal({ open, onOpenChange, editingProfile, initialPro
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="sslmode" className="text-right">SSL Mode</Label>
             <Select value={sslMode} onValueChange={(value) => setSslMode(value || 'disable')}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="disable">disable</SelectItem>
-                <SelectItem value="require">require</SelectItem>
-                <SelectItem value="verify-ca">verify-ca</SelectItem>
+            <SelectTrigger className="col-span-3">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">auto</SelectItem>
+              <SelectItem value="disable">disable</SelectItem>
+              <SelectItem value="require">require</SelectItem>
+              <SelectItem value="verify-ca">verify-ca</SelectItem>
                 <SelectItem value="verify-full">verify-full</SelectItem>
               </SelectContent>
             </Select>
@@ -202,9 +204,9 @@ export function ConnectionModal({ open, onOpenChange, editingProfile, initialPro
         </div>
 
         {testStatus === 'success' && (
-          <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 p-2 rounded-lg bg-green-50 dark:bg-green-950">
+          <div className="flex items-center gap-2 rounded-lg bg-green-50 p-2 text-sm text-green-600 dark:bg-green-950 dark:text-green-400">
             <CheckCircle2 className="size-4" />
-            Connection successful!
+            {testMessage || 'Connection successful!'}
           </div>
         )}
 

@@ -94,8 +94,8 @@ jobs:
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: caskpg-binary
-          path: build/bin/caskpg
+          name: caskify-binary
+          path: build/bin/caskify
 
   package-linux:
     needs:
@@ -129,7 +129,7 @@ jobs:
       - name: Download binary artifact
         uses: actions/download-artifact@v4
         with:
-          name: caskpg-binary
+          name: caskify-binary
           path: build/bin
 
       - name: Install frontend dependencies
@@ -189,7 +189,7 @@ jobs:
       - name: Download binary artifact
         uses: actions/download-artifact@v4
         with:
-          name: caskpg-binary
+          name: caskify-binary
           path: build/bin
 
       - name: Make release scripts executable

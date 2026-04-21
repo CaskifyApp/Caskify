@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"caskpg/internal/profiles"
+	"caskify/internal/profiles"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

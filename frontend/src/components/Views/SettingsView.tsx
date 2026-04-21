@@ -267,7 +267,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
           <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
             <h3 className="font-medium text-foreground">About</h3>
             <div className="grid gap-1 text-sm text-muted-foreground">
-              <div>App: CaskPG</div>
+              <div>App: Caskify</div>
               <div>Version: v1.0.0-beta1</div>
               <div>Platform: Linux native desktop via Wails</div>
               <div>License: MIT</div>

@@ -8,6 +8,7 @@ import { WelcomeView } from '@/components/Views/WelcomeView';
 import { Button } from '@/components/ui/button';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTabStore } from '@/store/tabStore';
+import { useDiscoveryStore } from '@/store/discoveryStore';
 
 const QueryView = lazy(() => import('@/components/Views/QueryView').then((module) => ({ default: module.QueryView })));
 const SettingsView = lazy(() => import('@/components/Views/SettingsView').then((module) => ({ default: module.SettingsView })));
@@ -20,10 +21,18 @@ export function AppShell() {
   const activeTabId = useTabStore((state) => state.activeTabId);
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const startDiscoverySync = useDiscoveryStore((state) => state.startSync);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
   }, [settings.theme]);
+
+  useEffect(() => {
+    const stopSync = startDiscoverySync();
+    return () => {
+      stopSync();
+    };
+  }, [startDiscoverySync]);
 
   const loadingFallback = (
     <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -37,7 +46,7 @@ export function AppShell() {
       <aside className="flex w-72 flex-col border-r bg-card/60">
         <div className="flex items-start justify-between border-b px-4 py-3">
           <div>
-            <h1 className="font-semibold text-lg">CaskPG</h1>
+            <h1 className="font-semibold text-lg">Caskify</h1>
             <p className="text-xs text-muted-foreground">PostgreSQL Manager</p>
           </div>
 

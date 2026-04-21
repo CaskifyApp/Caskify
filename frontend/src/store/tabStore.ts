@@ -8,6 +8,7 @@ interface TabState {
   activeTabId: string | null;
   openTableTab: (node: TreeNode) => void;
   openQueryTab: () => void;
+  openQueryTabForConnection: (profileId: string, databaseName: string, title?: string) => void;
   setActiveTab: (tabId: string) => void;
   closeTab: (tabId: string) => void;
   setTableLoading: (tabId: string, loading: boolean) => void;
@@ -104,6 +105,36 @@ export const useTabStore = create<TabState>((set) => ({
         mode: 'query',
         connectionId: connectedProfile?.id ?? '',
         databaseName: connectedProfile?.defaultDatabase ?? connectedProfile?.database ?? '',
+        queryText: '',
+        queryResult: null,
+        queryLoading: false,
+        queryError: null,
+      };
+
+      return {
+        tabs: [...state.tabs, nextTab],
+        activeTabId: nextTab.id,
+      };
+    });
+  },
+
+  openQueryTabForConnection: (profileId, databaseName, title) => {
+    set((state) => {
+      const nextId = `query:${profileId}:${databaseName}`;
+      const existingTab = state.tabs.find((tab) => tab.id === nextId);
+      if (existingTab) {
+        return {
+          tabs: state.tabs,
+          activeTabId: existingTab.id,
+        };
+      }
+
+      const nextTab: Tab = {
+        id: nextId,
+        title: title || databaseName || 'Query',
+        mode: 'query',
+        connectionId: profileId,
+        databaseName,
         queryText: '',
         queryResult: null,
         queryLoading: false,

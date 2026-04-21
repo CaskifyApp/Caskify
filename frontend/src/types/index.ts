@@ -7,6 +7,20 @@ export interface Profile {
   defaultDatabase?: string;
   username: string;
   ssl_mode: string;
+  hidden?: boolean;
+  sourceKind?: string;
+  sourceKey?: string;
+}
+
+export interface ConnectionTestParams {
+  profile: Profile;
+  password: string;
+}
+
+export interface ConnectionTestResult {
+  healthy: boolean;
+  sslMode: string;
+  message: string;
 }
 
 export interface ConnectionStatus {
@@ -305,6 +319,29 @@ export interface SchemaInfo {
 export interface DatabaseInfo {
   connectionId: string;
   name: string;
+}
+
+export interface LocalDatabaseInfo {
+  id: string;
+  source: string;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  label: string;
+}
+
+export interface DockerDatabaseInfo {
+  id: string;
+  source: string;
+  containerId: string;
+  containerName: string;
+  image: string;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  passwordAvailable: boolean;
 }
 
 export interface TreeNode {

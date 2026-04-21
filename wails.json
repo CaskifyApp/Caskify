@@ -1,8 +1,8 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "CaskPG",
-  "outputfilename": "caskpg",
-  "version": "1.0.0-beta1",
+  "name": "Caskify",
+  "outputfilename": "caskify",
+  "version": "1.0.0-beta2",
   "frontend:install": "pnpm install",
   "frontend:build": "pnpm run build",
   "frontend:dev:watcher": "pnpm run dev",

@@ -1,10 +1,26 @@
 import { DatabaseZap, PlugZap } from 'lucide-react';
 import { useConnectionStore } from '@/store/connectionStore';
 
+function getRecentProfileLabel(profile: { name: string; hidden?: boolean; sourceKind?: string; defaultDatabase?: string }) {
+  if (!profile.hidden) {
+    return profile.name;
+  }
+
+  const databaseName = profile.defaultDatabase || 'postgres';
+  switch (profile.sourceKind) {
+    case 'docker':
+      return `Docker / ${databaseName}`;
+    case 'local':
+      return `Local / ${databaseName}`;
+    default:
+      return profile.name;
+  }
+}
+
 export function WelcomeView() {
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
-  const featuredProfiles = profiles.slice(0, 3);
+  const featuredProfiles = profiles.filter((profile) => !profile.hidden).slice(0, 3);
 
   return (
     <div className="flex h-full items-center justify-center p-6">
@@ -24,7 +40,7 @@ export function WelcomeView() {
           <button
             type="button"
             className="rounded-full border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            onClick={() => window.dispatchEvent(new CustomEvent('caskpg:quick-local-server'))}
+            onClick={() => window.dispatchEvent(new CustomEvent('caskify:quick-local-server'))}
           >
             Quick Add Local Server
           </button>
@@ -48,7 +64,7 @@ export function WelcomeView() {
                 <div key={profile.id} className="rounded-3xl border px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className="font-medium text-foreground">{profile.name}</div>
+                      <div className="font-medium text-foreground">{getRecentProfileLabel(profile)}</div>
                       <div className="text-xs text-muted-foreground">{profile.host}:{profile.port} • {profile.defaultDatabase || 'postgres'}</div>
                     </div>
                     <div className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${connected ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>

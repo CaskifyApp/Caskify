@@ -10,15 +10,18 @@ const EMPTY_TREE: TreeNode[] = [];
 interface DatabaseTreeProps {
   connectionId: string;
   connected: boolean;
+  selectedDatabaseName?: string;
   onTableSelect?: (node: TreeNode) => void;
   onRequestDropDatabase?: (databaseName: string) => void;
 }
 
-export function DatabaseTree({ connectionId, connected, onTableSelect, onRequestDropDatabase }: DatabaseTreeProps) {
+export function DatabaseTree({ connectionId, connected, selectedDatabaseName, onTableSelect, onRequestDropDatabase }: DatabaseTreeProps) {
   const tree = useSidebarStore((state) => state.treeByConnection[connectionId]);
-  const loading = useSidebarStore((state) => state.loadingNodeIds[`${connectionId}:databases`] ?? false);
-  const error = useSidebarStore((state) => state.errorByNodeId[`${connectionId}:databases`] ?? null);
+  const cacheKey = selectedDatabaseName ? `${connectionId}:scoped:${selectedDatabaseName}` : `${connectionId}:databases`;
+  const loading = useSidebarStore((state) => state.loadingNodeIds[cacheKey] ?? false);
+  const error = useSidebarStore((state) => state.errorByNodeId[cacheKey] ?? null);
   const loadDatabases = useSidebarStore((state) => state.loadDatabases);
+  const loadScopedDatabase = useSidebarStore((state) => state.loadScopedDatabase);
   const nodes = tree ?? EMPTY_TREE;
 
   useEffect(() => {
@@ -26,8 +29,13 @@ export function DatabaseTree({ connectionId, connected, onTableSelect, onRequest
       return;
     }
 
+    if (selectedDatabaseName) {
+      void loadScopedDatabase(connectionId, selectedDatabaseName);
+      return;
+    }
+
     void loadDatabases(connectionId);
-  }, [connected, connectionId, loadDatabases]);
+  }, [connected, connectionId, loadDatabases, loadScopedDatabase, selectedDatabaseName]);
 
   if (!connected) {
     return null;

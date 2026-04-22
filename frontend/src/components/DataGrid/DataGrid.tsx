@@ -1,7 +1,9 @@
+import { ArrowUpDown, ArrowUp, ArrowDown, Key } from 'lucide-react';
 import { useState } from 'react';
 import { CellRenderer } from '@/components/DataGrid/CellRenderer';
 import { JSONViewerModal } from '@/components/Modals/JSONViewerModal';
-import type { TablePageResult } from '@/types';
+import { cn } from '@/lib/utils';
+import type { ColumnDef, TablePageResult } from '@/types';
 
 interface DataGridProps {
   data: TablePageResult | null;
@@ -12,15 +14,28 @@ interface DataGridProps {
   onSort?: (column: string) => void;
   selectedRowIndex?: number | null;
   onRowSelect?: (rowIndex: number, row: Record<string, unknown>) => void;
+  columns?: ColumnDef[];
 }
 
-export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, selectedRowIndex, onRowSelect }: DataGridProps) {
+function getColumnDisplayType(col?: ColumnDef): string {
+  if (!col) return '';
+  if (col.isPrimaryKey) return 'PK';
+  if (col.isGenerated) return 'gen';
+  if (col.isIdentity) return 'id';
+  return '';
+}
+
+export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, selectedRowIndex, onRowSelect, columns }: DataGridProps) {
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [jsonViewerValue, setJsonViewerValue] = useState<unknown>(null);
 
+  const getColumnDef = (colName: string): ColumnDef | undefined => {
+    return columns?.find((c) => c.name === colName);
+  };
+
   if (loading) {
     return (
-      <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
         Loading table data...
       </div>
     );
@@ -28,75 +43,121 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
 
   if (error) {
     return (
-      <div className="rounded-4xl border bg-card p-5 text-sm text-destructive shadow-sm">
+      <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-4 text-sm text-rose-400">
         {error}
       </div>
     );
   }
 
-  if (!data) {
+  if (!data || data.columns.length === 0) {
     return (
-      <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">
-        Select a table to load its rows.
-      </div>
-    );
-  }
-
-  if (data.columns.length === 0) {
-    return (
-      <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">
-        This table has no columns to display.
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        {data ? 'This table has no columns to display.' : 'Select a table to load its rows.'}
       </div>
     );
   }
 
   if (data.rows.length === 0) {
     return (
-      <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
         This table does not contain any rows yet.
       </div>
     );
   }
+
   return (
     <>
-      <div className="overflow-hidden rounded-4xl border bg-card shadow-sm [contain:layout_paint]">
-        <div className="perf-scroll overflow-auto" style={{ maxHeight: '600px' }}>
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="sticky top-0 z-10 bg-muted/40">
+      <div className="overflow-hidden rounded-lg border border-border/10 bg-background">
+        <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+          <table className="w-full border-collapse text-sm">
+            <thead className="sticky top-0 z-10 bg-muted/30 backdrop-blur-sm">
               <tr>
-                {data.columns.map((column) => (
-                  <th key={column} className="border-b px-4 py-3 text-left font-medium text-foreground">
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-2"
-                      onClick={() => onSort?.(column)}
+                <th className="sticky left-0 z-20 w-10 border-b border-r border-border/10 bg-muted/30 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground/50">
+                  #
+                </th>
+                {data.columns.map((column) => {
+                  const colDef = getColumnDef(column);
+                  const displayType = getColumnDisplayType(colDef);
+                  const isSorted = sortColumn === column;
+
+                  return (
+                    <th
+                      key={column}
+                      className={cn(
+                        'group relative border-b border-border/10 px-3 py-2 text-left',
+                        isSorted ? 'bg-muted/50' : ''
+                      )}
                     >
-                      <span>{column}</span>
-                      {sortColumn === column ? <span className="text-xs text-muted-foreground">{sortDir === 'desc' ? 'DESC' : 'ASC'}</span> : null}
-                    </button>
-                  </th>
-                ))}
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground transition-colors hover:text-primary"
+                        onClick={() => onSort?.(column)}
+                      >
+                        <span className="max-w-32 truncate">{column}</span>
+                        <span className="inline-flex items-center gap-0.5 text-muted-foreground/50">
+                          {isSorted ? (
+                            sortDir === 'desc' ? <ArrowDown className="size-3" /> : <ArrowUp className="size-3" />
+                          ) : (
+                            <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          )}
+                        </span>
+                      </button>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {colDef?.isPrimaryKey && (
+                          <Key className="size-2.5 text-amber-400/60" />
+                        )}
+                        {displayType && (
+                          <span className="text-[9px] font-mono text-muted-foreground/40">
+                            {colDef?.type?.split('(')[0] || displayType}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
               {data.rows.map((row, index) => {
+                const isSelected = selectedRowIndex === index;
+                const isEven = index % 2 === 0;
+
                 return (
                   <tr
                     key={`${data.table}-${index}`}
-                    className={`border-b ${selectedRowIndex === index ? 'bg-primary/5' : ''}`}
+                    className={cn(
+                      'group transition-colors',
+                      isSelected && 'bg-primary/10',
+                      !isSelected && isEven && 'bg-white/[0.01]',
+                      !isSelected && !isEven && 'bg-transparent',
+                      'hover:bg-white/[0.03]'
+                    )}
                     onClick={() => onRowSelect?.(index, row)}
                   >
-                    {data.columns.map((column) => (
-                      <td key={`${index}-${column}`} className="px-4 py-3 align-top text-muted-foreground">
-                        <CellRenderer
-                          value={row[column]}
-                          onOpenJson={(value) => {
-                            setJsonViewerValue(value);
-                            setJsonViewerOpen(true);
-                          }}
-                        />
-                      </td>
-                    ))}
+                    <td className="sticky left-0 z-10 border-r border-border/5 px-2 py-1.5 text-center text-[10px] font-mono text-muted-foreground/40 bg-background group-hover:bg-white/[0.03]">
+                      {index + 1}
+                    </td>
+                    {data.columns.map((column) => {
+                      const colDef = getColumnDef(column);
+                      return (
+                        <td
+                          key={`${index}-${column}`}
+                          className={cn(
+                            'border-b border-border/5 px-3 py-1.5 align-middle',
+                            colDef?.isPrimaryKey && 'border-l-2 border-l-amber-400/30'
+                          )}
+                        >
+                          <CellRenderer
+                            value={row[column]}
+                            columnType={colDef?.type}
+                            onOpenJson={(value) => {
+                              setJsonViewerValue(value);
+                              setJsonViewerOpen(true);
+                            }}
+                          />
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}

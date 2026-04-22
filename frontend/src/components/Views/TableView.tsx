@@ -1,4 +1,4 @@
-import { TableProperties } from 'lucide-react';
+import { TableProperties, Plus, Pencil, Trash2, Table2, Code, Layers } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { DataGrid } from '@/components/DataGrid/DataGrid';
@@ -12,6 +12,7 @@ import { TableIndexesView } from '@/components/Views/TableIndexesView';
 import { TableStructureView } from '@/components/Views/TableStructureView';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useTabStore } from '@/store/tabStore';
 import type { DeleteRowParams } from '@/types';
 import type { Tab } from '@/types';
@@ -70,9 +71,7 @@ export function TableView({ tab }: TableViewProps) {
   };
 
   const handleDeleteRow = async () => {
-    if (!selectedRow) {
-      return;
-    }
+    if (!selectedRow) return;
 
     setDeleteLoading(true);
     setDeleteError(null);
@@ -98,26 +97,32 @@ export function TableView({ tab }: TableViewProps) {
     }
   };
 
-  return (
-    <div className="flex h-full flex-col gap-4 p-6">
-      <div className="rounded-4xl border bg-card p-5 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="flex size-10 items-center justify-center rounded-3xl bg-primary/10 text-primary">
-            <TableProperties className="size-5" />
-          </div>
+  const subViewIcon = {
+    data: <Table2 className="size-3.5" />,
+    structure: <Code className="size-3.5" />,
+    indexes: <Layers className="size-3.5" />,
+  };
 
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-start justify-between border-b border-border/10 bg-muted/10 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <TableProperties className="size-4" />
+          </div>
           <div className="min-w-0">
-            <h2 className="truncate text-lg font-semibold">{tab.schemaName}.{tab.tableName}</h2>
-            <p className="text-sm text-muted-foreground">
-              Connected to {tab.databaseName} via profile {tab.connectionId}
+            <h2 className="text-sm font-semibold text-foreground">{tab.schemaName}.{tab.tableName}</h2>
+            <p className="text-[11px] text-muted-foreground">
+              {tab.databaseName} • {tab.connectionId}
             </p>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
             disabled={tableLoading}
             onClick={() => {
               setRowEditorMode('insert');
@@ -125,48 +130,56 @@ export function TableView({ tab }: TableViewProps) {
               setSelectedRowIndex(null);
               setRowEditorOpen(true);
             }}
+            title="Add Row"
           >
-            Add Row
+            <Plus className="size-3.5" />
           </Button>
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
             disabled={!selectedRow || tableLoading}
             onClick={() => {
               setRowEditorMode('edit');
               setRowEditorOpen(true);
             }}
+            title="Edit Selected Row"
           >
-            Edit Selected Row
+            <Pencil className="size-3.5" />
           </Button>
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-rose-400 hover:text-rose-300"
             disabled={!selectedRow || tableLoading}
             onClick={() => {
               setDeleteError(null);
               setDeleteDialogOpen(true);
             }}
+            title="Delete Selected Row"
           >
-            Delete Selected Row
-          </Button>
-        </div>
-
-        <div className="mt-4 flex items-center gap-2">
-          <Button variant={tab.subView === 'data' ? 'default' : 'outline'} size="sm" onClick={() => setTableSubView(tab.id, 'data')}>
-            Data
-          </Button>
-          <Button variant={tab.subView === 'structure' ? 'default' : 'outline'} size="sm" onClick={() => setTableSubView(tab.id, 'structure')}>
-            Structure
-          </Button>
-          <Button variant={tab.subView === 'indexes' ? 'default' : 'outline'} size="sm" onClick={() => setTableSubView(tab.id, 'indexes')}>
-            Indexes
+            <Trash2 className="size-3.5" />
           </Button>
         </div>
       </div>
 
-      {tab.subView === 'data' ? (
-        <>
+      <div className="flex-1 overflow-hidden">
+        <Tabs value={tab.subView ?? 'data'} className="flex h-full flex-col" onValueChange={(v) => setTableSubView(tab.id, v as 'data' | 'structure' | 'indexes')}>
+          <div className="border-b border-border/10 bg-muted/5 px-3">
+            <TabsList className="h-8 bg-transparent p-0">
+              <TabsTrigger value="data" className="flex items-center gap-1.5 rounded-none border-b-2 border-transparent px-3 py-1.5 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                {subViewIcon.data} Data
+              </TabsTrigger>
+              <TabsTrigger value="structure" className="flex items-center gap-1.5 rounded-none border-b-2 border-transparent px-3 py-1.5 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                {subViewIcon.structure} Structure
+              </TabsTrigger>
+              <TabsTrigger value="indexes" className="flex items-center gap-1.5 rounded-none border-b-2 border-transparent px-3 py-1.5 text-xs data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none">
+                {subViewIcon.indexes} Indexes
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="data" className="flex flex-1 flex-col overflow-hidden m-0">
             <DataGridToolbar
               page={tab.pagination?.page ?? 1}
               limit={tab.pagination?.limit ?? 50}
@@ -178,9 +191,9 @@ export function TableView({ tab }: TableViewProps) {
               loading={tableLoading}
               onPageChange={(page) => {
                 setSelectedRow(null);
-              setSelectedRowIndex(null);
-              setTablePagination(tab.id, page, tab.pagination?.limit ?? 50);
-            }}
+                setSelectedRowIndex(null);
+                setTablePagination(tab.id, page, tab.pagination?.limit ?? 50);
+              }}
               onLimitChange={(limit) => {
                 setSelectedRow(null);
                 setSelectedRowIndex(null);
@@ -199,48 +212,56 @@ export function TableView({ tab }: TableViewProps) {
               onRefresh={handleRefresh}
             />
 
-          <DataGrid
-            data={tableData}
-            loading={tableLoading}
-            error={tableError}
-            sortColumn={tab.sortColumn}
-            sortDir={tab.sortDir}
-            onSort={handleSort}
-            selectedRowIndex={selectedRowIndex}
-            onRowSelect={(rowIndex, row) => {
-              setSelectedRowIndex(rowIndex);
-              setSelectedRow(row);
-            }}
-          />
-        </>
-      ) : null}
+            <div className="flex-1 overflow-auto p-3">
+              <DataGrid
+                data={tableData}
+                loading={tableLoading}
+                error={tableError}
+                sortColumn={tab.sortColumn}
+                sortDir={tab.sortDir}
+                onSort={handleSort}
+                selectedRowIndex={selectedRowIndex}
+                onRowSelect={(rowIndex, row) => {
+                  setSelectedRowIndex(rowIndex);
+                  setSelectedRow(row);
+                }}
+                columns={tableColumns}
+              />
+            </div>
 
-      {tab.subView === 'structure' ? (
-        <>
-          <div className="flex items-center gap-2 rounded-4xl border bg-card px-4 py-3 shadow-sm">
-            <Button variant="outline" size="sm" onClick={() => setCreateTableOpen(true)}>Create Table</Button>
-            <Button variant="outline" size="sm" onClick={() => setRenameTableOpen(true)}>Rename Table</Button>
-            <Button variant="outline" size="sm" onClick={() => setDropTableOpen(true)}>Drop Table</Button>
-          </div>
-          <TableStructureView
-            columns={tableColumns}
-            foreignKeys={tableForeignKeys}
-            loading={structureLoading}
-            error={structureError}
-            onAddColumn={() => setAddColumnOpen(true)}
-            onRenameColumn={(columnName) => setRenameColumnTarget(columnName)}
-            onDropColumn={(columnName) => setDropColumnTarget(columnName)}
-          />
-        </>
-      ) : null}
+            {selectedRow !== null && (
+              <div className="border-t border-border/10 bg-muted/10 px-4 py-1.5 text-[11px] text-muted-foreground">
+                Selected row #{(selectedRowIndex ?? 0) + 1}
+              </div>
+            )}
+          </TabsContent>
 
-      {tab.subView === 'indexes' ? (
-        <TableIndexesView
-          indexes={tableIndexes}
-          loading={structureLoading}
-          error={structureError}
-        />
-      ) : null}
+          <TabsContent value="structure" className="flex-1 overflow-auto m-0 p-3">
+            <div className="flex items-center gap-2 mb-4">
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setCreateTableOpen(true)}>Create Table</Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setRenameTableOpen(true)}>Rename Table</Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs text-rose-400 hover:text-rose-300" onClick={() => setDropTableOpen(true)}>Drop Table</Button>
+            </div>
+            <TableStructureView
+              columns={tableColumns}
+              foreignKeys={tableForeignKeys}
+              loading={structureLoading}
+              error={structureError}
+              onAddColumn={() => setAddColumnOpen(true)}
+              onRenameColumn={(columnName) => setRenameColumnTarget(columnName)}
+              onDropColumn={(columnName) => setDropColumnTarget(columnName)}
+            />
+          </TabsContent>
+
+          <TabsContent value="indexes" className="flex-1 overflow-auto m-0 p-3">
+            <TableIndexesView
+              indexes={tableIndexes}
+              loading={structureLoading}
+              error={structureError}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
 
       <RowEditorModal
         open={rowEditorOpen}
@@ -268,7 +289,7 @@ export function TableView({ tab }: TableViewProps) {
             </DialogDescription>
           </DialogHeader>
 
-          {deleteError ? <div className="text-sm text-destructive">{deleteError}</div> : null}
+          {deleteError && <div className="text-sm text-destructive">{deleteError}</div>}
 
           <DialogFooter className="sm:flex-row sm:justify-end">
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleteLoading}>
@@ -308,8 +329,8 @@ export function TableView({ tab }: TableViewProps) {
         schemaName={tab.schemaName ?? ''}
         tableName={tab.tableName ?? ''}
         onSuccess={() => {
-          refreshTableData(tab.id)
-          refreshStructureData(tab.id)
+          refreshTableData(tab.id);
+          refreshStructureData(tab.id);
         }}
       />
 
@@ -321,38 +342,38 @@ export function TableView({ tab }: TableViewProps) {
         schemaName={tab.schemaName ?? ''}
         tableName={tab.tableName ?? ''}
         onSuccess={() => {
-          refreshTableData(tab.id)
-          refreshStructureData(tab.id)
+          refreshTableData(tab.id);
+          refreshStructureData(tab.id);
         }}
       />
 
       <RenameColumnDialog
         open={renameColumnTarget !== null}
-        onOpenChange={(open) => { if (!open) setRenameColumnTarget(null) }}
+        onOpenChange={(open) => { if (!open) setRenameColumnTarget(null); }}
         profileId={tab.connectionId}
         databaseName={tab.databaseName ?? ''}
         schemaName={tab.schemaName ?? ''}
         tableName={tab.tableName ?? ''}
         columnName={renameColumnTarget ?? ''}
         onSuccess={() => {
-          setRenameColumnTarget(null)
-          refreshTableData(tab.id)
-          refreshStructureData(tab.id)
+          setRenameColumnTarget(null);
+          refreshTableData(tab.id);
+          refreshStructureData(tab.id);
         }}
       />
 
       <DropColumnDialog
         open={dropColumnTarget !== null}
-        onOpenChange={(open) => { if (!open) setDropColumnTarget(null) }}
+        onOpenChange={(open) => { if (!open) setDropColumnTarget(null); }}
         profileId={tab.connectionId}
         databaseName={tab.databaseName ?? ''}
         schemaName={tab.schemaName ?? ''}
         tableName={tab.tableName ?? ''}
         columnName={dropColumnTarget ?? ''}
         onSuccess={() => {
-          setDropColumnTarget(null)
-          refreshTableData(tab.id)
-          refreshStructureData(tab.id)
+          setDropColumnTarget(null);
+          refreshTableData(tab.id);
+          refreshStructureData(tab.id);
         }}
       />
     </div>

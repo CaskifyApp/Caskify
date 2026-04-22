@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Container, RefreshCw } from 'lucide-react';
+import { Container, RefreshCw, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
 import { useDiscoveryStore } from '@/store/discoveryStore';
@@ -52,46 +52,58 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
   }, [activeConnectionId, activeDatabaseId, dockerDatabases, invalidateConnectionCache, loadDatabases]);
 
   return (
-    <section className="border-b px-3 py-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Docker Databases</h3>
-          <p className="text-xs text-muted-foreground">Detected PostgreSQL containers from Docker.</p>
+    <section className="border-b border-border/10">
+      <div className="flex items-center justify-between px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <Container className="size-3 text-amber-400" />
+          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-amber-400">Docker</h3>
         </div>
-        <Button variant="ghost" size="icon-xs" title="Refresh Docker discovery" onClick={() => void handleRefresh()}>
+        <Button variant="toolbar" size="icon-xs" title="Refresh Docker discovery" onClick={() => void handleRefresh()}>
           <RefreshCw className="size-3" />
         </Button>
       </div>
 
-      {error ? <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div> : null}
+      {error ? (
+        <div className="mx-3 mb-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-2.5 py-1.5 text-[11px] text-rose-400">
+          {error}
+        </div>
+      ) : null}
 
       {!error && dockerDatabases.length === 0 ? (
-        <div className="rounded-2xl border border-dashed px-3 py-3 text-xs text-muted-foreground">
+        <div className="px-3 pb-3 text-[11px] text-muted-foreground">
           No Docker PostgreSQL containers detected.
         </div>
       ) : null}
 
       {dockerDatabases.length > 0 ? (
-        <ul className="space-y-2">
+        <ul>
           {dockerDatabases.map((database) => (
-            <li key={database.id} className="rounded-2xl border bg-background/70 px-3 py-2">
-              <div className="flex items-center gap-2">
-                <Container className="size-3.5 text-muted-foreground" />
+            <li key={database.id} className="group border-t border-border/5">
+              <div className="flex items-center gap-2 px-3 py-1.5">
+                <div className="size-1 shrink-0 rounded-full bg-slate-500" />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{database.containerName}</div>
-                  <div className="truncate text-[11px] text-muted-foreground">{database.host}:{database.port} • {database.database}</div>
+                  <div className="truncate text-xs font-medium">{database.containerName}</div>
+                  <div className="truncate text-[10px] text-muted-foreground">{database.host}:{database.port} {database.database}</div>
                 </div>
-                <Button variant="outline" size="xs" disabled={browsingId === database.id} onClick={() => void handleBrowse(database.id)}>
-                  {browsingId === database.id ? 'Opening...' : 'Browse'}
-                </Button>
+                <button
+                  type="button"
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
+                  disabled={browsingId === database.id}
+                  onClick={() => void handleBrowse(database.id)}
+                >
+                  <span>{browsingId === database.id ? 'Opening' : 'Browse'}</span>
+                  <ChevronRight className="size-3" />
+                </button>
               </div>
 
               {activeDatabaseId === database.id && activeConnectionId ? (
-                <DatabaseTree
-                  connectionId={activeConnectionId}
-                  connected={true}
-                  onTableSelect={onTableSelect}
-                />
+                <div className="pb-2 pl-3">
+                  <DatabaseTree
+                    connectionId={activeConnectionId}
+                    connected={true}
+                    onTableSelect={onTableSelect}
+                  />
+                </div>
               ) : null}
             </li>
           ))}

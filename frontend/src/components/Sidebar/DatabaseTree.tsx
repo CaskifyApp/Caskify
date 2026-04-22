@@ -43,28 +43,28 @@ export function DatabaseTree({ connectionId, connected, selectedDatabaseName, on
 
   if (loading && nodes.length === 0) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
-        <Spinner className="size-3.5" />
+      <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] text-muted-foreground">
+        <Spinner className="size-3" />
         <span>Loading databases...</span>
       </div>
     );
   }
 
   if (error) {
-    return <div className="px-3 py-2 text-xs text-destructive">{error}</div>;
+    return <div className="px-2 py-1 text-[11px] text-rose-400">{error}</div>;
   }
 
   if (nodes.length === 0) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
-        <FolderSearch className="size-3.5" />
+      <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] text-muted-foreground">
+        <FolderSearch className="size-3" />
         <span>No databases found.</span>
       </div>
     );
   }
 
   return (
-    <ul className="mt-2 flex flex-col gap-1">
+    <ul className="mt-1 flex flex-col gap-0.5">
       {nodes.map((node) => (
         <TableTreeItem key={node.id} node={node} onTableSelect={onTableSelect} onRequestDropDatabase={onRequestDropDatabase} />
       ))}

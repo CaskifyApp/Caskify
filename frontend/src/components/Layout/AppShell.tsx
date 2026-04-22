@@ -43,15 +43,19 @@ export function AppShell() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <aside className="flex w-72 flex-col border-r bg-card/60">
-        <div className="flex items-start justify-between border-b px-4 py-3">
-          <div>
-            <h1 className="font-semibold text-lg">Caskify</h1>
-            <p className="text-xs text-muted-foreground">PostgreSQL Manager</p>
+      <aside className="flex w-[260px] flex-col border-r border-border/40 bg-[#131316]">
+        <div className="flex items-center justify-between px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/15">
+              <span className="text-sm font-bold text-primary">C</span>
+            </div>
+            <div>
+              <h1 className="text-sm font-semibold leading-none">Caskify</h1>
+            </div>
           </div>
 
-          <Button variant="outline" size="icon-sm" onClick={() => setSettingsOpen(true)} title="Settings">
-            <Settings className="size-4" />
+          <Button variant="toolbar" size="icon-xs" onClick={() => setSettingsOpen(true)} title="Settings">
+            <Settings className="size-3.5" />
           </Button>
         </div>
         <div className="perf-scroll min-h-0 flex-1 overflow-hidden [contain:layout_paint]">
@@ -59,7 +63,7 @@ export function AppShell() {
         </div>
       </aside>
 
-      <main className="flex min-w-0 flex-1 flex-col bg-muted/20">
+      <main className="flex min-w-0 flex-1 flex-col bg-background">
         <TabBar />
         <div className="perf-scroll min-h-0 flex-1 overflow-auto [contain:layout_paint]">
           {activeTab ? (

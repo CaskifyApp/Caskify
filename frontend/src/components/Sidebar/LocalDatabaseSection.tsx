@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HardDrive, Plus, RefreshCw } from 'lucide-react';
+import { HardDrive, Plus, RefreshCw, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
 import { useDiscoveryStore } from '@/store/discoveryStore';
@@ -31,52 +31,64 @@ export function LocalDatabaseSection({ onBrowse, onCreateDatabase, onTableSelect
   };
 
   return (
-    <section className="border-b px-3 py-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Local Databases</h3>
-          <p className="text-xs text-muted-foreground">Auto-discovered native PostgreSQL databases.</p>
+    <section className="border-b border-border/10">
+      <div className="flex items-center justify-between px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <HardDrive className="size-3 text-teal-400" />
+          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-teal-400">Local</h3>
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon-xs" title="Create database" onClick={onCreateDatabase}>
+        <div className="flex items-center gap-0.5">
+          <Button variant="toolbar" size="icon-xs" title="Create database" onClick={onCreateDatabase}>
             <Plus className="size-3" />
           </Button>
-          <Button variant="ghost" size="icon-xs" title="Refresh local discovery" onClick={() => void refreshAll()}>
+          <Button variant="toolbar" size="icon-xs" title="Refresh local discovery" onClick={() => void refreshAll()}>
             <RefreshCw className="size-3" />
           </Button>
         </div>
       </div>
 
-      {error ? <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</div> : null}
+      {error ? (
+        <div className="mx-3 mb-2 rounded-lg border border-rose-500/20 bg-rose-500/5 px-2.5 py-1.5 text-[11px] text-rose-400">
+          {error}
+        </div>
+      ) : null}
 
       {!error && localDatabases.length === 0 ? (
-        <div className="rounded-2xl border border-dashed px-3 py-3 text-xs text-muted-foreground">
-          No local databases detected yet.
+        <div className="px-3 pb-3 text-[11px] text-muted-foreground">
+          No local databases detected.
         </div>
       ) : null}
 
       {localDatabases.length > 0 ? (
-        <ul className="space-y-2">
+        <ul>
           {localDatabases.map((database) => (
-            <li key={database.id} className="rounded-2xl border bg-background/70 px-3 py-2">
-              <div className="flex items-center gap-2">
-                <HardDrive className="size-3.5 text-muted-foreground" />
+            <li key={database.id} className="group border-t border-border/5">
+              <div className="flex items-center gap-2 px-3 py-1.5">
+                <div className="size-1 shrink-0 rounded-full bg-slate-500" />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">{database.database}</div>
-                  <div className="truncate text-[11px] text-muted-foreground">{database.label} as {database.username}</div>
+                  <div className="truncate text-xs font-medium">{database.database}</div>
+                  <div className="truncate text-[10px] text-muted-foreground">{database.label} as {database.username}</div>
                 </div>
-                <Button variant="outline" size="xs" disabled={browsingId === database.id} onClick={() => void handleBrowse(database.id)}>
-                  {browsingId === database.id ? 'Opening...' : 'Browse'}
-                </Button>
+                <button
+                  type="button"
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
+                  disabled={browsingId === database.id}
+                  onClick={() => void handleBrowse(database.id)}
+                >
+                  <span>{browsingId === database.id ? 'Opening' : 'Browse'}</span>
+                  <ChevronRight className="size-3" />
+                </button>
               </div>
 
               {activeDatabaseId === database.id && activeConnectionId ? (
-                <DatabaseTree
-                  connectionId={activeConnectionId}
-                  connected={true}
-                  selectedDatabaseName={database.database}
-                  onTableSelect={onTableSelect}
-                />
+                <div className="pb-2 pl-3">
+                  <DatabaseTree
+                    connectionId={activeConnectionId}
+                    connected={true}
+                    selectedDatabaseName={database.database}
+                    onTableSelect={onTableSelect}
+                  />
+                </div>
               ) : null}
             </li>
           ))}

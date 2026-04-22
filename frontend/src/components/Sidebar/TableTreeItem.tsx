@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ChevronRight, Database, Eye, FolderPlus, FolderTree, Pencil, Table2, TableProperties, Trash2 } from 'lucide-react';
 import { CreateSchemaDialog, DropSchemaDialog } from '@/components/Modals/DatabaseAdminDialogs';
 import { CreateTableDialog, DropTableDialog, RenameTableDialog } from '@/components/Modals/TableAdminDialogs';
@@ -30,11 +31,27 @@ function getNodeIcon(node: TreeNode) {
   }
 }
 
+function getNodeColor(node: TreeNode) {
+  switch (node.type) {
+    case 'database':
+      return 'text-teal-400';
+    case 'schema':
+      return 'text-amber-400';
+    case 'table':
+      return 'text-slate-300';
+    case 'view':
+      return 'text-violet-400';
+    default:
+      return 'text-muted-foreground';
+  }
+}
+
 export function TableTreeItem({ node, depth = 0, onTableSelect, onRequestDropDatabase }: TableTreeItemProps) {
   const toggleNode = useSidebarStore((state) => state.toggleNode);
   const loadSchemas = useSidebarStore((state) => state.loadSchemas);
   const loadTables = useSidebarStore((state) => state.loadTables);
   const Icon = getNodeIcon(node);
+  const iconColor = getNodeColor(node);
   const hasChildren = node.type !== 'table' && node.type !== 'view';
   const isSystemDatabase = node.type === 'database' && (node.database === 'postgres');
   const isSystemSchema = node.type === 'schema' && (!!node.schema && (node.schema === 'information_schema' || node.schema.startsWith('pg_')));
@@ -54,51 +71,51 @@ export function TableTreeItem({ node, depth = 0, onTableSelect, onRequestDropDat
   };
 
   return (
-    <li className="group flex flex-col gap-1">
+    <li className="group flex flex-col gap-0.5">
       <Button
         variant="ghost"
-        className="h-8 justify-start gap-2 rounded-2xl px-2 text-xs"
+        className="h-6 justify-start gap-1.5 rounded-md px-1.5 text-[11px] hover:bg-white/5"
         onClick={() => void handleClick()}
-        style={{ paddingLeft: `${depth * 12 + 8}px` }}
+        style={{ paddingLeft: `${depth * 10 + 6}px` }}
         title={node.label}
       >
         {hasChildren ? (
           <ChevronRight
-            className={cn('size-3 shrink-0 text-muted-foreground transition-transform', node.expanded && 'rotate-90')}
+            className={cn('size-2.5 shrink-0 text-muted-foreground transition-transform duration-150', node.expanded && 'rotate-90')}
           />
         ) : (
-          <span className="size-3 shrink-0" />
+          <span className="size-2.5 shrink-0" />
         )}
-        <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+        <Icon className={cn('size-3 shrink-0', iconColor)} />
         <span className="truncate">{node.label}</span>
-        {node.loading && <Spinner className="ml-auto size-3.5" />}
+        {node.loading && <Spinner className="ml-auto size-3" />}
         {!node.loading && node.type === 'database' ? (
-          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100">
-            <Button variant="ghost" size="icon-xs" title="Create schema" onClick={(event) => { event.stopPropagation(); setCreateSchemaOpen(true); }}>
-              <FolderPlus className="size-3" />
+          <div className="ml-auto flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
+            <Button variant="toolbar" size="icon-xs" title="Create schema" onClick={(event) => { event.stopPropagation(); setCreateSchemaOpen(true); }}>
+              <FolderPlus className="size-2.5" />
             </Button>
-            <Button variant="ghost" size="icon-xs" title="Drop database" disabled={isSystemDatabase} onClick={(event) => { event.stopPropagation(); if (node.database) onRequestDropDatabase?.(node.database); }}>
-              <Trash2 className="size-3 text-destructive" />
+            <Button variant="toolbar" size="icon-xs" title="Drop database" disabled={isSystemDatabase} onClick={(event) => { event.stopPropagation(); if (node.database) onRequestDropDatabase?.(node.database); }}>
+              <Trash2 className="size-2.5 text-rose-400" />
             </Button>
           </div>
         ) : null}
         {!node.loading && node.type === 'schema' ? (
-          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100">
-            <Button variant="ghost" size="icon-xs" title="Create table" onClick={(event) => { event.stopPropagation(); setCreateTableOpen(true); }}>
-              <TableProperties className="size-3" />
+          <div className="ml-auto flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
+            <Button variant="toolbar" size="icon-xs" title="Create table" onClick={(event) => { event.stopPropagation(); setCreateTableOpen(true); }}>
+              <TableProperties className="size-2.5" />
             </Button>
-            <Button variant="ghost" size="icon-xs" title="Drop schema" disabled={isSystemSchema} onClick={(event) => { event.stopPropagation(); setDropSchemaOpen(true); }}>
-              <Trash2 className="size-3 text-destructive" />
+            <Button variant="toolbar" size="icon-xs" title="Drop schema" disabled={isSystemSchema} onClick={(event) => { event.stopPropagation(); setDropSchemaOpen(true); }}>
+              <Trash2 className="size-2.5 text-rose-400" />
             </Button>
           </div>
         ) : null}
         {!node.loading && node.type === 'table' ? (
-          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100">
-            <Button variant="ghost" size="icon-xs" title="Rename table" onClick={(event) => { event.stopPropagation(); setRenameTableOpen(true); }}>
-              <Pencil className="size-3" />
+          <div className="ml-auto flex items-center gap-0.5 opacity-0 group-hover:opacity-100">
+            <Button variant="toolbar" size="icon-xs" title="Rename table" onClick={(event) => { event.stopPropagation(); setRenameTableOpen(true); }}>
+              <Pencil className="size-2.5" />
             </Button>
-            <Button variant="ghost" size="icon-xs" title="Drop table" onClick={(event) => { event.stopPropagation(); setDropTableOpen(true); }}>
-              <Trash2 className="size-3 text-destructive" />
+            <Button variant="toolbar" size="icon-xs" title="Drop table" onClick={(event) => { event.stopPropagation(); setDropTableOpen(true); }}>
+              <Trash2 className="size-2.5 text-rose-400" />
             </Button>
           </div>
         ) : null}
@@ -106,20 +123,30 @@ export function TableTreeItem({ node, depth = 0, onTableSelect, onRequestDropDat
 
       {node.error ? (
         <div
-          className="px-2 text-[11px] text-destructive"
-          style={{ paddingLeft: `${depth * 12 + 28}px` }}
+          className="px-1.5 text-[10px] text-rose-400"
+          style={{ paddingLeft: `${depth * 10 + 24}px` }}
         >
           {node.error}
         </div>
       ) : null}
 
-      {node.expanded && node.children?.length ? (
-        <ul className="flex flex-col gap-1">
-          {node.children.map((child) => (
-            <TableTreeItem key={child.id} node={child} depth={depth + 1} onTableSelect={onTableSelect} onRequestDropDatabase={onRequestDropDatabase} />
-          ))}
-        </ul>
-      ) : null}
+      <AnimatePresence initial={false}>
+        {node.expanded && node.children?.length ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <ul className="flex flex-col gap-0.5">
+              {node.children.map((child) => (
+                <TableTreeItem key={child.id} node={child} depth={depth + 1} onTableSelect={onTableSelect} onRequestDropDatabase={onRequestDropDatabase} />
+              ))}
+            </ul>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {node.type === 'database' && node.database ? (
         <CreateSchemaDialog

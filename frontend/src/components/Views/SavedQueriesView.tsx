@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Spinner } from '@/components/ui/spinner';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetPanel } from '@/components/ui/sheet';
+import { FileCode, Trash2, Play } from 'lucide-react';
 import type { SavedQueriesPayload } from '@/types';
 
 interface SavedQueriesViewProps {
@@ -18,9 +18,7 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
+    if (!open) return;
 
     let cancelled = false;
 
@@ -50,59 +48,73 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
     };
   }, [open]);
 
-  const folderMap = new Map(payload.folders.map((folder) => [folder.id, folder.name]));
+  const folders = payload?.folders ?? [];
+  const queries = payload?.queries ?? [];
+
+  const folderMap = new Map(folders.map((folder) => [folder.id, folder.name]));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Saved Queries</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
+        <SheetHeader className="border-b border-border/5 bg-background px-5 py-4">
+          <SheetTitle className="text-lg font-medium tracking-tight">Saved Queries</SheetTitle>
+        </SheetHeader>
 
-        {error ? <div className="text-sm text-destructive">{error}</div> : null}
+        <SheetPanel className="flex flex-1 flex-col gap-3 px-5 py-4" scrollFade={false}>
+          {error && <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3 text-xs text-rose-400">{error}</div>}
 
-        <div className="perf-scroll grid gap-3 max-h-[70vh] overflow-auto [contain:layout_paint]">
           {loading ? (
-            <div className="flex items-center gap-2 rounded-4xl border bg-card p-5 text-sm text-muted-foreground">
-              <Spinner />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <FileCode className="size-4 animate-spin" />
               <span>Loading saved queries...</span>
             </div>
-          ) : payload.queries.length === 0 ? (
-            <div className="rounded-4xl border bg-card p-5 text-sm text-muted-foreground">No saved queries yet.</div>
-          ) : payload.queries.map((savedQuery) => (
-            <div key={savedQuery.id} className="flex items-start justify-between gap-3 rounded-3xl border bg-card px-4 py-3">
-              <div className="min-w-0">
-                <div className="font-medium text-foreground">{savedQuery.name}</div>
-                <div className="text-xs text-muted-foreground">{folderMap.get(savedQuery.folderId) ?? 'Ungrouped'}</div>
-                <div className="mt-2 line-clamp-2 text-xs text-muted-foreground">{savedQuery.query}</div>
+          ) : queries.length === 0 ? (
+            <div className="flex h-32 items-center justify-center text-sm text-muted-foreground/50">No saved queries yet.</div>
+          ) : (
+            queries.map((savedQuery) => (
+              <div
+                key={savedQuery.id}
+                className="group flex items-start justify-between gap-3 rounded-lg border border-border/10 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-foreground">{savedQuery.name}</span>
+                    <span className="text-[10px] text-muted-foreground/40">{folderMap.get(savedQuery.folderId) ?? 'Ungrouped'}</span>
+                  </div>
+                  <div className="mt-1.5 line-clamp-2 font-mono text-[11px] text-muted-foreground/60">{savedQuery.query}</div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-emerald-400" onClick={() => onSelectQuery(savedQuery.query)} title="Use Query">
+                    <Play className="size-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-rose-400 hover:text-rose-300"
+                    onClick={async () => {
+                      try {
+                        setDeletingId(savedQuery.id);
+                        setError(null);
+                        await wails.DeleteSavedQuery(savedQuery.id);
+                        const savedQueries = (await wails.GetSavedQueries()) as SavedQueriesPayload;
+                        setPayload(savedQueries);
+                      } catch (nextError) {
+                        setError(String(nextError));
+                      } finally {
+                        setDeletingId(null);
+                      }
+                    }}
+                    disabled={deletingId === savedQuery.id}
+                    title="Delete"
+                  >
+                    <Trash2 className="size-3" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => onSelectQuery(savedQuery.query)}>Use Query</Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      setDeletingId(savedQuery.id);
-                      setError(null);
-                      await wails.DeleteSavedQuery(savedQuery.id);
-                      const savedQueries = (await wails.GetSavedQueries()) as SavedQueriesPayload;
-                      setPayload(savedQueries);
-                    } catch (nextError) {
-                      setError(String(nextError));
-                    } finally {
-                      setDeletingId(null);
-                    }
-                  }}
-                  disabled={deletingId === savedQuery.id}
-                >
-                  {deletingId === savedQuery.id ? 'Deleting...' : 'Delete'}
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
+            ))
+          )}
+        </SheetPanel>
+      </SheetContent>
+    </Sheet>
   );
 }

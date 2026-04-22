@@ -48,9 +48,7 @@ function toggleLineComment(view: EditorView) {
   }
 
   if (changes.length > 0) {
-    view.dispatch({
-      changes,
-    });
+    view.dispatch({ changes });
   }
 }
 
@@ -58,22 +56,25 @@ export function QueryEditor({ value, onChange, onRun, completionItems = [] }: Qu
   const theme = useSettingsStore((state) => state.settings.theme);
   const editorFontSize = useSettingsStore((state) => state.settings.editorFontSize);
   const editorViewRef = useRef<EditorView | null>(null);
+
   const editorTheme = useMemo(() => {
     const fontSize = editorFontSize || 14;
     if (theme === 'dark') {
       return EditorView.theme({
         '&': {
-          backgroundColor: 'oklch(0.218 0.008 223.9)',
+          backgroundColor: 'transparent',
           color: 'oklch(0.987 0.002 197.1)',
           fontSize: `${fontSize}px`,
         },
         '.cm-content': {
           caretColor: 'oklch(0.987 0.002 197.1)',
+          padding: '8px 0',
         },
         '.cm-gutters': {
-          backgroundColor: 'oklch(0.218 0.008 223.9)',
+          backgroundColor: 'transparent',
           color: 'oklch(0.723 0.014 214.4)',
           border: 'none',
+          paddingRight: '8px',
         },
         '.cm-activeLine': {
           backgroundColor: 'oklch(0.275 0.011 216.9)',
@@ -84,19 +85,24 @@ export function QueryEditor({ value, onChange, onRun, completionItems = [] }: Qu
         '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
           backgroundColor: 'oklch(0.45 0.085 224.283 / 0.35)',
         },
+        '.cm-lineNumbers .cm-gutterElement': {
+          fontSize: `${Math.max(fontSize - 2, 10)}px`,
+          opacity: '0.4',
+        },
       }, { dark: true });
     }
 
     return EditorView.theme({
       '&': {
-        backgroundColor: 'oklch(1 0 0)',
+        backgroundColor: 'transparent',
         color: 'oklch(0.148 0.004 228.8)',
         fontSize: `${fontSize}px`,
       },
       '.cm-gutters': {
-        backgroundColor: 'oklch(1 0 0)',
+        backgroundColor: 'transparent',
         color: 'oklch(0.56 0.021 213.5)',
         border: 'none',
+        paddingRight: '8px',
       },
       '.cm-activeLine': {
         backgroundColor: 'oklch(0.963 0.002 197.1)',
@@ -107,6 +113,10 @@ export function QueryEditor({ value, onChange, onRun, completionItems = [] }: Qu
       '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
         backgroundColor: 'oklch(0.52 0.105 223.128 / 0.18)',
       },
+      '.cm-lineNumbers .cm-gutterElement': {
+        fontSize: `${Math.max(fontSize - 2, 10)}px`,
+        opacity: '0.4',
+      },
     });
   }, [theme, editorFontSize]);
 
@@ -114,35 +124,46 @@ export function QueryEditor({ value, onChange, onRun, completionItems = [] }: Qu
     override: [completeFromList(completionItems.map((label) => ({ label, type: 'keyword' })))],
   }), [completionItems]);
 
-  return (
-    <div className="query-editor overflow-hidden rounded-4xl border bg-card shadow-sm">
-      <CodeMirror
-        value={value}
-        height="320px"
-        extensions={[sql(), completionExtension, editorTheme]}
-        onChange={onChange}
-        onCreateEditor={(view) => {
-          editorViewRef.current = view;
-        }}
-        onKeyDown={(event) => {
-          if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-            event.preventDefault();
-            onRun();
-          }
+  const lineCount = useMemo(() => value.split('\n').length, [value]);
+  const charCount = value.length;
 
-          if ((event.ctrlKey || event.metaKey) && event.key === '/') {
-            event.preventDefault();
-            if (editorViewRef.current) {
-              toggleLineComment(editorViewRef.current);
+  return (
+    <div className="flex h-full flex-col bg-background">
+      <div className="flex items-center gap-3 border-b border-border/20 bg-background px-3 py-0.5 text-[10px] text-muted-foreground/40">
+        <span>{lineCount} lines</span>
+        <span className="text-muted-foreground/20">•</span>
+        <span>{charCount} chars</span>
+      </div>
+      <div className="query-editor flex-1 overflow-hidden bg-background">
+        <CodeMirror
+          value={value}
+          height="100%"
+          className="h-full"
+          extensions={[sql(), completionExtension, editorTheme]}
+          onChange={onChange}
+          onCreateEditor={(view) => {
+            editorViewRef.current = view;
+          }}
+          onKeyDown={(event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+              event.preventDefault();
+              onRun();
             }
-          }
-        }}
-        basicSetup={{
-          lineNumbers: true,
-          foldGutter: true,
-          autocompletion: true,
-        }}
-      />
+
+            if ((event.ctrlKey || event.metaKey) && event.key === '/') {
+              event.preventDefault();
+              if (editorViewRef.current) {
+                toggleLineComment(editorViewRef.current);
+              }
+            }
+          }}
+          basicSetup={{
+            lineNumbers: true,
+            foldGutter: true,
+            autocompletion: true,
+          }}
+        />
+      </div>
     </div>
   );
 }

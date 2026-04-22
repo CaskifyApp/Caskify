@@ -42,17 +42,17 @@ export function QueryView({ tab }: QueryViewProps) {
   };
 
   useEffect(() => {
-    if (!tab.connectionId || !tab.databaseName) {
-      setCompletionItems([]);
-      return;
-    }
-
-    const connectionId = tab.connectionId;
-    const databaseName = tab.databaseName;
-
     let cancelled = false;
 
     const loadCompletions = async () => {
+      if (!tab.connectionId || !tab.databaseName) {
+        if (!cancelled) setCompletionItems([]);
+        return;
+      }
+
+      const connectionId = tab.connectionId;
+      const databaseName = tab.databaseName;
+
       try {
         const schemas = await wails.GetSchemas(connectionId, databaseName);
         const words = new Set<string>(['select', 'from', 'where', 'insert', 'update', 'delete', 'join']);
@@ -114,7 +114,7 @@ export function QueryView({ tab }: QueryViewProps) {
   }, [runQuery, tab.id, tab.queryText]);
 
   return (
-    <div className="flex h-full flex-col gap-4 p-6">
+    <div className="flex h-full flex-col bg-background">
       <QueryToolbar
         profileId={tab.connectionId}
         databaseName={tab.databaseName ?? ''}
@@ -131,8 +131,8 @@ export function QueryView({ tab }: QueryViewProps) {
         onSelectTemplate={(template) => setQueryText(tab.id, template)}
       />
 
-      <Group orientation="vertical" className="min-h-0 flex-1 gap-2">
-        <Panel defaultSize={55} minSize={30}>
+      <Group orientation="vertical" className="min-h-0 flex-1">
+        <Panel defaultSize={55} minSize={25}>
           <QueryEditor
             value={tab.queryText ?? ''}
             onChange={(queryText) => setQueryText(tab.id, queryText)}
@@ -141,9 +141,9 @@ export function QueryView({ tab }: QueryViewProps) {
           />
         </Panel>
 
-        <Separator className="h-2 rounded-full bg-border/60" />
+        <Separator className="h-px bg-border/20" />
 
-        <Panel defaultSize={45} minSize={20}>
+        <Panel defaultSize={45} minSize={15}>
           <QueryResultsPanel
             result={tab.queryResult ?? null}
             loading={tab.queryLoading ?? false}

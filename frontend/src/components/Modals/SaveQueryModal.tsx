@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileCode, FolderPlus } from 'lucide-react';
 import type { QueryFolder, SavedQueriesPayload } from '@/types';
 
 interface SaveQueryModalProps {
@@ -31,7 +32,7 @@ export function SaveQueryModal({ open, onOpenChange, queryText }: SaveQueryModal
       try {
         const payload = (await wails.GetSavedQueries()) as SavedQueriesPayload;
         if (!cancelled) {
-          setFolders(payload.folders ?? []);
+          setFolders(payload?.folders ?? []);
         }
       } catch (nextError) {
         if (!cancelled) {
@@ -66,7 +67,7 @@ export function SaveQueryModal({ open, onOpenChange, queryText }: SaveQueryModal
         const folder = { id: '', name: newFolderName.trim() };
         await wails.SaveQueryFolder(folder);
         const payload = (await wails.GetSavedQueries()) as SavedQueriesPayload;
-        const nextFolder = payload.folders.find((item) => item.name === folder.name);
+        const nextFolder = payload?.folders?.find((item) => item.name === folder.name);
         folderId = nextFolder?.id ?? '';
       }
 
@@ -87,24 +88,29 @@ export function SaveQueryModal({ open, onOpenChange, queryText }: SaveQueryModal
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Save Query</DialogTitle>
+      <DialogContent className="max-w-md">
+        <div className="h-1 w-full bg-primary" />
+        <DialogHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <FileCode className="size-4 text-primary" />
+            <DialogTitle>Save Query</DialogTitle>
+          </div>
         </DialogHeader>
 
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Query Name</label>
-            <Input value={queryName} onChange={(event) => setQueryName(event.target.value)} />
+        <div className="px-5 py-2 space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">Query Name</label>
+            <Input value={queryName} onChange={(event) => setQueryName(event.target.value)} placeholder="Untitled Query" className="h-8 text-sm" autoFocus />
           </div>
 
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Folder</label>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">Folder</label>
             <Select value={selectedFolderId} onValueChange={(value) => setSelectedFolderId(value ?? '')}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose folder" />
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue placeholder="No folder" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="">No folder</SelectItem>
                 {folders.map((folder) => (
                   <SelectItem key={folder.id} value={folder.id}>
                     {folder.name}
@@ -114,17 +120,27 @@ export function SaveQueryModal({ open, onOpenChange, queryText }: SaveQueryModal
             </Select>
           </div>
 
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">New Folder</label>
-            <Input value={newFolderName} onChange={(event) => setNewFolderName(event.target.value)} placeholder="Optional new folder name" />
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+              <span className="flex items-center gap-1.5">
+                <FolderPlus className="size-3" />
+                New Folder
+              </span>
+            </label>
+            <Input 
+              value={newFolderName} 
+              onChange={(event) => setNewFolderName(event.target.value)} 
+              placeholder="Optional new folder name" 
+              className="h-8 text-sm"
+            />
           </div>
 
-          {error ? <div className="text-sm text-destructive">{error}</div> : null}
+          {error ? <div className="text-xs text-rose-400">{error}</div> : null}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Close</Button>
-          <Button onClick={() => void handleSave()} disabled={saving || !queryText.trim()}>{saving ? 'Saving...' : 'Save Query'}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving}>Close</Button>
+          <Button size="sm" onClick={() => void handleSave()} disabled={saving || !queryText.trim()}>{saving ? 'Saving...' : 'Save Query'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

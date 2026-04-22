@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { db } from '../../../wailsjs/go/models';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2, Plus, KeyRound, Ban } from 'lucide-react';
 import { CUSTOM_COLUMN_TYPE_VALUE, isPresetPostgresColumnType, normalizePostgresColumnType, POSTGRES_COLUMN_TYPE_GROUPS } from '@/lib/postgres-column-types';
 import type { CreateTableColumnInput } from '@/types';
 
@@ -36,7 +37,7 @@ function ColumnTypeField({
   const selectValue = usesPreset ? normalizedValue : CUSTOM_COLUMN_TYPE_VALUE;
 
   return (
-    <div className="grid gap-2">
+    <div className="space-y-1">
       <Select value={selectValue} onValueChange={(nextValue) => {
         if (nextValue === CUSTOM_COLUMN_TYPE_VALUE) {
           if (usesPreset) {
@@ -46,15 +47,15 @@ function ColumnTypeField({
         }
         onChange(nextValue ?? 'text');
       }}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="h-7 w-full text-xs">
           <SelectValue placeholder="Choose type" />
         </SelectTrigger>
         <SelectContent>
           {POSTGRES_COLUMN_TYPE_GROUPS.map((group, index) => (
             <SelectGroup key={group.label}>
-              <SelectLabel>{group.label}</SelectLabel>
+              <SelectLabel className="text-[10px] uppercase tracking-wider">{group.label}</SelectLabel>
               {group.options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem key={option.value} value={option.value} className="text-xs">
                   {option.label}
                 </SelectItem>
               ))}
@@ -63,13 +64,13 @@ function ColumnTypeField({
           ))}
           <SelectSeparator />
           <SelectGroup>
-            <SelectLabel>Custom</SelectLabel>
-            <SelectItem value={CUSTOM_COLUMN_TYPE_VALUE}>Custom...</SelectItem>
+            <SelectLabel className="text-[10px] uppercase tracking-wider">Custom</SelectLabel>
+            <SelectItem value={CUSTOM_COLUMN_TYPE_VALUE} className="text-xs">Custom...</SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
       {!usesPreset ? (
-        <Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="custom_type" />
+        <Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="custom_type" className="h-7 text-xs" />
       ) : null}
     </div>
   );
@@ -147,55 +148,93 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-xl">
+        <div className="h-1 w-full bg-teal-500" />
+        <DialogHeader className="pb-2">
           <DialogTitle>Create Table</DialogTitle>
-          <DialogDescription>Create a new table in schema "{schemaName}". The first column defaults to a testing-friendly serial primary key.</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Table Name</label>
-            <Input value={tableName} onChange={(event) => setTableName(event.target.value)} placeholder="new_table" />
+        <div className="px-5 py-2 space-y-4 max-h-[60vh] overflow-auto">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">Table Name</label>
+            <Input value={tableName} onChange={(event) => setTableName(event.target.value)} placeholder="new_table" className="h-8 text-sm" />
           </div>
-          <div className="grid gap-3">
+
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Columns</label>
-              <Button variant="outline" size="sm" onClick={addColumn}>Add Column</Button>
+              <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">Columns</span>
+              <Button variant="outline" size="sm" className="h-6 gap-1 text-xs" onClick={addColumn}>
+                <Plus className="size-3" /> Add
+              </Button>
             </div>
 
-            {columns.map((column, index) => (
-              <div key={index} className="grid gap-2 rounded-3xl border p-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <Input value={column.name} onChange={(event) => updateColumn(index, { name: event.target.value })} placeholder="column_name" />
-                  <ColumnTypeField value={column.type} onChange={(value) => updateColumn(index, { type: value })} />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input value={column.defaultValue ?? ''} onChange={(event) => updateColumn(index, { defaultValue: event.target.value || undefined })} placeholder="Default value (optional)" />
-                  <div className="flex items-center justify-between rounded-2xl border px-3 py-2 text-sm">
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" checked={!column.nullable} onChange={(event) => updateColumn(index, { nullable: !event.target.checked })} />
-                      <span>Not null</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" checked={column.isPrimaryKey} onChange={(event) => updateColumn(index, { isPrimaryKey: event.target.checked, nullable: event.target.checked ? false : column.nullable })} />
-                      <span>Primary key</span>
-                    </label>
+            <div className="space-y-2">
+              {columns.map((column, index) => (
+                <div key={index} className="rounded-md border border-border/20 bg-muted/10 p-3 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-medium text-muted-foreground/50">Name</label>
+                      <Input 
+                        value={column.name} 
+                        onChange={(event) => updateColumn(index, { name: event.target.value })} 
+                        placeholder="column_name" 
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-medium text-muted-foreground/50">Type</label>
+                      <ColumnTypeField value={column.type} onChange={(value) => updateColumn(index, { type: value })} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-medium text-muted-foreground/50">Default</label>
+                      <Input 
+                        value={column.defaultValue ?? ''} 
+                        onChange={(event) => updateColumn(index, { defaultValue: event.target.value || undefined })} 
+                        placeholder="Optional" 
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="flex items-center gap-3 pt-4">
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={!column.nullable} 
+                          onChange={(event) => updateColumn(index, { nullable: !event.target.checked })} 
+                          className="size-3.5 rounded border-border"
+                        />
+                        <Ban className="size-3 text-muted-foreground/50" />
+                        <span className="text-muted-foreground/70">Not null</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={column.isPrimaryKey} 
+                          onChange={(event) => updateColumn(index, { isPrimaryKey: event.target.checked, nullable: event.target.checked ? false : column.nullable })} 
+                          className="size-3.5 rounded border-border"
+                        />
+                        <KeyRound className="size-3 text-amber-400/70" />
+                        <span className="text-muted-foreground/70">PK</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-1">
+                    <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs text-rose-400 hover:text-rose-300" onClick={() => removeColumn(index)} disabled={columns.length === 1}>
+                      <Trash2 className="size-3" /> Remove
+                    </Button>
                   </div>
                 </div>
-                <div className="flex justify-end">
-                  <Button variant="outline" size="sm" onClick={() => removeColumn(index)} disabled={columns.length === 1}>Remove</Button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
+          {error ? <div className="text-xs text-rose-400">{error}</div> : null}
         </div>
 
-        {error ? <div className="text-sm text-destructive">{error}</div> : null}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button onClick={() => void handleCreate()} disabled={loading}>{loading ? 'Creating...' : 'Create Table'}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
+          <Button size="sm" onClick={() => void handleCreate()} disabled={loading}>{loading ? 'Creating...' : 'Create Table'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -245,22 +284,24 @@ export function RenameTableDialog({ open, onOpenChange, profileId, databaseName,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-sm">
+        <div className="h-1 w-full bg-amber-500" />
+        <DialogHeader className="pb-2">
           <DialogTitle>Rename Table</DialogTitle>
-          <DialogDescription>Rename table "{schemaName}.{tableName}".</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">New Name</label>
-          <Input value={newName} onChange={(event) => setNewName(event.target.value)} />
+        <div className="px-5 py-2 space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">New Name</label>
+            <Input value={newName} onChange={(event) => setNewName(event.target.value)} className="h-8 text-sm" autoFocus />
+          </div>
+
+          {error ? <div className="text-xs text-rose-400">{error}</div> : null}
         </div>
 
-        {error ? <div className="text-sm text-destructive">{error}</div> : null}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button onClick={() => void handleRename()} disabled={loading}>{loading ? 'Renaming...' : 'Rename Table'}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
+          <Button size="sm" onClick={() => void handleRename()} disabled={loading}>{loading ? 'Renaming...' : 'Rename Table'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -313,27 +354,37 @@ export function DropTableDialog({ open, onOpenChange, profileId, databaseName, s
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Drop Table</DialogTitle>
-          <DialogDescription>This will permanently remove table "{schemaName}.{tableName}" and all data inside it. This action cannot be undone.</DialogDescription>
+      <DialogContent className="max-w-sm">
+        <div className="h-1 w-full bg-rose-500" />
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-rose-400">Drop Table</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Type <span className="font-mono text-destructive">{tableName}</span> to confirm:</label>
-          <Input
-            value={confirmName}
-            onChange={(event) => setConfirmName(event.target.value)}
-            placeholder={tableName}
-            autoComplete="off"
-          />
+        <div className="px-5 py-2 space-y-3">
+          <p className="text-xs text-muted-foreground/70 leading-relaxed">
+            This will permanently remove table <span className="font-mono text-foreground">{schemaName}.{tableName}</span> and all data inside it.
+          </p>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+              Type <span className="font-mono text-rose-400">{tableName}</span> to confirm
+            </label>
+            <Input
+              value={confirmName}
+              onChange={(event) => setConfirmName(event.target.value)}
+              placeholder={tableName}
+              autoComplete="off"
+              className="h-8 text-sm"
+              autoFocus
+            />
+          </div>
+
+          {error ? <div className="text-xs text-rose-400">{error}</div> : null}
         </div>
 
-        {error ? <div className="text-sm text-destructive">{error}</div> : null}
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button variant="destructive" onClick={() => void handleDrop()} disabled={loading || !isConfirmed}>{loading ? 'Dropping...' : 'Drop Table'}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
+          <Button variant="destructive" size="sm" onClick={() => void handleDrop()} disabled={loading || !isConfirmed}>{loading ? 'Dropping...' : 'Drop Table'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

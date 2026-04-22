@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Server, Shield, Database } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Profile } from '@/types';
 import { useSaveProfile, useUpdateProfile, useTestConnection } from '@/hooks/useConnection';
@@ -107,135 +106,159 @@ export function ConnectionModal({ open, onOpenChange, editingProfile, initialPro
 
   const isPasswordValid = editingProfile ? true : password.trim().length > 0;
   const isFormValid = name && host && username && isPasswordValid;
+  const isCreate = !editingProfile;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{editingProfile ? 'Edit Connection' : 'New Connection'}</DialogTitle>
+      <DialogContent className="sm:max-w-[440px] overflow-hidden">
+        {/* Color-coded header strip */}
+        <div className={`h-1 w-full ${isCreate ? 'bg-teal-500' : 'bg-amber-500'}`} />
+        
+        <DialogHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Server className={`size-4 ${isCreate ? 'text-teal-400' : 'text-amber-400'}`} />
+            <DialogTitle>{isCreate ? 'New Connection' : 'Edit Connection'}</DialogTitle>
+          </div>
           <DialogDescription>
-            Fill in the server details for your PostgreSQL instance.
+            PostgreSQL server connection parameters.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">Name</Label>
+        <div className="px-5 py-2 space-y-4 max-h-[60vh] overflow-auto">
+          {/* Connection Name */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">Connection Name</label>
             <Input
-              id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="col-span-3"
               placeholder="My PostgreSQL Server"
+              className="h-8 text-sm"
             />
           </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="host" className="text-right">Host</Label>
-            <Input
-              id="host"
-              value={host}
-              onChange={(e) => setHost(e.target.value)}
-              className="col-span-3"
-              placeholder="localhost"
-            />
+
+          {/* Server Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+              <Database className="size-3" />
+              Server
+            </div>
+            <div className="space-y-1.5 rounded-md border border-border/20 bg-muted/10 p-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-1">
+                  <label className="text-[10px] font-medium text-muted-foreground/50">Host</label>
+                  <Input
+                    value={host}
+                    onChange={(e) => setHost(e.target.value)}
+                    placeholder="localhost"
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-muted-foreground/50">Port</label>
+                  <Input
+                    value={port}
+                    onChange={(e) => setPort(e.target.value)}
+                    placeholder="5432"
+                    className="h-7 text-xs"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-muted-foreground/50">Default Database</label>
+                <Input
+                  value={defaultDatabase}
+                  onChange={(e) => setDefaultDatabase(e.target.value)}
+                  placeholder="postgres"
+                  className="h-7 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-muted-foreground/50">SSL Mode</label>
+                <Select value={sslMode} onValueChange={(value) => setSslMode(value || 'disable')}>
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">auto</SelectItem>
+                    <SelectItem value="disable">disable</SelectItem>
+                    <SelectItem value="require">require</SelectItem>
+                    <SelectItem value="verify-ca">verify-ca</SelectItem>
+                    <SelectItem value="verify-full">verify-full</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="port" className="text-right">Port</Label>
-            <Input
-              id="port"
-              value={port}
-              onChange={(e) => setPort(e.target.value)}
-              className="col-span-3"
-              placeholder="5432"
-            />
+
+          {/* Authentication Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+              <Shield className="size-3" />
+              Authentication
+            </div>
+            <div className="space-y-1.5 rounded-md border border-border/20 bg-muted/10 p-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-muted-foreground/50">Username</label>
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="postgres"
+                  className="h-7 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-muted-foreground/50">Password</label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={editingProfile ? '(unchanged)' : ''}
+                  className="h-7 text-xs"
+                />
+              </div>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="database" className="text-right">Default DB</Label>
-            <Input
-              id="database"
-              value={defaultDatabase}
-              onChange={(e) => setDefaultDatabase(e.target.value)}
-              className="col-span-3"
-              placeholder="postgres (optional)"
-            />
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="username" className="text-right">Username</Label>
-            <Input
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="col-span-3"
-              placeholder="postgres"
-            />
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="password" className="text-right">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="col-span-3"
-              placeholder={editingProfile ? '(unchanged)' : ''}
-            />
-          </div>
-          
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="sslmode" className="text-right">SSL Mode</Label>
-            <Select value={sslMode} onValueChange={(value) => setSslMode(value || 'disable')}>
-            <SelectTrigger className="col-span-3">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="auto">auto</SelectItem>
-              <SelectItem value="disable">disable</SelectItem>
-              <SelectItem value="require">require</SelectItem>
-              <SelectItem value="verify-ca">verify-ca</SelectItem>
-                <SelectItem value="verify-full">verify-full</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+
+          {/* Test Status */}
+          {testStatus === 'success' && (
+            <div className="flex items-center gap-2 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-400">
+              <CheckCircle2 className="size-3.5 shrink-0" />
+              {testMessage || 'Connection successful!'}
+            </div>
+          )}
+
+          {testStatus === 'failed' && (
+            <div className="flex items-center gap-2 rounded-md border border-rose-500/20 bg-rose-500/5 px-3 py-2 text-xs text-rose-400">
+              <XCircle className="size-3.5 shrink-0" />
+              {error || 'Connection failed'}
+            </div>
+          )}
+
+          {error && testStatus !== 'failed' && (
+            <div className="text-xs text-rose-400">{error}</div>
+          )}
+
+          {!editingProfile && !isPasswordValid && (
+            <div className="text-xs text-rose-400">Password is required for a new connection.</div>
+          )}
         </div>
 
-        {testStatus === 'success' && (
-          <div className="flex items-center gap-2 rounded-lg bg-green-50 p-2 text-sm text-green-600 dark:bg-green-950 dark:text-green-400">
-            <CheckCircle2 className="size-4" />
-            {testMessage || 'Connection successful!'}
-          </div>
-        )}
-
-        {testStatus === 'failed' && (
-          <div className="flex items-center gap-2 text-sm text-destructive p-2 rounded-lg bg-destructive/10">
-            <XCircle className="size-4" />
-            {error || 'Connection failed'}
-          </div>
-        )}
-
-        {error && testStatus !== 'failed' && (
-          <div className="text-sm text-destructive">{error}</div>
-        )}
-
-        {!editingProfile && !isPasswordValid && (
-          <div className="text-sm text-destructive">Password is required for a new connection.</div>
-        )}
-
-        <DialogFooter className="flex-row gap-2 justify-end">
+        <DialogFooter className="gap-2">
           <Button 
             variant="outline" 
+            size="sm"
             onClick={handleTest} 
             disabled={!host || !username || testing}
-            className="gap-2"
+            className="gap-1.5"
           >
-            {testing && <Loader2 className="size-4 animate-spin" />}
+            {testing && <Loader2 className="size-3 animate-spin" />}
             {testing ? 'Testing...' : 'Test Connection'}
           </Button>
-          <Button onClick={handleSave} disabled={!isFormValid}>
+          <Button 
+            size="sm"
+            onClick={handleSave} 
+            disabled={!isFormValid}
+          >
             {editingProfile ? 'Save Changes' : 'Create'}
           </Button>
         </DialogFooter>

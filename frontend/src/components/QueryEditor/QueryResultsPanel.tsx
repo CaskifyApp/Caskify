@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { CellRenderer } from '@/components/DataGrid/CellRenderer';
 import { JSONViewerModal } from '@/components/Modals/JSONViewerModal';

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import * as wails from '../../../wailsjs/go/main/App';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { KeyRound, Sparkles } from 'lucide-react';
 import type { ColumnDef, InsertRowParams, UpdateRowParams } from '@/types';
 
 function isNumericColumn(column: ColumnDef) {
@@ -192,90 +193,102 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{mode === 'insert' ? 'Insert Row' : 'Edit Row'}</DialogTitle>
-          <DialogDescription>
-            Review editable fields and save your changes. Generated and read-only columns are hidden automatically.
-          </DialogDescription>
+        <div className="h-1 w-full bg-slate-500" />
+        <DialogHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <KeyRound className="size-4 text-slate-400" />
+            <DialogTitle>{mode === 'insert' ? 'Insert Row' : 'Edit Row'}</DialogTitle>
+          </div>
         </DialogHeader>
 
-        <div className="grid max-h-[60vh] gap-4 overflow-auto pr-1">
+        <div className="px-5 py-2 space-y-0 max-h-[60vh] overflow-auto">
           {visibleColumns.map((column) => (
-            <div key={column.name} className="grid gap-2">
-              <label className="text-sm font-medium text-foreground">{column.name}</label>
-              {column.type === 'boolean' ? (
-                <Select value={draft[column.name] ?? ''} onValueChange={(value) => setDraftValue(column.name, value ?? '')} disabled={isReadonlyColumn(column)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select boolean value" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">NULL</SelectItem>
-                    <SelectItem value="true">true</SelectItem>
-                    <SelectItem value="false">false</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : isJsonColumn(column) || isLongTextColumn(column) ? (
-                <textarea
-                  value={draft[column.name] ?? ''}
-                  onChange={(event) => setDraftValue(column.name, event.target.value)}
-                  disabled={isReadonlyColumn(column)}
-                  rows={isJsonColumn(column) ? 8 : 4}
-                  className="min-h-24 rounded-3xl border border-input bg-background px-3 py-2 text-sm"
-                />
-              ) : isTimestampColumn(column) ? (
-                <Input
-                  type="datetime-local"
-                  value={draft[column.name] ?? ''}
-                  onChange={(event) => setDraftValue(column.name, event.target.value)}
-                  disabled={isReadonlyColumn(column)}
-                />
-              ) : (
-                <Input
-                  type={isNumericColumn(column) ? 'number' : 'text'}
-                  value={draft[column.name] ?? ''}
-                  onChange={(event) => setDraftValue(column.name, event.target.value)}
-                  disabled={isReadonlyColumn(column)}
-                  placeholder={isUuidColumn(column) ? '550e8400-e29b-41d4-a716-446655440000' : undefined}
-                />
-              )}
-              {isUuidColumn(column) && !isReadonlyColumn(column) ? (
-                <div className="flex justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setDraftValue(column.name, crypto.randomUUID())}
-                    type="button"
-                  >
-                    Generate UUID
-                  </Button>
+            <div key={column.name} className="flex items-start gap-3 py-2 border-b border-border/10 last:border-0">
+              {/* Label column */}
+              <div className="w-32 shrink-0 pt-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-mono font-medium text-foreground">{column.name}</span>
+                  {column.isPrimaryKey && <KeyRound className="size-3 text-amber-400/70" />}
                 </div>
-              ) : null}
-              <div className="text-xs text-muted-foreground">
-                {column.type}
-                {column.isNullable ? ' • nullable' : ' • required'}
-                {column.hasDefault ? ' • defaulted' : ''}
-                {column.isIdentity ? ' • identity' : ''}
-                {column.isGenerated ? ' • generated' : ''}
-                {requiresManualValue(column) ? ' • manual value required' : ''}
-                {isReadonlyColumn(column) ? ' • read-only' : ''}
+                <div className="flex flex-wrap gap-1 mt-1">
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted/50 text-muted-foreground/60 font-mono">{column.type}</span>
+                  {column.isNullable && <span className="text-[10px] px-1 py-0.5 rounded bg-muted/50 text-muted-foreground/40">null</span>}
+                  {requiresManualValue(column) && <span className="text-[10px] px-1 py-0.5 rounded bg-rose-500/10 text-rose-400/70">required</span>}
+                  {isReadonlyColumn(column) && <span className="text-[10px] px-1 py-0.5 rounded bg-muted/50 text-muted-foreground/40">ro</span>}
+                </div>
+              </div>
+
+              {/* Input column */}
+              <div className="flex-1 min-w-0">
+                {column.type === 'boolean' ? (
+                  <Select value={draft[column.name] ?? ''} onValueChange={(value) => setDraftValue(column.name, value ?? '')} disabled={isReadonlyColumn(column)}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="NULL" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">NULL</SelectItem>
+                      <SelectItem value="true">true</SelectItem>
+                      <SelectItem value="false">false</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : isJsonColumn(column) || isLongTextColumn(column) ? (
+                  <textarea
+                    value={draft[column.name] ?? ''}
+                    onChange={(event) => setDraftValue(column.name, event.target.value)}
+                    disabled={isReadonlyColumn(column)}
+                    rows={isJsonColumn(column) ? 6 : 3}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono resize-y min-h-[60px]"
+                  />
+                ) : isTimestampColumn(column) ? (
+                  <Input
+                    type="datetime-local"
+                    value={draft[column.name] ?? ''}
+                    onChange={(event) => setDraftValue(column.name, event.target.value)}
+                    disabled={isReadonlyColumn(column)}
+                    className="h-8 text-xs"
+                  />
+                ) : (
+                  <div className="relative">
+                    <Input
+                      type={isNumericColumn(column) ? 'number' : 'text'}
+                      value={draft[column.name] ?? ''}
+                      onChange={(event) => setDraftValue(column.name, event.target.value)}
+                      disabled={isReadonlyColumn(column)}
+                      placeholder={isUuidColumn(column) ? '550e8400-e29b-41d4-a716-446655440000' : undefined}
+                      className="h-8 text-xs"
+                    />
+                    {isUuidColumn(column) && !isReadonlyColumn(column) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5"
+                        onClick={() => setDraftValue(column.name, crypto.randomUUID())}
+                        type="button"
+                        title="Generate UUID"
+                      >
+                        <Sparkles className="size-3 text-muted-foreground/50" />
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
 
         {editableColumns.length === 0 ? (
-          <div className="text-sm text-muted-foreground">
+          <div className="px-5 text-sm text-muted-foreground/50">
             No editable columns are available for this action.
           </div>
         ) : null}
 
-        {error ? <div className="text-sm text-destructive">{error}</div> : null}
+        {error ? <div className="px-5 text-xs text-rose-400">{error}</div> : null}
 
-        <DialogFooter className="sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving}>
             Close
           </Button>
-          <Button onClick={() => void handleSave()} disabled={saving || editableColumns.length === 0}>
+          <Button size="sm" onClick={() => void handleSave()} disabled={saving || editableColumns.length === 0}>
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogFooter>

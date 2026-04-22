@@ -241,18 +241,19 @@ body {
 .query-editor .cm-editor,
 .query-editor .cm-scroller,
 .query-editor .cm-content {
-  background-color: var(--card);
-  color: var(--card-foreground);
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
 }
 
 .query-editor .cm-gutters {
-  background-color: var(--card);
-  color: var(--muted-foreground);
+  background-color: var(--background) !important;
+  color: var(--muted-foreground) !important;
+  border-right: 1px solid var(--border) !important;
 }
 
 .query-editor .cm-activeLine,
 .query-editor .cm-activeLineGutter {
-  background-color: color-mix(in oklch, var(--muted) 92%, transparent);
+  background-color: color-mix(in oklch, var(--muted) 50%, transparent) !important;
 }
 
 @layer base {

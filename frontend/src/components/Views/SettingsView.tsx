@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Settings2, Database, Keyboard, Info, CheckCircle2, AlertCircle, DatabaseZap } from 'lucide-react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetPanel } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import type { DatabaseInfo, DatabaseOperationResult, DatabaseRestorePreflightResult } from '@/types';
@@ -19,6 +22,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
+  
   const [profileId, setProfileId] = useState('');
   const [databaseName, setDatabaseName] = useState('');
   const [databases, setDatabases] = useState<DatabaseInfo[]>([]);
@@ -43,19 +47,14 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   }, [loadSettings, open]);
 
   useEffect(() => {
-    if (!open) {
-      return;
-    }
-
+    if (!open) return;
     if (!profileId && availableProfiles.length > 0) {
       setProfileId(availableProfiles[0].id);
     }
   }, [availableProfiles, open, profileId]);
 
   useEffect(() => {
-    if (!open || !profileId) {
-      return;
-    }
+    if (!open || !profileId) return;
 
     let cancelled = false;
     const profile = profiles.find((item) => item.id === profileId);
@@ -76,16 +75,11 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
       }
     });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [databaseName, open, profileId, profiles]);
 
   useEffect(() => {
-    if (!restorePreflight || restorePreflight.isEmpty || newDatabaseName) {
-      return;
-    }
-
+    if (!restorePreflight || restorePreflight.isEmpty || newDatabaseName) return;
     setNewDatabaseName(`${restorePreflight.databaseName}_restore`);
   }, [newDatabaseName, restorePreflight]);
 
@@ -97,9 +91,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
     let cancelled = false;
     void wails.CheckDatabaseRestoreTarget({ profileId, database: databaseName }).then((result) => {
-      if (!cancelled) {
-        setRestorePreflight(result);
-      }
+      if (!cancelled) setRestorePreflight(result);
     }).catch((error) => {
       if (!cancelled) {
         setRestorePreflight(null);
@@ -107,20 +99,12 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
       }
     });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [databaseName, open, profileId]);
 
   const runDatabaseAction = async (action: 'export' | 'import') => {
-    if (!profileId) {
-      setDatabaseActionError('Choose a server profile first.');
-      return;
-    }
-    if (!databaseName) {
-      setDatabaseActionError('Choose a database first.');
-      return;
-    }
+    if (!profileId) { setDatabaseActionError('Choose a server profile first.'); return; }
+    if (!databaseName) { setDatabaseActionError('Choose a database first.'); return; }
 
     setDatabaseActionLoading(true);
     setDatabaseActionError(null);
@@ -148,14 +132,8 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   };
 
   const handleCreateDatabase = async () => {
-    if (!profileId) {
-      setDatabaseActionError('Choose a server profile first.');
-      return;
-    }
-    if (!newDatabaseName.trim()) {
-      setDatabaseActionError('Enter a database name first.');
-      return;
-    }
+    if (!profileId) { setDatabaseActionError('Choose a server profile first.'); return; }
+    if (!newDatabaseName.trim()) { setDatabaseActionError('Enter a database name first.'); return; }
 
     setDatabaseActionLoading(true);
     setDatabaseActionError(null);
@@ -177,205 +155,274 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-3rem)] max-w-6xl overflow-hidden p-0 sm:max-w-6xl">
-        <DialogHeader>
-          <div className="border-b px-6 py-5">
-            <DialogTitle>Settings</DialogTitle>
-          </div>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md lg:max-w-xl">
+        <SheetHeader className="border-b border-border/5 bg-background px-6 py-4">
+          <SheetTitle className="text-xl font-medium tracking-tight">Preferences</SheetTitle>
+        </SheetHeader>
 
-        <div className="max-h-[85vh] overflow-y-auto px-6 py-6">
-          <div className="grid gap-6 xl:grid-cols-2">
-          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
-            <h3 className="font-medium text-foreground">Appearance</h3>
-            <div className="flex items-center gap-2">
-              <Button variant={settings.theme === 'light' ? 'default' : 'outline'} size="sm" onClick={() => void updateSettings({ theme: 'light' })}>Light</Button>
-              <Button variant={settings.theme === 'dark' ? 'default' : 'outline'} size="sm" onClick={() => void updateSettings({ theme: 'dark' })}>Dark</Button>
-            </div>
-          </section>
+        <SheetPanel className="flex flex-1 flex-col px-6 py-4" scrollFade={false}>
+          <Tabs defaultValue="general" className="flex flex-col h-full">
+            <TabsList className="mb-6 flex w-fit bg-muted/30 p-1">
+              <TabsTrigger value="general" className="flex items-center gap-2 text-xs">
+                <Settings2 className="size-3.5" /> General
+              </TabsTrigger>
+              <TabsTrigger value="database" className="flex items-center gap-2 text-xs">
+                <Database className="size-3.5" /> Backup
+              </TabsTrigger>
+              <TabsTrigger value="shortcuts" className="flex items-center gap-2 text-xs">
+                <Keyboard className="size-3.5" /> Shortcuts
+              </TabsTrigger>
+              <TabsTrigger value="about" className="flex items-center gap-2 text-xs">
+                <Info className="size-3.5" /> About
+              </TabsTrigger>
+            </TabsList>
 
-          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
-            <h3 className="font-medium text-foreground">Table Preferences</h3>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Default Rows Per Page</label>
-              <Input
-                type="number"
-                min={25}
-                max={5000}
-                value={String(settings.defaultRowsPerPage)}
-                onChange={(event) => void updateSettings({ defaultRowsPerPage: Number(event.target.value) || 50 })}
-              />
-            </div>
-          </section>
+            <TabsContent value="general" className="flex-1 space-y-8 animate-in fade-in-50">
+              <section className="space-y-3">
+                <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Appearance</h3>
+                <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <div className="text-[13px] font-medium">App Theme</div>
+                      <div className="text-[11px] text-muted-foreground">Select light or dark mode.</div>
+                    </div>
+                    <div className="flex rounded-lg border border-border/10 bg-black/20 p-0.5">
+                      <button 
+                        type="button"
+                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", settings.theme === 'light' ? 'bg-white/10 text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+                        onClick={() => void updateSettings({ theme: 'light' })}
+                      >
+                        Light
+                      </button>
+                      <button 
+                        type="button"
+                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", settings.theme === 'dark' ? 'bg-white/10 text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+                        onClick={() => void updateSettings({ theme: 'dark' })}
+                      >
+                        Dark
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
 
-          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
-            <h3 className="font-medium text-foreground">Query Editor</h3>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Editor Font Size (px)</label>
-              <Input
-                type="number"
-                min={10}
-                max={24}
-                value={String(settings.editorFontSize)}
-                onChange={(event) => void updateSettings({ editorFontSize: Number(event.target.value) || 14 })}
-              />
-            </div>
-          </section>
+              <section className="space-y-3">
+                <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Query Editor</h3>
+                <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                  <div className="flex items-center justify-between border-b border-border/5 px-4 py-3">
+                    <div>
+                      <div className="text-[13px] font-medium">Font Size</div>
+                      <div className="text-[11px] text-muted-foreground">Adjust the code editor scale.</div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        min={10}
+                        max={24}
+                        className="h-7 w-16 border-border/20 bg-transparent px-2 text-right text-xs shadow-none focus-visible:ring-1"
+                        value={String(settings.editorFontSize)}
+                        onChange={(event) => void updateSettings({ editorFontSize: Number(event.target.value) || 14 })}
+                      />
+                      <span className="text-[11px] text-muted-foreground">px</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <div className="text-[13px] font-medium">History Limit</div>
+                      <div className="text-[11px] text-muted-foreground">Maximum queries kept in memory.</div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        min={10}
+                        max={1000}
+                        className="h-7 w-20 border-border/20 bg-transparent px-2 text-right text-xs shadow-none focus-visible:ring-1"
+                        value={String(settings.historyLimit)}
+                        onChange={(event) => void updateSettings({ historyLimit: Number(event.target.value) || 100 })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
 
-          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
-            <h3 className="font-medium text-foreground">Query History</h3>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">History Limit (entries)</label>
-              <Input
-                type="number"
-                min={10}
-                max={1000}
-                value={String(settings.historyLimit)}
-                onChange={(event) => void updateSettings({ historyLimit: Number(event.target.value) || 100 })}
-              />
-              <p className="text-xs text-muted-foreground">Maximum number of queries to keep in history.</p>
-            </div>
-          </section>
+              <section className="space-y-3">
+                <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Data Tables</h3>
+                <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <div className="text-[13px] font-medium">Default Rows Per Page</div>
+                      <div className="text-[11px] text-muted-foreground">Records fetched per pagination request.</div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        min={25}
+                        max={5000}
+                        className="h-7 w-20 border-border/20 bg-transparent px-2 text-right text-xs shadow-none focus-visible:ring-1"
+                        value={String(settings.defaultRowsPerPage)}
+                        onChange={(event) => void updateSettings({ defaultRowsPerPage: Number(event.target.value) || 50 })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </TabsContent>
 
-          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
-            <h3 className="font-medium text-foreground">Keyboard Shortcuts</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
-                <span>New query tab</span>
-                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+T</kbd>
+            <TabsContent value="database" className="flex-1 space-y-6 animate-in fade-in-50">
+              <div className="rounded-xl border border-border/10 bg-white/[0.02] p-5 shadow-sm">
+                <div className="grid gap-6">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Target Profile</label>
+                      <Select value={profileId} onValueChange={(value) => { setProfileId(value ?? ''); setDatabaseName(''); }}>
+                        <SelectTrigger className="h-9 w-full bg-black/20 text-xs shadow-none">
+                          <SelectValue placeholder="Choose profile" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableProfiles.map((profile) => (
+                            <SelectItem key={profile.id} value={profile.id} className="text-xs">{profile.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Database</label>
+                      <Select value={databaseName} onValueChange={(value) => setDatabaseName(value ?? '')}>
+                        <SelectTrigger className="h-9 w-full bg-black/20 text-xs shadow-none">
+                          <SelectValue placeholder="Choose database" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {databases.map((db) => (
+                            <SelectItem key={db.name} value={db.name} className="text-xs">{db.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 rounded-lg border border-border/5 bg-background/50 p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-foreground">Create Empty Database</span>
+                      <span className="text-[10px] text-muted-foreground">For clean SQL restore targets</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={newDatabaseName}
+                        onChange={(event) => setNewDatabaseName(event.target.value)}
+                        placeholder="restore_target"
+                        className="h-8 bg-black/20 text-xs shadow-none"
+                      />
+                      <Button variant="secondary" size="sm" className="h-8 text-xs" onClick={() => void handleCreateDatabase()} disabled={databaseActionLoading || !profileId || !newDatabaseName.trim()}>
+                        Create
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-6 rounded-lg bg-muted/20 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {toolStatus.pg_dump ? <CheckCircle2 className="size-4 text-emerald-400" /> : <AlertCircle className="size-4 text-rose-400" />}
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">pg_dump</span>
+                        <span className="text-xs">{toolStatus.pg_dump ? 'Installed' : 'Missing'}</span>
+                      </div>
+                    </div>
+                    <div className="h-6 w-px bg-border/20" />
+                    <div className="flex items-center gap-2">
+                      {toolStatus.psql ? <CheckCircle2 className="size-4 text-emerald-400" /> : <AlertCircle className="size-4 text-rose-400" />}
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">psql</span>
+                        <span className="text-xs">{toolStatus.psql ? 'Installed' : 'Missing'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preflight Checks */}
+                  {restorePreflight && !restorePreflight.isEmpty ? (
+                    <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-4 text-xs text-rose-400">
+                      <div className="font-semibold text-rose-300">⚠️ Restore target is not empty</div>
+                      <div className="mt-1.5 leading-relaxed opacity-90">
+                        Detected {restorePreflight.objectCount} user objects across {restorePreflight.schemaCount} schema(s): {restorePreflight.schemas.join(', ')}. <br/>
+                        Full SQL dumps should be restored into an empty database to avoid conflicts.
+                      </div>
+                    </div>
+                  ) : restorePreflight?.isEmpty ? (
+                    <div className="rounded-lg border border-teal-500/20 bg-teal-500/5 p-3 text-xs text-teal-400 flex items-center gap-2">
+                      <CheckCircle2 className="size-4" />
+                      Restore target looks empty and ready for a full SQL dump.
+                    </div>
+                  ) : null}
+
+                  {databaseActionError && <div className="text-xs text-rose-400">{databaseActionError}</div>}
+                  {databaseActionMessage && <div className="text-xs text-teal-400">{databaseActionMessage}</div>}
+                  {databaseActionWarnings.length > 0 && (
+                    <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-amber-400 space-y-1">
+                      {databaseActionWarnings.map((warning, i) => <div key={i}>{warning}</div>)}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <Button variant="outline" className="h-9 w-full bg-background" onClick={() => void runDatabaseAction('export')} disabled={databaseActionLoading || !toolStatus.pg_dump || !databaseName}>
+                      Export SQL Dump
+                    </Button>
+                    <Button variant="action" className="h-9 w-full" onClick={() => void runDatabaseAction('import')} disabled={databaseActionLoading || !toolStatus.psql || !databaseName || !restorePreflight?.isEmpty}>
+                      Import SQL Dump
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
-                <span>Close active tab</span>
-                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+W</kbd>
-              </div>
-              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
-                <span>Run query</span>
-                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+Enter</kbd>
-              </div>
-              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
-                <span>Save query</span>
-                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+S</kbd>
-              </div>
-              <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
-                <span>Refresh workspace</span>
-                <kbd className="rounded bg-muted px-2 py-1 text-xs">Ctrl+R / F5</kbd>
-              </div>
-            </div>
-          </section>
+            </TabsContent>
 
-          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
-            <h3 className="font-medium text-foreground">About</h3>
-            <div className="grid gap-1 text-sm text-muted-foreground">
-              <div>App: Caskify</div>
-              <div>Version: v1.0.0-beta1</div>
-              <div>Platform: Linux native desktop via Wails</div>
-              <div>License: MIT</div>
-            </div>
-          </section>
-
-          <section className="grid gap-3 rounded-4xl border bg-card p-4 shadow-sm">
-            <h3 className="font-medium text-foreground">Database Backup & Restore</h3>
-
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Server Profile</label>
-              <Select value={profileId} onValueChange={(value) => {
-                setProfileId(value ?? '');
-                setDatabaseName('');
-              }}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose server profile" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableProfiles.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.id}>
-                      {profile.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Database</label>
-              <Select value={databaseName} onValueChange={(value) => setDatabaseName(value ?? '')}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose database" />
-                </SelectTrigger>
-                <SelectContent>
-                  {databases.map((database) => (
-                    <SelectItem key={database.name} value={database.name}>
-                      {database.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Create Empty Database</label>
-              <div className="flex items-center gap-2">
-                <Input
-                  value={newDatabaseName}
-                  onChange={(event) => setNewDatabaseName(event.target.value)}
-                  placeholder="wiradoor_restore"
-                />
-                <Button variant="outline" onClick={() => void handleCreateDatabase()} disabled={databaseActionLoading || !profileId || !newDatabaseName.trim()}>
-                  Create
-                </Button>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Create a fresh target database here first if you want to restore a full SQL dump.
-              </div>
-            </div>
-
-            <div className="grid gap-1 text-sm text-muted-foreground">
-              <div>pg_dump: {toolStatus.pg_dump ? 'available' : 'missing'}</div>
-              <div>psql: {toolStatus.psql ? 'available' : 'missing'}</div>
-            </div>
-
-            {restorePreflight && !restorePreflight.isEmpty ? (
-              <div className="rounded-3xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-                <div className="font-medium">Restore target is not empty.</div>
-                <div className="mt-1">Detected {restorePreflight.objectCount} user objects across {restorePreflight.schemaCount} schema(s).</div>
-                <div className="mt-1">Schemas already present: {restorePreflight.schemas.join(', ')}</div>
-                <div className="mt-1 text-xs">Full SQL dumps should be restored into an empty database.</div>
-              </div>
-            ) : null}
-
-            {restorePreflight?.isEmpty ? (
-              <div className="rounded-3xl border border-primary/30 bg-primary/10 p-3 text-sm text-primary">
-                Restore target looks empty and ready for a full SQL dump.
-              </div>
-            ) : null}
-
-            {databaseActionError ? <div className="text-sm text-destructive">{databaseActionError}</div> : null}
-            {databaseActionMessage ? <div className="text-sm text-primary">{databaseActionMessage}</div> : null}
-            {databaseActionMessage && databaseActionMessage.toLowerCase().includes('successfully') ? (
-              <div className="text-xs text-muted-foreground">
-                {databaseName ? `Target database: ${databaseName}` : ''}
-              </div>
-            ) : null}
-            {databaseActionWarnings.length > 0 ? (
-              <div className="rounded-3xl border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-600 dark:text-yellow-300">
-                {databaseActionWarnings.map((warning) => (
-                  <div key={warning}>{warning}</div>
+            <TabsContent value="shortcuts" className="flex-1 space-y-4 animate-in fade-in-50">
+              <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                {[
+                  { label: 'New query tab', keys: ['Ctrl', 'T'] },
+                  { label: 'Close active tab', keys: ['Ctrl', 'W'] },
+                  { label: 'Run query', keys: ['Ctrl', 'Enter'] },
+                  { label: 'Save query', keys: ['Ctrl', 'S'] },
+                  { label: 'Refresh workspace', keys: ['F5'] },
+                ].map((shortcut, i, arr) => (
+                  <div key={shortcut.label} className={cn("flex items-center justify-between px-4 py-3", i !== arr.length - 1 && "border-b border-border/5")}>
+                    <span className="text-[13px] text-muted-foreground">{shortcut.label}</span>
+                    <div className="flex gap-1">
+                      {shortcut.keys.map(k => (
+                        <kbd key={k} className="rounded border border-border/20 bg-black/20 px-2 py-1 text-[10px] font-medium text-foreground">{k}</kbd>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
-            ) : null}
+            </TabsContent>
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => void runDatabaseAction('export')} disabled={databaseActionLoading || !toolStatus.pg_dump || !databaseName}>
-                Export SQL
-              </Button>
-              <Button variant="outline" onClick={() => void runDatabaseAction('import')} disabled={databaseActionLoading || !toolStatus.psql || !databaseName || !restorePreflight?.isEmpty}>
-                Import SQL
-              </Button>
-            </div>
-          </section>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+            <TabsContent value="about" className="flex-1 animate-in fade-in-50">
+               <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                <div className="flex flex-col items-center justify-center p-8 border-b border-border/5">
+                  <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-violet-600 shadow-lg">
+                    <DatabaseZap className="size-8 text-white" />
+                  </div>
+                  <h2 className="mt-4 text-xl font-semibold tracking-tight">Caskify</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">The modern PostgreSQL GUI</p>
+                </div>
+                
+                <div className="grid gap-0">
+                  <div className="flex justify-between px-4 py-3 border-b border-border/5">
+                    <span className="text-[13px] text-muted-foreground">Version</span>
+                    <span className="text-[13px] font-medium">v1.0.0-beta2</span>
+                  </div>
+                  <div className="flex justify-between px-4 py-3 border-b border-border/5">
+                    <span className="text-[13px] text-muted-foreground">Platform</span>
+                    <span className="text-[13px] font-medium">Linux (Wails)</span>
+                  </div>
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-[13px] text-muted-foreground">License</span>
+                    <span className="text-[13px] font-medium">MIT</span>
+                  </div>
+                </div>
+               </div>
+            </TabsContent>
+          </Tabs>
+        </SheetPanel>
+      </SheetContent>
+    </Sheet>
   );
 }

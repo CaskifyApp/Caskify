@@ -49,7 +49,7 @@ export function AppShell() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <aside className="flex w-[260px] flex-col border-r border-border/40 bg-[#131316]">
+      <aside className="flex w-[260px] flex-col border-r border-border/40 bg-sidebar text-sidebar-foreground">
         <div className="flex items-center justify-between px-3 py-2.5">
           <div className="flex items-center gap-2">
             <div className="flex size-7 items-center justify-center rounded-lg bg-primary/15">

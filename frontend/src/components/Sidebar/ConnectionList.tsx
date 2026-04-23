@@ -120,7 +120,6 @@ export function ConnectionList() {
 
     const targetProfile = existingProfile ?? await saveProfile(profileInput);
     await handleConnect(targetProfile.id);
-    await loadDatabases(targetProfile.id, true);
     return targetProfile.id;
   };
 

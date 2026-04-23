@@ -110,7 +110,7 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
                 {result.rows.map((row, index) => {
                   const isEven = index % 2 === 0;
                   return (
-                    <tr key={index} className={isEven ? 'bg-white/[0.01]' : ''}>
+                    <tr key={index} className={isEven ? 'bg-muted/30' : ''}>
                       <td className="sticky left-0 z-10 border-r border-border/5 bg-background px-2 py-1.5 text-center text-[10px] font-mono text-muted-foreground/40">
                         {index + 1}
                       </td>

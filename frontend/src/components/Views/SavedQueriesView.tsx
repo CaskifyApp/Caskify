@@ -74,7 +74,7 @@ export function SavedQueriesView({ open, onOpenChange, onSelectQuery }: SavedQue
             queries.map((savedQuery) => (
               <div
                 key={savedQuery.id}
-                className="group flex items-start justify-between gap-3 rounded-lg border border-border/10 bg-white/[0.02] p-3 transition-colors hover:bg-white/[0.04]"
+                className="group flex items-start justify-between gap-3 rounded-lg border border-border/10 bg-muted/40 p-3 transition-colors hover:bg-muted/60"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

@@ -93,7 +93,7 @@ export function HistoryView({ open, onOpenChange, onSelectQuery }: HistoryViewPr
               <button
                 key={entry.id}
                 type="button"
-                className="group rounded-lg border border-border/10 bg-white/[0.02] p-3 text-left transition-colors hover:bg-white/[0.04]"
+                className="group rounded-lg border border-border/10 bg-muted/40 p-3 text-left transition-colors hover:bg-muted/60"
                 onClick={() => onSelectQuery(entry.query)}
               >
                 <div className="flex items-center justify-between gap-3">

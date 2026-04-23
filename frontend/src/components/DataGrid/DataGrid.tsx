@@ -128,13 +128,13 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
                     className={cn(
                       'group transition-colors',
                       isSelected && 'bg-primary/10',
-                      !isSelected && isEven && 'bg-white/[0.01]',
+                      !isSelected && isEven && 'bg-muted/30',
                       !isSelected && !isEven && 'bg-transparent',
-                      'hover:bg-white/[0.03]'
+                      'hover:bg-muted/50'
                     )}
                     onClick={() => onRowSelect?.(index, row)}
                   >
-                    <td className="sticky left-0 z-10 border-r border-border/5 px-2 py-1.5 text-center text-[10px] font-mono text-muted-foreground/40 bg-background group-hover:bg-white/[0.03]">
+                    <td className="sticky left-0 z-10 border-r border-border/5 px-2 py-1.5 text-center text-[10px] font-mono text-muted-foreground/40 bg-background group-hover:bg-muted/50">
                       {index + 1}
                     </td>
                     {data.columns.map((column) => {

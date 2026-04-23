@@ -178,7 +178,7 @@ export function WelcomeView() {
                 return (
                   <li
                     key={profile.id}
-                    className="group flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-black/5 dark:hover:bg-white/[0.03]"
+                    className="group flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-accent"
                     onClick={() => void handleProfileClick(profile)}
                   >
                     <div className={`size-2 shrink-0 rounded-full ${dotColor}`} />

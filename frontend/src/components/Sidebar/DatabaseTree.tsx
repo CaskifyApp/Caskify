@@ -13,9 +13,10 @@ interface DatabaseTreeProps {
   selectedDatabaseName?: string;
   onTableSelect?: (node: TreeNode) => void;
   onRequestDropDatabase?: (databaseName: string) => void;
+  flat?: boolean;
 }
 
-export function DatabaseTree({ connectionId, connected, selectedDatabaseName, onTableSelect, onRequestDropDatabase }: DatabaseTreeProps) {
+export function DatabaseTree({ connectionId, connected, selectedDatabaseName, onTableSelect, onRequestDropDatabase, flat }: DatabaseTreeProps) {
   const tree = useSidebarStore((state) => state.treeByConnection[connectionId]);
   const cacheKey = selectedDatabaseName ? `${connectionId}:scoped:${selectedDatabaseName}` : `${connectionId}:databases`;
   const loading = useSidebarStore((state) => state.loadingNodeIds[cacheKey] ?? false);
@@ -41,11 +42,14 @@ export function DatabaseTree({ connectionId, connected, selectedDatabaseName, on
     return null;
   }
 
-  if (loading && nodes.length === 0) {
+  const isFlat = flat && nodes.length === 1 && nodes[0].type === 'database';
+  const displayNodes = isFlat ? (nodes[0].children || []) : nodes;
+
+  if (loading && displayNodes.length === 0) {
     return (
       <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] text-muted-foreground">
         <Spinner className="size-3" />
-        <span>Loading databases...</span>
+        <span>Loading...</span>
       </div>
     );
   }
@@ -54,18 +58,18 @@ export function DatabaseTree({ connectionId, connected, selectedDatabaseName, on
     return <div className="px-2 py-1 text-[11px] text-rose-400">{error}</div>;
   }
 
-  if (nodes.length === 0) {
+  if (displayNodes.length === 0) {
     return (
       <div className="flex items-center gap-2 px-2 py-1.5 text-[11px] text-muted-foreground">
         <FolderSearch className="size-3" />
-        <span>No databases found.</span>
+        <span>{isFlat ? 'No schemas found.' : 'No databases found.'}</span>
       </div>
     );
   }
 
   return (
     <ul className="mt-1 flex flex-col gap-0.5">
-      {nodes.map((node) => (
+      {displayNodes.map((node) => (
         <TableTreeItem key={node.id} node={node} onTableSelect={onTableSelect} onRequestDropDatabase={onRequestDropDatabase} />
       ))}
     </ul>

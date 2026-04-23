@@ -72,10 +72,9 @@ export function LocalDatabaseSection({ onBrowse, onCreateDatabase, onTableSelect
             <li key={database.id} className="group border-t border-border/5">
               <div className="flex items-center gap-2 px-3 py-1.5">
                 <StatusDot active={activeDatabaseId === database.id} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-medium">{database.database}</div>
-                  <div className="truncate text-[10px] text-muted-foreground">{database.label} as {database.username}</div>
-                </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-xs font-medium">{database.database}</div>
+              </div>
                 <button
                   type="button"
                   className="flex items-center gap-1 text-[10px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
@@ -94,6 +93,7 @@ export function LocalDatabaseSection({ onBrowse, onCreateDatabase, onTableSelect
                     connected={true}
                     selectedDatabaseName={database.database}
                     onTableSelect={onTableSelect}
+                    flat
                   />
                 </div>
               ) : null}

@@ -74,7 +74,7 @@ export function TableTreeItem({ node, depth = 0, onTableSelect, onRequestDropDat
     <li className="group flex flex-col gap-0.5">
       <Button
         variant="ghost"
-        className="h-6 justify-start gap-1.5 rounded-md px-1.5 text-[11px] hover:bg-white/5"
+        className="h-6 justify-start gap-1.5 rounded-md px-1.5 text-[11px] hover:bg-accent"
         onClick={() => void handleClick()}
         style={{ paddingLeft: `${depth * 10 + 6}px` }}
         title={node.label}

@@ -37,7 +37,7 @@ export function TableIndexesView({ indexes, loading, error }: TableIndexesViewPr
             {indexes.map((index, idx) => {
               const isEven = idx % 2 === 0;
               return (
-                <tr key={index.name} className={cn(isEven && 'bg-white/[0.01]', 'hover:bg-white/[0.03] transition-colors')}>
+                <tr key={index.name} className={cn(isEven && 'bg-muted/30', 'hover:bg-muted/50 transition-colors')}>
                   <td className="border-b border-border/5 px-3 py-1.5">
                     <div className="flex items-center gap-1.5">
                       {index.isPrimary ? (

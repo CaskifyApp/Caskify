@@ -181,23 +181,23 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             <TabsContent value="general" className="flex-1 space-y-8 animate-in fade-in-50">
               <section className="space-y-3">
                 <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Appearance</h3>
-                <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-border/10 bg-surface-inset shadow-sm">
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
                       <div className="text-[13px] font-medium">App Theme</div>
                       <div className="text-[11px] text-muted-foreground">Select light or dark mode.</div>
                     </div>
-                    <div className="flex rounded-lg border border-border/10 bg-black/20 p-0.5">
+                    <div className="flex rounded-lg border border-border/10 bg-muted/50 p-0.5">
                       <button 
                         type="button"
-                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", settings.theme === 'light' ? 'bg-white/10 text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", settings.theme === 'light' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
                         onClick={() => void updateSettings({ theme: 'light' })}
                       >
                         Light
                       </button>
                       <button 
                         type="button"
-                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", settings.theme === 'dark' ? 'bg-white/10 text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", settings.theme === 'dark' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
                         onClick={() => void updateSettings({ theme: 'dark' })}
                       >
                         Dark
@@ -209,7 +209,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
               <section className="space-y-3">
                 <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Query Editor</h3>
-                <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-border/10 bg-surface-inset shadow-sm">
                   <div className="flex items-center justify-between border-b border-border/5 px-4 py-3">
                     <div>
                       <div className="text-[13px] font-medium">Font Size</div>
@@ -248,7 +248,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
               <section className="space-y-3">
                 <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Data Tables</h3>
-                <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-border/10 bg-surface-inset shadow-sm">
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
                       <div className="text-[13px] font-medium">Default Rows Per Page</div>
@@ -270,7 +270,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
 
               <section className="space-y-3">
                 <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Setup Wizard</h3>
-                <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-border/10 bg-surface-inset shadow-sm">
                   <div className="flex items-center justify-between px-4 py-3">
                     <div>
                       <div className="text-[13px] font-medium">Reset Onboarding</div>
@@ -295,13 +295,13 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             </TabsContent>
 
             <TabsContent value="database" className="flex-1 space-y-6 animate-in fade-in-50">
-              <div className="rounded-xl border border-border/10 bg-white/[0.02] p-5 shadow-sm">
+              <div className="rounded-xl border border-border/10 bg-surface-inset p-5 shadow-sm">
                 <div className="grid gap-6">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Target Profile</label>
                       <Select value={profileId} onValueChange={(value) => { setProfileId(value ?? ''); setDatabaseName(''); }}>
-                        <SelectTrigger className="h-9 w-full bg-black/20 text-xs shadow-none">
+                        <SelectTrigger className="h-9 w-full bg-muted/50 text-xs shadow-none">
                           <SelectValue placeholder="Choose profile" />
                         </SelectTrigger>
                         <SelectContent>
@@ -314,7 +314,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Database</label>
                       <Select value={databaseName} onValueChange={(value) => setDatabaseName(value ?? '')}>
-                        <SelectTrigger className="h-9 w-full bg-black/20 text-xs shadow-none">
+                        <SelectTrigger className="h-9 w-full bg-muted/50 text-xs shadow-none">
                           <SelectValue placeholder="Choose database" />
                         </SelectTrigger>
                         <SelectContent>
@@ -336,7 +336,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                         value={newDatabaseName}
                         onChange={(event) => setNewDatabaseName(event.target.value)}
                         placeholder="restore_target"
-                        className="h-8 bg-black/20 text-xs shadow-none"
+                        className="h-8 bg-muted/50 text-xs shadow-none"
                       />
                       <Button variant="secondary" size="sm" className="h-8 text-xs" onClick={() => void handleCreateDatabase()} disabled={databaseActionLoading || !profileId || !newDatabaseName.trim()}>
                         Create
@@ -399,7 +399,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             </TabsContent>
 
             <TabsContent value="shortcuts" className="flex-1 space-y-4 animate-in fade-in-50">
-              <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+              <div className="overflow-hidden rounded-xl border border-border/10 bg-surface-inset shadow-sm">
                 {[
                   { label: 'New query tab', keys: ['Ctrl', 'T'] },
                   { label: 'Close active tab', keys: ['Ctrl', 'W'] },
@@ -411,7 +411,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                     <span className="text-[13px] text-muted-foreground">{shortcut.label}</span>
                     <div className="flex gap-1">
                       {shortcut.keys.map(k => (
-                        <kbd key={k} className="rounded border border-border/20 bg-black/20 px-2 py-1 text-[10px] font-medium text-foreground">{k}</kbd>
+                        <kbd key={k} className="rounded border border-border/20 bg-muted px-2 py-1 text-[10px] font-medium text-foreground">{k}</kbd>
                       ))}
                     </div>
                   </div>
@@ -420,7 +420,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             </TabsContent>
 
             <TabsContent value="about" className="flex-1 animate-in fade-in-50">
-               <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+               <div className="overflow-hidden rounded-xl border border-border/10 bg-surface-inset shadow-sm">
                 <div className="flex flex-col items-center justify-center p-8 border-b border-border/5">
                   <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-violet-600 shadow-lg">
                     <DatabaseZap className="size-8 text-white" />

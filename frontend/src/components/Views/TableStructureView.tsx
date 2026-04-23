@@ -85,8 +85,8 @@ export function TableStructureView({ columns, foreignKeys, loading, error, onAdd
                       key={column.name}
                       className={cn(
                         'group transition-colors',
-                        isEven && 'bg-white/[0.01]',
-                        'hover:bg-white/[0.03]'
+                        isEven && 'bg-muted/30',
+                        'hover:bg-muted/50'
                       )}
                     >
                       <td className="border-b border-border/5 px-3 py-1.5 text-[10px] font-mono text-muted-foreground/40">
@@ -168,7 +168,7 @@ export function TableStructureView({ columns, foreignKeys, loading, error, onAdd
                 {foreignKeys.map((fk, index) => {
                   const isEven = index % 2 === 0;
                   return (
-                    <tr key={`${fk.constraintName}:${fk.columnName}`} className={cn(isEven && 'bg-white/[0.01]')}>
+                    <tr key={`${fk.constraintName}:${fk.columnName}`} className={cn(isEven && 'bg-muted/30')}>
                       <td className="border-b border-border/5 px-3 py-1.5">
                         <div className="flex items-center gap-1.5">
                           <Link className="size-3 text-muted-foreground/40" />

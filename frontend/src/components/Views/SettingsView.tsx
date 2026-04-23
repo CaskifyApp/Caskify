@@ -267,6 +267,31 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                   </div>
                 </div>
               </section>
+
+              <section className="space-y-3">
+                <h3 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Setup Wizard</h3>
+                <div className="overflow-hidden rounded-xl border border-border/10 bg-white/[0.02] shadow-sm">
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <div>
+                      <div className="text-[13px] font-medium">Reset Onboarding</div>
+                      <div className="text-[11px] text-muted-foreground">Re-run the initial setup wizard.</div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          void updateSettings({ wizardCompleted: false });
+                          onOpenChange(false);
+                        }}
+                      >
+                        Reset Wizard
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </TabsContent>
 
             <TabsContent value="database" className="flex-1 space-y-6 animate-in fade-in-50">

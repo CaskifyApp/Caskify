@@ -17,12 +17,15 @@ interface SettingsViewProps {
 }
 
 export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
-  const settings = useSettingsStore((state) => state.settings);
+  const theme = useSettingsStore((state) => state.settings.theme);
+  const editorFontSize = useSettingsStore((state) => state.settings.editorFontSize);
+  const historyLimit = useSettingsStore((state) => state.settings.historyLimit);
+  const defaultRowsPerPage = useSettingsStore((state) => state.settings.defaultRowsPerPage);
   const loadSettings = useSettingsStore((state) => state.loadSettings);
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const profiles = useConnectionStore((state) => state.profiles);
   const connectionStatuses = useConnectionStore((state) => state.connectionStatuses);
-  
+
   const [profileId, setProfileId] = useState('');
   const [databaseName, setDatabaseName] = useState('');
   const [databases, setDatabases] = useState<DatabaseInfo[]>([]);
@@ -190,14 +193,14 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                     <div className="flex rounded-lg border border-border/10 bg-muted/50 p-0.5">
                       <button 
                         type="button"
-                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", settings.theme === 'light' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", theme === 'light' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
                         onClick={() => void updateSettings({ theme: 'light' })}
                       >
                         Light
                       </button>
                       <button 
                         type="button"
-                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", settings.theme === 'dark' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+                        className={cn("rounded-md px-3 py-1 text-xs font-medium transition-all", theme === 'dark' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
                         onClick={() => void updateSettings({ theme: 'dark' })}
                       >
                         Dark
@@ -221,7 +224,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                         min={10}
                         max={24}
                         className="h-7 w-16 border-border/20 bg-transparent px-2 text-right text-xs shadow-none focus-visible:ring-1"
-                        value={String(settings.editorFontSize)}
+                        value={String(editorFontSize)}
                         onChange={(event) => void updateSettings({ editorFontSize: Number(event.target.value) || 14 })}
                       />
                       <span className="text-[11px] text-muted-foreground">px</span>
@@ -238,7 +241,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                         min={10}
                         max={1000}
                         className="h-7 w-20 border-border/20 bg-transparent px-2 text-right text-xs shadow-none focus-visible:ring-1"
-                        value={String(settings.historyLimit)}
+                        value={String(historyLimit)}
                         onChange={(event) => void updateSettings({ historyLimit: Number(event.target.value) || 100 })}
                       />
                     </div>
@@ -260,7 +263,7 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
                         min={25}
                         max={5000}
                         className="h-7 w-20 border-border/20 bg-transparent px-2 text-right text-xs shadow-none focus-visible:ring-1"
-                        value={String(settings.defaultRowsPerPage)}
+                        value={String(defaultRowsPerPage)}
                         onChange={(event) => void updateSettings({ defaultRowsPerPage: Number(event.target.value) || 50 })}
                       />
                     </div>

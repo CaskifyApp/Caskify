@@ -18,26 +18,27 @@ const TableView = lazy(() => import('@/components/Views/TableView').then((module
 
 export function AppShell() {
   useKeyboardShortcuts();
-  const settings = useSettingsStore((state) => state.settings);
-  const tabs = useTabStore((state) => state.tabs);
-  const activeTabId = useTabStore((state) => state.activeTabId);
-  const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null;
+  const theme = useSettingsStore((state) => state.settings.theme);
+  const wizardCompleted = useSettingsStore((state) => state.settings.wizardCompleted);
+  const activeTab = useTabStore((state) =>
+    state.tabs.find((tab) => tab.id === state.activeTabId) ?? null
+  );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const startDiscoverySync = useDiscoveryStore((state) => state.startSync);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', settings.theme === 'dark');
-  }, [settings.theme]);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   useEffect(() => {
-    if (!settings.wizardCompleted) return;
+    if (!wizardCompleted) return;
     const stopSync = startDiscoverySync();
     return () => {
       stopSync();
     };
-  }, [startDiscoverySync, settings.wizardCompleted]);
+  }, [startDiscoverySync, wizardCompleted]);
 
-  if (!settings.wizardCompleted) {
+  if (!wizardCompleted) {
     return <SetupWizard />;
   }
 
@@ -79,7 +80,7 @@ export function AppShell() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
+              transition={{ duration: 0.10, ease: 'easeOut' }}
               className="h-full"
             >
               {activeTab ? (

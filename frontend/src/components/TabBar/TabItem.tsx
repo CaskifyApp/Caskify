@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { X, Table2, FileCode } from 'lucide-react';
 import { useConnectionStore } from '@/store/connectionStore';
 import { cn } from '@/lib/utils';
@@ -28,12 +29,12 @@ function getSourceIconColor(sourceKind: string | undefined) {
   }
 }
 
-export function TabItem({ tab, active, onSelect, onClose }: TabItemProps) {
-  const profiles = useConnectionStore((state) => state.profiles);
-  const profile = profiles.find((p) => p.id === tab.connectionId);
-  const sourceKind = profile?.sourceKind;
-  const sourceColor = getSourceColor(sourceKind);
-  const iconColor = getSourceIconColor(sourceKind);
+function TabItemRaw({ tab, active, onSelect, onClose }: TabItemProps) {
+  const sourceKind = useConnectionStore(
+    (state) => state.profiles.find((p) => p.id === tab.connectionId)?.sourceKind
+  );
+  const sourceColor = useMemo(() => getSourceColor(sourceKind), [sourceKind]);
+  const iconColor = useMemo(() => getSourceIconColor(sourceKind), [sourceKind]);
 
   return (
     <div
@@ -79,3 +80,5 @@ export function TabItem({ tab, active, onSelect, onClose }: TabItemProps) {
     </div>
   );
 }
+
+export const TabItem = memo(TabItemRaw);

@@ -18,6 +18,16 @@ interface CloudConnectionsSectionProps {
   onTableSelect: (node: TreeNode) => void;
 }
 
+function StatusDot({ connected, error }: { connected: boolean; error?: string }) {
+  if (error) {
+    return <div className="size-2 shrink-0 rounded-full bg-rose-400 animate-pulse" />;
+  }
+  if (connected) {
+    return <div className="size-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.5)]" />;
+  }
+  return <div className="size-2 shrink-0 rounded-full border border-slate-500 bg-transparent" />;
+}
+
 export function CloudConnectionsSection({
   profiles,
   connectionStatuses,
@@ -58,7 +68,7 @@ export function CloudConnectionsSection({
             return (
               <li key={profile.id} className="group border-t border-border/5">
                 <div className="flex items-center gap-2 px-3 py-1.5">
-                  <div className={`size-1 shrink-0 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                  <StatusDot connected={isConnected} error={status?.error} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-xs font-medium">{profile.name}</div>
                     <div className="truncate text-[10px] text-muted-foreground">

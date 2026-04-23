@@ -1,6 +1,7 @@
-import { Plus, Table2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTabStore } from '@/store/tabStore';
+
 import { TabItem } from '@/components/TabBar/TabItem';
 
 export function TabBar() {
@@ -11,23 +12,12 @@ export function TabBar() {
   const openQueryTab = useTabStore((state) => state.openQueryTab);
 
   if (tabs.length === 0) {
-    return (
-      <div className="flex items-center justify-between gap-2 border-b px-4 py-3 text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Table2 className="size-3.5" />
-          <span>No open tabs yet.</span>
-        </div>
-        <Button variant="outline" size="sm" onClick={openQueryTab}>
-          <Plus data-icon="inline-start" />
-          New Query
-        </Button>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
-      <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
+    <div className="flex items-center justify-between gap-0 border-b border-border/30 bg-muted/5">
+      <div className="flex min-w-0 flex-1 items-end overflow-x-auto">
         {tabs.map((tab) => (
           <TabItem
             key={tab.id}
@@ -39,10 +29,12 @@ export function TabBar() {
         ))}
       </div>
 
-      <Button variant="outline" size="sm" onClick={openQueryTab}>
-        <Plus data-icon="inline-start" />
-        New Query
-      </Button>
+      <div className="flex shrink-0 items-center border-l border-border/20 px-2 py-1.5">
+        <Button variant="ghost" size="sm" className="h-6 gap-1 text-xs" onClick={openQueryTab}>
+          <Plus className="size-3" />
+          <span className="hidden sm:inline">New Query</span>
+        </Button>
+      </div>
     </div>
   );
 }

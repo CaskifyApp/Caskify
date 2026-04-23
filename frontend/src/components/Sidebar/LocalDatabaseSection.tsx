@@ -11,6 +11,13 @@ interface LocalDatabaseSectionProps {
   onTableSelect: (node: TreeNode) => void;
 }
 
+function StatusDot({ active }: { active: boolean }) {
+  if (active) {
+    return <div className="size-2 shrink-0 rounded-full bg-teal-400 shadow-[0_0_4px_rgba(45,212,191,0.5)]" />;
+  }
+  return <div className="size-2 shrink-0 rounded-full border border-slate-500 bg-transparent" />;
+}
+
 export function LocalDatabaseSection({ onBrowse, onCreateDatabase, onTableSelect }: LocalDatabaseSectionProps) {
   const localDatabases = useDiscoveryStore((state) => state.localDatabases);
   const refreshAll = useDiscoveryStore((state) => state.refreshAll);
@@ -64,7 +71,7 @@ export function LocalDatabaseSection({ onBrowse, onCreateDatabase, onTableSelect
           {localDatabases.map((database) => (
             <li key={database.id} className="group border-t border-border/5">
               <div className="flex items-center gap-2 px-3 py-1.5">
-                <div className="size-1 shrink-0 rounded-full bg-slate-500" />
+                <StatusDot active={activeDatabaseId === database.id} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-xs font-medium">{database.database}</div>
                   <div className="truncate text-[10px] text-muted-foreground">{database.label} as {database.username}</div>

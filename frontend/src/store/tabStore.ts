@@ -1,16 +1,18 @@
 import { create } from 'zustand';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useSettingsStore } from '@/store/settingsStore';
-import type { ColumnDef, ForeignKeyInfo, QueryResult, TableIndexInfo, TablePageResult, Tab, TreeNode } from '@/types';
+import type { ActivityItem, ColumnDef, ForeignKeyInfo, QueryResult, TableIndexInfo, TablePageResult, Tab, TreeNode } from '@/types';
 
 interface TabState {
   tabs: Tab[];
   activeTabId: string | null;
+  activityLog: ActivityItem[];
   openTableTab: (node: TreeNode) => void;
   openQueryTab: () => void;
   openQueryTabForConnection: (profileId: string, databaseName: string, title?: string) => void;
   setActiveTab: (tabId: string) => void;
   closeTab: (tabId: string) => void;
+  pushActivity: (item: Omit<ActivityItem, 'id' | 'timestamp'>) => void;
   setTableLoading: (tabId: string, loading: boolean) => void;
   setTableError: (tabId: string, error: string | null) => void;
   setTableData: (tabId: string, tableData: TablePageResult, tableColumns: ColumnDef[]) => void;
@@ -39,9 +41,31 @@ function buildTableTabId(node: TreeNode) {
   return `${node.connectionId}:${node.type}:${node.database}:${node.schema}:${node.label}`;
 }
 
+const ACTIVITY_LOG_KEY = 'caskify:activityLog';
+const MAX_ACTIVITY_ITEMS = 20;
+
+function loadActivityLog(): ActivityItem[] {
+  try {
+    const raw = localStorage.getItem(ACTIVITY_LOG_KEY);
+    if (raw) return JSON.parse(raw) as ActivityItem[];
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
+function saveActivityLog(log: ActivityItem[]) {
+  try {
+    localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(log.slice(0, MAX_ACTIVITY_ITEMS)));
+  } catch {
+    // ignore
+  }
+}
+
 export const useTabStore = create<TabState>((set) => ({
   tabs: [],
   activeTabId: null,
+  activityLog: loadActivityLog(),
 
   openTableTab: (node) => {
     if ((node.type !== 'table' && node.type !== 'view') || !node.database || !node.schema) {
@@ -86,9 +110,21 @@ export const useTabStore = create<TabState>((set) => ({
         structureRefreshKey: 0,
       };
 
+      const profile = useConnectionStore.getState().profiles.find((p) => p.id === node.connectionId);
+      const nextLog: ActivityItem = {
+        id: crypto.randomUUID(),
+        type: 'table_open',
+        label: node.label,
+        detail: profile?.name || node.connectionId,
+        timestamp: new Date().toISOString(),
+      };
+      const activityLog = [nextLog, ...state.activityLog].slice(0, MAX_ACTIVITY_ITEMS);
+      saveActivityLog(activityLog);
+
       return {
         tabs: [...state.tabs, nextTab],
         activeTabId: nextTab.id,
+        activityLog,
       };
     });
   },
@@ -111,9 +147,20 @@ export const useTabStore = create<TabState>((set) => ({
         queryError: null,
       };
 
+      const nextLog: ActivityItem = {
+        id: crypto.randomUUID(),
+        type: 'query',
+        label: nextTab.title,
+        detail: connectedProfile?.name || 'New query',
+        timestamp: new Date().toISOString(),
+      };
+      const activityLog = [nextLog, ...state.activityLog].slice(0, MAX_ACTIVITY_ITEMS);
+      saveActivityLog(activityLog);
+
       return {
         tabs: [...state.tabs, nextTab],
         activeTabId: nextTab.id,
+        activityLog,
       };
     });
   },
@@ -141,9 +188,21 @@ export const useTabStore = create<TabState>((set) => ({
         queryError: null,
       };
 
+      const profile = useConnectionStore.getState().profiles.find((p) => p.id === profileId);
+      const nextLog: ActivityItem = {
+        id: crypto.randomUUID(),
+        type: 'query',
+        label: nextTab.title,
+        detail: profile?.name || profileId,
+        timestamp: new Date().toISOString(),
+      };
+      const activityLog = [nextLog, ...state.activityLog].slice(0, MAX_ACTIVITY_ITEMS);
+      saveActivityLog(activityLog);
+
       return {
         tabs: [...state.tabs, nextTab],
         activeTabId: nextTab.id,
+        activityLog,
       };
     });
   },
@@ -154,10 +213,28 @@ export const useTabStore = create<TabState>((set) => ({
 
   closeTab: (tabId) => {
     set((state) => {
+      const closedTab = state.tabs.find((tab) => tab.id === tabId);
       const nextTabs = state.tabs.filter((tab) => tab.id !== tabId);
       const nextActiveTabId = state.activeTabId === tabId
         ? nextTabs.at(-1)?.id ?? null
         : state.activeTabId;
+
+      if (closedTab) {
+        const nextLog: ActivityItem = {
+          id: crypto.randomUUID(),
+          type: 'tab_close',
+          label: closedTab.title,
+          detail: closedTab.mode === 'table' ? 'Table' : 'Query',
+          timestamp: new Date().toISOString(),
+        };
+        const activityLog = [nextLog, ...state.activityLog].slice(0, MAX_ACTIVITY_ITEMS);
+        saveActivityLog(activityLog);
+        return {
+          tabs: nextTabs,
+          activeTabId: nextActiveTabId,
+          activityLog,
+        };
+      }
 
       return {
         tabs: nextTabs,
@@ -351,5 +428,18 @@ export const useTabStore = create<TabState>((set) => ({
         queryError: null,
       })),
     }));
+  },
+
+  pushActivity: (item) => {
+    set((state) => {
+      const next: ActivityItem = {
+        ...item,
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+      };
+      const nextLog = [next, ...state.activityLog].slice(0, MAX_ACTIVITY_ITEMS);
+      saveActivityLog(nextLog);
+      return { activityLog: nextLog };
+    });
   },
 }));

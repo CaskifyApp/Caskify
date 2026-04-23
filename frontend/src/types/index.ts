@@ -345,6 +345,14 @@ export interface DockerDatabaseInfo {
   passwordAvailable: boolean;
 }
 
+export interface ActivityItem {
+  id: string;
+  type: 'connect' | 'query' | 'table_open' | 'tab_close' | 'disconnect';
+  label: string;
+  detail?: string;
+  timestamp: string;
+}
+
 export interface TreeNode {
   id: string;
   label: string;

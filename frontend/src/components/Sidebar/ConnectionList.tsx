@@ -41,23 +41,19 @@ export function ConnectionList() {
     loadProfiles();
   }, [loadProfiles]);
 
-	useEffect(() => {
-		const handleQuickLocalServer = () => {
-			setEditingProfile(null);
-			setInitialProfile({
-				name: 'Local PostgreSQL',
-				host: 'localhost',
-				port: 5432,
-				defaultDatabase: 'postgres',
-				username: 'postgres',
-				ssl_mode: 'auto',
-			});
-			setModalOpen(true);
-		};
+  useEffect(() => {
+    const handleNewConnection = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setEditingProfile(null);
+      setInitialProfile(detail?.initialProfile ?? null);
+      setModalOpen(true);
+    };
 
-    window.addEventListener('caskify:quick-local-server', handleQuickLocalServer);
-    return () => window.removeEventListener('caskify:quick-local-server', handleQuickLocalServer);
+    window.addEventListener('caskify:new-connection', handleNewConnection);
+    return () => window.removeEventListener('caskify:new-connection', handleNewConnection);
   }, []);
+
+
 
   const handleEdit = (profile: Profile) => {
     setEditingProfile(profile);

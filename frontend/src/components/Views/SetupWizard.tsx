@@ -1,15 +1,41 @@
 import { useState } from 'react';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useConnectionStore } from '@/store/connectionStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, ChevronRight, Settings, Database, Cloud, DatabaseZap } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Settings, Database, Cloud, DatabaseZap, HardDrive, Container, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
+
+function getProfileIcon(sourceKind?: string) {
+  switch (sourceKind) {
+    case 'local':
+      return HardDrive;
+    case 'docker':
+      return Container;
+    default:
+      return Globe;
+  }
+}
+
+function getProfileColor(sourceKind?: string) {
+  switch (sourceKind) {
+    case 'local':
+      return 'text-teal-400';
+    case 'docker':
+      return 'text-amber-400';
+    default:
+      return 'text-violet-400';
+  }
+}
 
 export function SetupWizard() {
   const [step, setStep] = useState(1);
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const { settings, updateSettings } = useSettingsStore();
+  const profiles = useConnectionStore((state) => state.profiles);
+  
+  const savedProfiles = profiles.filter(p => !p.hidden);
 
   const handleThemeChange = async (theme: 'light' | 'dark') => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -134,20 +160,59 @@ export function SetupWizard() {
                 <h2 className="mb-2 text-2xl font-semibold tracking-tight">Remote Connections</h2>
                 <p className="mb-8 text-muted-foreground">Set up your cloud database access.</p>
 
-                <Card variant="panel" className="overflow-hidden bg-card/50">
-                  <CardContent className="flex flex-col items-center justify-center p-10 text-center">
-                    <div className="mb-5 flex size-14 items-center justify-center rounded-xl bg-primary/10 shadow-[0_0_15px_rgba(var(--primary),0.15)] ring-1 ring-primary/20">
-                      <Database className="size-6 text-primary" />
-                    </div>
-                    <h3 className="mb-2 text-base font-medium">Connect to Remote Database</h3>
-                    <p className="mb-8 max-w-[280px] text-sm text-muted-foreground leading-relaxed">
-                      Add your PostgreSQL, MySQL, or other supported remote databases now, or do it later from the sidebar.
-                    </p>
-                    <Button onClick={() => setShowConnectionModal(true)} variant="default" className="shadow-sm">
-                      Add Connection Now
-                    </Button>
-                  </CardContent>
-                </Card>
+                {savedProfiles.length === 0 ? (
+                  <Card variant="panel" className="overflow-hidden bg-card/50">
+                    <CardContent className="flex flex-col items-center justify-center p-10 text-center">
+                      <div className="mb-5 flex size-14 items-center justify-center rounded-xl bg-primary/10 shadow-[0_0_15px_rgba(var(--primary),0.15)] ring-1 ring-primary/20">
+                        <Database className="size-6 text-primary" />
+                      </div>
+                      <h3 className="mb-2 text-base font-medium">Connect to Remote Database</h3>
+                      <p className="mb-8 max-w-[280px] text-sm text-muted-foreground leading-relaxed">
+                        Add your PostgreSQL, MySQL, or other supported remote databases now, or do it later from the sidebar.
+                      </p>
+                      <Button onClick={() => setShowConnectionModal(true)} variant="default" className="shadow-sm">
+                        Add Connection Now
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    <Card variant="panel" className="bg-card/50">
+                      <CardContent className="p-6">
+                        <div className="mb-5 flex items-center justify-between">
+                          <div>
+                            <h3 className="text-sm font-semibold">Added Connections</h3>
+                            <p className="text-xs text-muted-foreground mt-0.5">These profiles are now saved to your workspace.</p>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => setShowConnectionModal(true)} className="h-8 text-xs">
+                            Add Another
+                          </Button>
+                        </div>
+                        <div className="grid gap-2">
+                          {savedProfiles.map(profile => {
+                            const ProfileIcon = getProfileIcon(profile.sourceKind);
+                            const iconColor = getProfileColor(profile.sourceKind);
+
+                            return (
+                              <div key={profile.id} className="flex items-center justify-between rounded-lg border border-border/40 bg-background p-3.5 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex size-9 items-center justify-center rounded-lg bg-muted/50 ring-1 ring-border/50">
+                                    <ProfileIcon className={cn("size-4", iconColor)} />
+                                  </div>
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-[13px] font-semibold leading-none">{profile.name}</span>
+                                    <span className="text-[11px] text-muted-foreground">{profile.host}:{profile.port} <span className="opacity-50 mx-1">&bull;</span> {profile.username}</span>
+                                  </div>
+                                </div>
+                                <CheckCircle2 className="size-4 text-emerald-500" />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
             )}
 

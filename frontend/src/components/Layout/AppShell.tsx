@@ -5,6 +5,7 @@ import { TabBar } from '@/components/TabBar/TabBar';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { Spinner } from '@/components/ui/spinner';
 import { WelcomeView } from '@/components/Views/WelcomeView';
+import { SetupWizard } from '@/components/Views/SetupWizard';
 import { Button } from '@/components/ui/button';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTabStore } from '@/store/tabStore';
@@ -28,11 +29,16 @@ export function AppShell() {
   }, [settings.theme]);
 
   useEffect(() => {
+    if (!settings.wizardCompleted) return;
     const stopSync = startDiscoverySync();
     return () => {
       stopSync();
     };
-  }, [startDiscoverySync]);
+  }, [startDiscoverySync, settings.wizardCompleted]);
+
+  if (!settings.wizardCompleted) {
+    return <SetupWizard />;
+  }
 
   const loadingFallback = (
     <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">

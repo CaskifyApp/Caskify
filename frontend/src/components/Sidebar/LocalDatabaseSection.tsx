@@ -90,9 +90,9 @@ export function LocalDatabaseSection({ onBrowse, onCreateDatabase, onTableSelect
               <AnimatePresence>
                 {activeDatabaseId === database.id && activeConnectionId ? (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
+                    initial={{ opacity: 0, maxHeight: 0 }}
+                    animate={{ opacity: 1, maxHeight: 1200 }}
+                    exit={{ opacity: 0, maxHeight: 0 }}
                     transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] }}
                     className="overflow-hidden"
                   >

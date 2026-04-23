@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { AnimatePresence, motion } from 'motion/react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { CellRenderer } from '@/components/DataGrid/CellRenderer';
@@ -22,10 +23,25 @@ const panelVariants = {
 
 const panelTransition = { duration: 0.18, ease: [0, 0, 0.2, 1] as const };
 
+const ROW_HEIGHT = 36;
+
 export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelProps) {
   const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [jsonViewerValue, setJsonViewerValue] = useState<unknown>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: result?.rows.length ?? 0,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 8,
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0;
+  const paddingBottom = virtualRows.length > 0 ? totalSize - virtualRows[virtualRows.length - 1].end : 0;
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -108,9 +124,9 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
               {exportMessage && (
                 <motion.div
                   key="export"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
+                  initial={{ opacity: 0, maxHeight: 0 }}
+                  animate={{ opacity: 1, maxHeight: 120 }}
+                  exit={{ opacity: 0, maxHeight: 0 }}
                   transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] as const }}
                   className="overflow-hidden"
                 >
@@ -123,9 +139,9 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
               {result.truncated && (
                 <motion.div
                   key="truncated"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
+                  initial={{ opacity: 0, maxHeight: 0 }}
+                  animate={{ opacity: 1, maxHeight: 120 }}
+                  exit={{ opacity: 0, maxHeight: 0 }}
                   transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] as const }}
                   className="overflow-hidden"
                 >
@@ -142,11 +158,11 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
               </div>
             ) : (
               <div className="min-h-0 flex-1 overflow-hidden">
-                <div className="h-full overflow-auto">
+                <div ref={scrollRef} className="h-full overflow-auto">
                   <table className="w-full border-collapse text-sm">
                     <thead className="sticky top-0 z-10 bg-muted/95">
                       <tr>
-                        <th className="sticky left-0 z-20 w-10 border-b border-r border-border/10 bg-muted/30 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground/50">#</th>
+                        <th className="sticky left-0 z-20 w-10 border-b border-r border-border/10 bg-muted/95 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground/50">#</th>
                         {result.columns.map((column) => (
                           <th key={column} className="border-b border-border/10 px-3 py-2 text-left text-xs font-medium text-foreground">
                             {column}
@@ -155,7 +171,14 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
                       </tr>
                     </thead>
                     <tbody>
-                      {result.rows.map((row, index) => {
+                      {paddingTop > 0 && (
+                        <tr>
+                          <td colSpan={result.columns.length + 1} style={{ height: `${paddingTop}px` }} />
+                        </tr>
+                      )}
+                      {virtualRows.map((virtualRow) => {
+                        const index = virtualRow.index;
+                        const row = result.rows[index];
                         const isEven = index % 2 === 0;
                         return (
                           <tr key={index} className={isEven ? 'bg-muted/30' : ''}>
@@ -176,6 +199,11 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
                           </tr>
                         );
                       })}
+                      {paddingBottom > 0 && (
+                        <tr>
+                          <td colSpan={result.columns.length + 1} style={{ height: `${paddingBottom}px` }} />
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

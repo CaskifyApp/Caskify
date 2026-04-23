@@ -1,5 +1,6 @@
 import { ArrowUpDown, ArrowUp, ArrowDown, Key } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { CellRenderer } from '@/components/DataGrid/CellRenderer';
 import { JSONViewerModal } from '@/components/Modals/JSONViewerModal';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,8 @@ interface DataGridProps {
   columns?: ColumnDef[];
 }
 
+const ROW_HEIGHT = 36;
+
 function getColumnDisplayType(col?: ColumnDef): string {
   if (!col) return '';
   if (col.isPrimaryKey) return 'PK';
@@ -28,6 +31,19 @@ function getColumnDisplayType(col?: ColumnDef): string {
 export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, selectedRowIndex, onRowSelect, columns }: DataGridProps) {
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [jsonViewerValue, setJsonViewerValue] = useState<unknown>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: data?.rows.length ?? 0,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 8,
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0;
+  const paddingBottom = virtualRows.length > 0 ? totalSize - virtualRows[virtualRows.length - 1].end : 0;
 
   const getColumnDef = (colName: string): ColumnDef | undefined => {
     return columns?.find((c) => c.name === colName);
@@ -68,11 +84,11 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
   return (
     <>
       <div className="overflow-hidden rounded-lg border border-border/10 bg-background">
-        <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+        <div ref={scrollRef} className="overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
           <table className="w-full border-collapse text-sm">
             <thead className="sticky top-0 z-10 bg-muted/95">
               <tr>
-                <th className="sticky left-0 z-20 w-10 border-b border-r border-border/10 bg-muted/30 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground/50">
+                <th className="sticky left-0 z-20 w-10 border-b border-r border-border/10 bg-muted/95 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground/50">
                   #
                 </th>
                 {data.columns.map((column) => {
@@ -118,7 +134,14 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
               </tr>
             </thead>
             <tbody>
-              {data.rows.map((row, index) => {
+              {paddingTop > 0 && (
+                <tr>
+                  <td colSpan={data.columns.length + 1} style={{ height: `${paddingTop}px` }} />
+                </tr>
+              )}
+              {virtualRows.map((virtualRow) => {
+                const index = virtualRow.index;
+                const row = data.rows[index];
                 const isSelected = selectedRowIndex === index;
                 const isEven = index % 2 === 0;
 
@@ -161,6 +184,11 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
                   </tr>
                 );
               })}
+              {paddingBottom > 0 && (
+                <tr>
+                  <td colSpan={data.columns.length + 1} style={{ height: `${paddingBottom}px` }} />
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

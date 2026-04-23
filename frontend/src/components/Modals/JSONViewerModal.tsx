@@ -1,6 +1,6 @@
 import CodeMirror from '@uiw/react-codemirror';
 import { EditorView } from '@codemirror/view';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileJson } from 'lucide-react';
 
@@ -11,8 +11,8 @@ interface JSONViewerModalProps {
   title: string;
 }
 
-export function JSONViewerModal({ open, onOpenChange, value, title }: JSONViewerModalProps) {
-  const formatted = JSON.stringify(value, null, 2);
+function JSONViewerModalRaw({ open, onOpenChange, value, title }: JSONViewerModalProps) {
+  const formatted = useMemo(() => JSON.stringify(value, null, 2), [value]);
   const readOnlyTheme = useMemo(() => EditorView.theme({
     '&': {
       backgroundColor: 'transparent',
@@ -57,3 +57,5 @@ export function JSONViewerModal({ open, onOpenChange, value, title }: JSONViewer
     </Dialog>
   );
 }
+
+export const JSONViewerModal = memo(JSONViewerModalRaw);

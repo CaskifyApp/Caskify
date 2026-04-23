@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Braces, Check, X, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -50,7 +51,7 @@ function isNumericType(type?: string) {
   return lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('numeric') || lower.includes('decimal') || lower.includes('serial');
 }
 
-export function CellRenderer({ value, columnType, onOpenJson }: CellRendererProps) {
+function CellRendererRaw({ value, columnType, onOpenJson }: CellRendererProps) {
   if (value === null || value === undefined) {
     return (
       <span className="font-mono text-[11px] italic text-muted-foreground/40">null</span>
@@ -124,3 +125,5 @@ export function CellRenderer({ value, columnType, onOpenJson }: CellRendererProp
 
   return <span className="font-mono text-[12px] text-foreground/80">{String(value)}</span>;
 }
+
+export const CellRenderer = memo(CellRendererRaw);

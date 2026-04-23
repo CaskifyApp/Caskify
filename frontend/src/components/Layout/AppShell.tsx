@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Settings } from 'lucide-react';
 import { ConnectionList } from '@/components/Sidebar/ConnectionList';
 import { TabBar } from '@/components/TabBar/TabBar';
@@ -72,11 +73,22 @@ export function AppShell() {
       <main className="flex min-w-0 flex-1 flex-col bg-background">
         <TabBar />
         <div className="perf-scroll min-h-0 flex-1 overflow-auto [contain:layout_paint]">
-          {activeTab ? (
-            <Suspense fallback={loadingFallback}>
-              {activeTab.mode === 'query' ? <QueryView key={activeTab.id} tab={activeTab} /> : <TableView key={activeTab.id} tab={activeTab} />}
-            </Suspense>
-          ) : <WelcomeView />}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab?.id ?? 'welcome'}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="h-full"
+            >
+              {activeTab ? (
+                <Suspense fallback={loadingFallback}>
+                  {activeTab.mode === 'query' ? <QueryView tab={activeTab} /> : <TableView tab={activeTab} />}
+                </Suspense>
+              ) : <WelcomeView />}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 

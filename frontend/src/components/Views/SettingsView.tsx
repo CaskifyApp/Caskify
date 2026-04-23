@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Settings2, Database, Keyboard, Info, CheckCircle2, AlertCircle, DatabaseZap } from 'lucide-react';
+import { Settings2, Database, Keyboard, Info, CheckCircle2, AlertCircle } from 'lucide-react';
 import * as wails from '../../../wailsjs/go/main/App';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetPanel } from '@/components/ui/sheet';
@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useConnectionStore } from '@/store/connectionStore';
 import { useSettingsStore } from '@/store/settingsStore';
+import caskifyLogo from '@/assets/images/caskify-logo.png';
 import type { DatabaseInfo, DatabaseOperationResult, DatabaseRestorePreflightResult } from '@/types';
 
 interface SettingsViewProps {
@@ -425,8 +426,8 @@ export function SettingsView({ open, onOpenChange }: SettingsViewProps) {
             <TabsContent value="about" className="flex-1 animate-in fade-in-50">
                <div className="overflow-hidden rounded-xl border border-border/10 bg-surface-inset shadow-sm">
                 <div className="flex flex-col items-center justify-center p-8 border-b border-border/5">
-                  <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-violet-600 shadow-lg">
-                    <DatabaseZap className="size-8 text-white" />
+                  <div className="flex size-16 items-center justify-center overflow-hidden rounded-2xl bg-primary/10 ring-1 ring-border/30 shadow-lg">
+                    <img src={caskifyLogo} alt="Caskify logo" className="h-full w-full object-cover" />
                   </div>
                   <h2 className="mt-4 text-xl font-semibold tracking-tight">Caskify</h2>
                   <p className="mt-1 text-xs text-muted-foreground">The modern PostgreSQL GUI</p>

@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle2, ChevronRight, Settings, Database, Cloud, DatabaseZap, HardDrive, Container, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConnectionModal } from '@/components/Modals/ConnectionModal';
+import caskifyLogo from '@/assets/images/caskify-logo.png';
 
 function getProfileIcon(sourceKind?: string) {
   switch (sourceKind) {
@@ -63,9 +64,9 @@ export function SetupWizard() {
   return (
     <div className="flex h-screen w-full bg-background text-foreground selection:bg-primary/30">
       <div className="flex w-[260px] flex-col border-r border-border/40 bg-sidebar text-sidebar-foreground p-6">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary/20 ring-1 ring-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.3)]">
-            <span className="text-sm font-bold text-primary">C</span>
+          <div className="mb-8 flex items-center gap-3">
+          <div className="flex size-8 items-center justify-center overflow-hidden rounded-lg bg-primary/10 ring-1 ring-border/30">
+            <img src={caskifyLogo} alt="Caskify logo" className="h-full w-full object-cover" />
           </div>
           <h1 className="text-lg font-bold tracking-tight">Caskify</h1>
         </div>

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTabStore } from '@/store/tabStore';
 import { useDiscoveryStore } from '@/store/discoveryStore';
+import caskifyLogo from '@/assets/images/caskify-logo.png';
 
 const QueryView = lazy(() => import('@/components/Views/QueryView').then((module) => ({ default: module.QueryView })));
 const SettingsView = lazy(() => import('@/components/Views/SettingsView').then((module) => ({ default: module.SettingsView })));
@@ -54,8 +55,8 @@ export function AppShell() {
       <aside className="flex w-[260px] flex-col border-r border-border/40 bg-sidebar text-sidebar-foreground">
         <div className="flex items-center justify-between px-3 py-2.5">
           <div className="flex items-center gap-2">
-            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/15">
-              <span className="text-sm font-bold text-primary">C</span>
+            <div className="flex size-7 items-center justify-center overflow-hidden rounded-lg bg-primary/10 ring-1 ring-border/30">
+              <img src={caskifyLogo} alt="Caskify logo" className="h-full w-full object-cover" />
             </div>
             <div>
               <h1 className="text-sm font-semibold leading-none">Caskify</h1>

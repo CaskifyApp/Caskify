@@ -3,6 +3,7 @@ import * as wails from '../../../wailsjs/go/main/App';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { KeyRound, Sparkles } from 'lucide-react';
 import type { ColumnDef, InsertRowParams, UpdateRowParams } from '@/types';
@@ -232,12 +233,12 @@ export function RowEditorModal({ open, onOpenChange, columns, row, mode, profile
                     </SelectContent>
                   </Select>
                 ) : isJsonColumn(column) || isLongTextColumn(column) ? (
-                  <textarea
+                  <Textarea
                     value={draft[column.name] ?? ''}
                     onChange={(event) => setDraftValue(column.name, event.target.value)}
                     disabled={isReadonlyColumn(column)}
                     rows={isJsonColumn(column) ? 6 : 3}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono resize-y min-h-[60px]"
+                    className="w-full min-h-[60px] resize-y px-3 py-2 text-xs font-mono"
                   />
                 ) : isTimestampColumn(column) ? (
                   <Input

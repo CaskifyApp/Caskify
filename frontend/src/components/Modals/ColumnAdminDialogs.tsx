@@ -4,6 +4,7 @@ import { db } from '../../../wailsjs/go/models';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CUSTOM_COLUMN_TYPE_VALUE, isPresetPostgresColumnType, normalizePostgresColumnType, POSTGRES_COLUMN_TYPE_GROUPS } from '@/lib/postgres-column-types';
 
@@ -144,7 +145,7 @@ export function AddColumnDialog({ open, onOpenChange, profileId, databaseName, s
           </div>
 
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={nullable} onChange={(event) => setNullable(event.target.checked)} className="size-4 rounded border-border" />
+            <Switch checked={nullable} onCheckedChange={setNullable} />
             <span className="text-muted-foreground/70">Nullable</span>
           </label>
 

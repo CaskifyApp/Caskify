@@ -4,6 +4,7 @@ import { db } from '../../../wailsjs/go/models';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, Plus, KeyRound, Ban } from 'lucide-react';
 import { CUSTOM_COLUMN_TYPE_VALUE, isPresetPostgresColumnType, normalizePostgresColumnType, POSTGRES_COLUMN_TYPE_GROUPS } from '@/lib/postgres-column-types';
@@ -198,21 +199,24 @@ export function CreateTableDialog({ open, onOpenChange, profileId, databaseName,
                     </div>
                     <div className="flex items-center gap-3 pt-4">
                       <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={!column.nullable} 
-                          onChange={(event) => updateColumn(index, { nullable: !event.target.checked })} 
-                          className="size-3.5 rounded border-border"
+                        <Switch
+                          checked={!column.nullable}
+                          onCheckedChange={(checked) => updateColumn(index, { nullable: !checked })}
+                          className="scale-75"
                         />
                         <Ban className="size-3 text-muted-foreground/50" />
                         <span className="text-muted-foreground/70">Not null</span>
                       </label>
                       <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          checked={column.isPrimaryKey} 
-                          onChange={(event) => updateColumn(index, { isPrimaryKey: event.target.checked, nullable: event.target.checked ? false : column.nullable })} 
-                          className="size-3.5 rounded border-border"
+                        <Switch
+                          checked={column.isPrimaryKey}
+                          onCheckedChange={(checked) =>
+                            updateColumn(index, {
+                              isPrimaryKey: checked,
+                              nullable: checked ? false : column.nullable,
+                            })
+                          }
+                          className="scale-75"
                         />
                         <KeyRound className="size-3 text-amber-400/70" />
                         <span className="text-muted-foreground/70">PK</span>

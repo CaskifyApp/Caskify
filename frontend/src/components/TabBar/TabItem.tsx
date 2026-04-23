@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { X, Table2, FileCode } from 'lucide-react';
 import { useConnectionStore } from '@/store/connectionStore';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Tab } from '@/types';
 
 interface TabItemProps {
@@ -45,7 +46,6 @@ function TabItemRaw({ tab, active, onSelect, onClose }: TabItemProps) {
           : 'bg-transparent text-muted-foreground hover:bg-muted/10 hover:text-foreground/80'
       )}
       onClick={() => onSelect(tab.id)}
-      title={tab.mode === 'table' ? `${tab.schemaName}.${tab.tableName}` : tab.title}
     >
       {/* Color strip indicator */}
       {active && (
@@ -60,23 +60,32 @@ function TabItemRaw({ tab, active, onSelect, onClose }: TabItemProps) {
       )}
 
       {/* Tab title */}
-      <span className="min-w-0 flex-1 truncate font-medium">{tab.title}</span>
+      <Tooltip>
+        <TooltipTrigger render={<span className="min-w-0 flex-1 truncate font-medium" />}>{tab.title}</TooltipTrigger>
+        <TooltipContent>{tab.mode === 'table' ? `${tab.schemaName}.${tab.tableName}` : tab.title}</TooltipContent>
+      </Tooltip>
 
       {/* Close button - visible on hover or always for active */}
-      <button
-        type="button"
-        className={cn(
-          'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground/50 transition-all hover:bg-muted hover:text-foreground',
-          active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        )}
-        onClick={(event) => {
-          event.stopPropagation();
-          onClose(tab.id);
-        }}
-        title="Close tab"
-      >
-        <X className="size-2.5" />
-      </button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              className={cn(
+                'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground/50 transition-all hover:bg-muted hover:text-foreground',
+                active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              )}
+              onClick={(event) => {
+                event.stopPropagation();
+                onClose(tab.id);
+              }}
+            />
+          }
+        >
+          <X className="size-2.5" />
+        </TooltipTrigger>
+        <TooltipContent>Close tab</TooltipContent>
+      </Tooltip>
     </div>
   );
 }

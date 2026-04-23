@@ -17,7 +17,7 @@ function JSONViewerModalRaw({ open, onOpenChange, value, title }: JSONViewerModa
     '&': {
       backgroundColor: 'transparent',
       fontSize: '11px',
-      fontFamily: 'monospace',
+      fontFamily: 'JetBrains Mono, monospace',
     },
     '.cm-gutters': {
       backgroundColor: 'transparent',

@@ -65,6 +65,7 @@ export function QueryEditor({ value, onChange, onRun, completionItems = [] }: Qu
           backgroundColor: 'transparent',
           color: 'oklch(0.987 0.002 197.1)',
           fontSize: `${fontSize}px`,
+          fontFamily: 'JetBrains Mono, monospace',
         },
         '.cm-content': {
           caretColor: 'oklch(0.987 0.002 197.1)',
@@ -97,6 +98,7 @@ export function QueryEditor({ value, onChange, onRun, completionItems = [] }: Qu
         backgroundColor: 'transparent',
         color: 'oklch(0.148 0.004 228.8)',
         fontSize: `${fontSize}px`,
+        fontFamily: 'JetBrains Mono, monospace',
       },
       '.cm-gutters': {
         backgroundColor: 'transparent',

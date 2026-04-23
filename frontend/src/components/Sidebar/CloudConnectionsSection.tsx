@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'motion/react';
 import { Edit2, Plus, Plug, PlugZap, Trash2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
@@ -95,19 +96,41 @@ export function CloudConnectionsSection({
                   </div>
                 </div>
 
-                <div className="pb-2 pl-3">
-                  <DatabaseTree
-                    connectionId={profile.id}
-                    connected={isConnected}
-                    selectedDatabaseName={profile.defaultDatabase || profile.database || 'postgres'}
-                    onTableSelect={onTableSelect}
-                    onRequestDropDatabase={(databaseName) => onRequestDropDatabase(profile, databaseName)}
-                  />
-                </div>
+                <AnimatePresence>
+                  {isConnected && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pb-2 pl-3">
+                        <DatabaseTree
+                          connectionId={profile.id}
+                          connected={isConnected}
+                          selectedDatabaseName={profile.defaultDatabase || profile.database || 'postgres'}
+                          onTableSelect={onTableSelect}
+                          onRequestDropDatabase={(databaseName) => onRequestDropDatabase(profile, databaseName)}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                {status?.error ? (
-                  <div className="px-3 pb-1 text-[10px] text-rose-400">{status.error}</div>
-                ) : null}
+                <AnimatePresence>
+                  {status?.error ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: -2 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -2 }}
+                      transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] }}
+                      className="px-3 pb-1 text-[10px] text-rose-400"
+                    >
+                      {status.error}
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
               </li>
             );
           })}

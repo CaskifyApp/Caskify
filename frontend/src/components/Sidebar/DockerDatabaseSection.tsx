@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Container, RefreshCw, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DatabaseTree } from '@/components/Sidebar/DatabaseTree';
@@ -103,15 +104,25 @@ export function DockerDatabaseSection({ onBrowse, onTableSelect }: DockerDatabas
                 </button>
               </div>
 
-              {activeDatabaseId === database.id && activeConnectionId ? (
-                <div className="pb-2 pl-3">
-                  <DatabaseTree
-                    connectionId={activeConnectionId}
-                    connected={true}
-                    onTableSelect={onTableSelect}
-                  />
-                </div>
-              ) : null}
+              <AnimatePresence>
+                {activeDatabaseId === database.id && activeConnectionId ? (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pb-2 pl-3">
+                      <DatabaseTree
+                        connectionId={activeConnectionId}
+                        connected={true}
+                        onTableSelect={onTableSelect}
+                      />
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </li>
           ))}
         </ul>

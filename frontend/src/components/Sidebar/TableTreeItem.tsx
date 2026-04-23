@@ -133,17 +133,19 @@ export function TableTreeItem({ node, depth = 0, onTableSelect, onRequestDropDat
       <AnimatePresence initial={false}>
         {node.expanded && node.children?.length ? (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ gridTemplateRows: '0fr', opacity: 0 }}
+            animate={{ gridTemplateRows: '1fr', opacity: 1 }}
+            exit={{ gridTemplateRows: '0fr', opacity: 0 }}
             transition={{ duration: 0.18, ease: 'easeInOut' }}
-            className="overflow-hidden"
+            style={{ display: 'grid' }}
           >
-            <ul className="flex flex-col gap-0.5">
-              {node.children.map((child) => (
-                <TableTreeItem key={child.id} node={child} depth={depth + 1} onTableSelect={onTableSelect} onRequestDropDatabase={onRequestDropDatabase} />
-              ))}
-            </ul>
+            <div className="overflow-hidden">
+              <ul className="flex flex-col gap-0.5">
+                {node.children.map((child) => (
+                  <TableTreeItem key={child.id} node={child} depth={depth + 1} onTableSelect={onTableSelect} onRequestDropDatabase={onRequestDropDatabase} />
+                ))}
+              </ul>
+            </div>
           </motion.div>
         ) : null}
       </AnimatePresence>

@@ -11,6 +11,7 @@ type Settings struct {
 	DefaultRowsPerPage int    `json:"defaultRowsPerPage"`
 	EditorFontSize     int    `json:"editorFontSize"`
 	HistoryLimit       int    `json:"historyLimit"`
+	WizardCompleted    bool   `json:"wizardCompleted"`
 }
 
 func settingsPath() string {
@@ -23,6 +24,7 @@ func GetSettings() (Settings, error) {
 		DefaultRowsPerPage: 50,
 		EditorFontSize:     14,
 		HistoryLimit:       100,
+		WizardCompleted:    false,
 	}
 
 	data, err := os.ReadFile(settingsPath())

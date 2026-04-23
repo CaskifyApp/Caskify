@@ -5,6 +5,7 @@ export namespace config {
 	    defaultRowsPerPage: number;
 	    editorFontSize: number;
 	    historyLimit: number;
+	    wizardCompleted: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -16,6 +17,7 @@ export namespace config {
 	        this.defaultRowsPerPage = source["defaultRowsPerPage"];
 	        this.editorFontSize = source["editorFontSize"];
 	        this.historyLimit = source["historyLimit"];
+	        this.wizardCompleted = source["wizardCompleted"];
 	    }
 	}
 

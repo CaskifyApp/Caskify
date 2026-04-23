@@ -144,7 +144,7 @@ export function QueryResultsPanel({ result, loading, error }: QueryResultsPanelP
               <div className="min-h-0 flex-1 overflow-hidden">
                 <div className="h-full overflow-auto">
                   <table className="w-full border-collapse text-sm">
-                    <thead className="sticky top-0 z-10 bg-muted/30 backdrop-blur-sm">
+                    <thead className="sticky top-0 z-10 bg-muted/95">
                       <tr>
                         <th className="sticky left-0 z-20 w-10 border-b border-r border-border/10 bg-muted/30 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground/50">#</th>
                         {result.columns.map((column) => (

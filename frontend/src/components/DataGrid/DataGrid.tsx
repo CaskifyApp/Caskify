@@ -70,7 +70,7 @@ export function DataGrid({ data, loading, error, sortColumn, sortDir, onSort, se
       <div className="overflow-hidden rounded-lg border border-border/10 bg-background">
         <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
           <table className="w-full border-collapse text-sm">
-            <thead className="sticky top-0 z-10 bg-muted/30 backdrop-blur-sm">
+            <thead className="sticky top-0 z-10 bg-muted/95">
               <tr>
                 <th className="sticky left-0 z-20 w-10 border-b border-r border-border/10 bg-muted/30 px-2 py-2 text-center text-[10px] font-medium text-muted-foreground/50">
                   #

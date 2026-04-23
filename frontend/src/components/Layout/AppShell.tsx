@@ -65,14 +65,14 @@ export function AppShell() {
             <Settings className="size-3.5" />
           </Button>
         </div>
-        <div className="perf-scroll min-h-0 flex-1 overflow-hidden [contain:layout_paint]">
+        <div className="perf-scroll gpu-layer min-h-0 flex-1 overflow-hidden [contain:layout_paint]">
           <ConnectionList />
         </div>
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col bg-background">
         <TabBar />
-        <div className="perf-scroll min-h-0 flex-1 overflow-auto [contain:layout_paint]">
+        <div className="perf-scroll gpu-layer min-h-0 flex-1 overflow-auto [contain:layout_paint]">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab?.id ?? 'welcome'}

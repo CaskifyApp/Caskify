@@ -214,6 +214,7 @@ export interface AppSettings {
   defaultRowsPerPage: number;
   editorFontSize: number;
   historyLimit: number;
+  wizardCompleted: boolean;
 }
 
 export interface TablePageParams {

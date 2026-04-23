@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultRowsPerPage: 50,
   editorFontSize: 14,
   historyLimit: 100,
+  wizardCompleted: false,
 };
 
 function normalizeSettings(settings: AppSettings): AppSettings {
@@ -29,6 +30,7 @@ function normalizeSettings(settings: AppSettings): AppSettings {
     defaultRowsPerPage: Math.min(5000, Math.max(25, settings.defaultRowsPerPage || DEFAULT_SETTINGS.defaultRowsPerPage)),
     editorFontSize: Math.min(24, Math.max(10, settings.editorFontSize || DEFAULT_SETTINGS.editorFontSize)),
     historyLimit: Math.min(1000, Math.max(10, settings.historyLimit || DEFAULT_SETTINGS.historyLimit)),
+    wizardCompleted: !!settings.wizardCompleted,
   };
 }
 

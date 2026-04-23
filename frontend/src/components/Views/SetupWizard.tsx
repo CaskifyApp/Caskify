@@ -11,6 +11,11 @@ export function SetupWizard() {
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const { settings, updateSettings } = useSettingsStore();
 
+  const handleThemeChange = async (theme: 'light' | 'dark') => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    await updateSettings({ theme });
+  };
+
   const handleSkip = async () => {
     await updateSettings({ wizardCompleted: true });
   };
@@ -93,7 +98,7 @@ export function SetupWizard() {
                     <label className="text-sm font-medium">Theme Preference</label>
                     <div className="grid grid-cols-2 gap-4">
                       <button
-                        onClick={() => updateSettings({ theme: 'light' })}
+                        onClick={() => void handleThemeChange('light')}
                         className={cn(
                           "flex flex-col items-center gap-2 rounded-lg border p-4 transition-all hover:bg-accent",
                           settings.theme === 'light' ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "border-border/40 bg-card/50"
@@ -106,7 +111,7 @@ export function SetupWizard() {
                         <span className="text-sm font-medium">Light</span>
                       </button>
                       <button
-                        onClick={() => updateSettings({ theme: 'dark' })}
+                        onClick={() => void handleThemeChange('dark')}
                         className={cn(
                           "flex flex-col items-center gap-2 rounded-lg border p-4 transition-all hover:bg-accent",
                           settings.theme === 'dark' ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "border-border/40 bg-card/50"
@@ -129,16 +134,16 @@ export function SetupWizard() {
                 <h2 className="mb-2 text-2xl font-semibold tracking-tight">Remote Connections</h2>
                 <p className="mb-8 text-muted-foreground">Set up your cloud database access.</p>
 
-                <Card variant="panel" className="bg-card/50">
-                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                    <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/20">
-                      <Database className="size-8 text-primary" />
+                <Card variant="panel" className="overflow-hidden bg-card/50">
+                  <CardContent className="flex flex-col items-center justify-center p-10 text-center">
+                    <div className="mb-5 flex size-14 items-center justify-center rounded-xl bg-primary/10 shadow-[0_0_15px_rgba(var(--primary),0.15)] ring-1 ring-primary/20">
+                      <Database className="size-6 text-primary" />
                     </div>
-                    <h3 className="mb-2 font-medium">Connect to Remote Database</h3>
-                    <p className="mb-6 max-w-sm text-sm text-muted-foreground">
-                      Add your remote PostgreSQL, MySQL, or other supported database connections now, or do it later from the sidebar.
+                    <h3 className="mb-2 text-base font-medium">Connect to Remote Database</h3>
+                    <p className="mb-8 max-w-[280px] text-sm text-muted-foreground leading-relaxed">
+                      Add your PostgreSQL, MySQL, or other supported remote databases now, or do it later from the sidebar.
                     </p>
-                    <Button onClick={() => setShowConnectionModal(true)} variant="default">
+                    <Button onClick={() => setShowConnectionModal(true)} variant="default" className="shadow-sm">
                       Add Connection Now
                     </Button>
                   </CardContent>

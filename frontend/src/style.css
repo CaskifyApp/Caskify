@@ -179,6 +179,12 @@ body {
     --glow-destructive: oklch(0.577 0.245 27.325 / 0.25);
     --surface-elevated: oklch(1 0 0);
     --surface-inset: oklch(0.963 0.002 197.1);
+    --motion-duration-fast: 150ms;
+    --motion-duration-normal: 250ms;
+    --motion-duration-slow: 350ms;
+    --motion-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
+    --motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
 }
 
 .dark {
@@ -224,6 +230,12 @@ body {
     --glow-destructive: oklch(0.704 0.191 22.216 / 0.35);
     --surface-elevated: oklch(0.218 0.008 223.9);
     --surface-inset: oklch(0.148 0.004 228.8);
+    --motion-duration-fast: 150ms;
+    --motion-duration-normal: 250ms;
+    --motion-duration-slow: 350ms;
+    --motion-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
+    --motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
 }
 
 @layer base {
@@ -304,5 +316,18 @@ body {
   }
   .ring-glow-destructive {
     box-shadow: 0 0 0 1px var(--destructive), 0 0 0 4px var(--glow-destructive);
+  }
+  .motion-reduce {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
